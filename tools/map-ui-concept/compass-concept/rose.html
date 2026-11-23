@@ -1,0 +1,144 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+html,body{margin:0;padding:0;background:#000;overflow:hidden}
+#wrap{position:relative;width:1919px;height:1079px;transform-origin:var(--ox,0) var(--oy,0);transform:scale(var(--z,1))}
+#bg{position:absolute;left:0;top:0;width:1919px;height:1079px}
+svg{position:absolute;left:0;top:0}
+</style></head><body><div id="wrap"><img id="bg" src="map.webp">
+<svg id="s" width="1919" height="1079" viewBox="0 0 1919 1079">
+<defs>
+<filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="7" stdDeviation="9" flood-color="#020814" flood-opacity="0.75"/></filter>
+<filter id="bloom" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur in="SourceGraphic" stdDeviation="3.5" result="b"/><feColorMatrix in="b" type="matrix" values="1 0 0 0 0.05  0 1 0 0 0.03  0 0 1 0 0  0 0 0 0.55 0" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+<filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="7" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0.12  0 0 0 0 0.08  0 0 0 0 0.02  0 0 0 0.9 -0.35" result="na"/><feComposite in="na" in2="SourceAlpha" operator="in" result="t"/><feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="t"/></feMerge></filter>
+<filter id="glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="7"/></filter>
+<filter id="glowS" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur in="SourceGraphic" stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+<radialGradient id="fade" cx="960" cy="545" r="900" gradientUnits="userSpaceOnUse"><stop offset="0.12" stop-color="#fff" stop-opacity="1"/><stop offset="0.55" stop-color="#fff" stop-opacity="0.45"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+<mask id="rmask" maskUnits="userSpaceOnUse" x="0" y="0" width="1919" height="1079"><rect width="1919" height="1079" fill="url(#fade)"/></mask>
+<radialGradient id="halo" cx="0" cy="0" r="1" gradientUnits="objectBoundingBox"></radialGradient>
+<radialGradient id="seaHalo"><stop offset="0" stop-color="#2A4F86" stop-opacity="0.55"/><stop offset="0.6" stop-color="#1E3D6C" stop-opacity="0.25"/><stop offset="1" stop-color="#1E3D6C" stop-opacity="0"/></radialGradient>
+<radialGradient id="disc"><stop offset="0" stop-color="#0B1B36" stop-opacity="0.92"/><stop offset="0.85" stop-color="#10264A" stop-opacity="0.88"/><stop offset="1" stop-color="#16325C" stop-opacity="0.9"/></radialGradient>
+<radialGradient id="cyanGlow"><stop offset="0" stop-color="#7FF4FF" stop-opacity="0.9"/><stop offset="0.35" stop-color="#3FD4E6" stop-opacity="0.45"/><stop offset="1" stop-color="#3FD4E6" stop-opacity="0"/></radialGradient>
+<linearGradient id="ray" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9FF8FF" stop-opacity="0"/><stop offset="0.5" stop-color="#9FF8FF" stop-opacity="0.55"/><stop offset="1" stop-color="#9FF8FF" stop-opacity="0"/></linearGradient>
+<linearGradient id="labelLine" x1="0" x2="1"><stop offset="0" stop-color="#D9B866" stop-opacity="0"/><stop offset="1" stop-color="#D9B866" stop-opacity="0.8"/></linearGradient>
+<linearGradient id="labelLineR" x1="1" x2="0"><stop offset="0" stop-color="#D9B866" stop-opacity="0"/><stop offset="1" stop-color="#D9B866" stop-opacity="0.8"/></linearGradient>
+</defs>
+<g id="under"></g>
+<g id="rose" transform="translate(960,545)" filter="url(#shadow)"><g id="metal" filter="url(#bloom)"><g id="m2" filter="url(#grain)"></g></g></g>
+<g id="arcane" transform="translate(960,545)"></g>
+<g id="labels"></g>
+</svg></div>
+<script>
+const NS="http://www.w3.org/2000/svg";
+const q=new URLSearchParams(location.search);
+if(q.get("ox")){const w=document.getElementById("wrap");w.style.marginLeft=(-q.get("ox"))+"px";w.style.marginTop=(-q.get("oy"))+"px";}
+const el=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e;};
+const defs=document.querySelector("defs"),U=document.getElementById("under"),M=document.getElementById("m2"),A=document.getElementById("arcane"),LB=document.getElementById("labels");
+const CX=960,CY=545,D=Math.PI/180;
+const lerp=(a,b,t)=>a+(b-a)*t;
+const GOLD=[[62,40,8],[122,84,32],[201,153,63],[240,208,138],[255,242,196]];
+function gold(b){b=Math.max(0,Math.min(1,b))*4;const i=Math.min(3,Math.floor(b)),t=b-i;const c=GOLD[i].map((v,k)=>Math.round(lerp(v,GOLD[i+1][k],t)));return `rgb(${c})`;}
+let gid=0;
+function grad(b,tipBoost){const id="g"+(gid++);const g=el("linearGradient",{id,x1:0,y1:0,x2:0,y2:1},defs);
+el("stop",{offset:0,"stop-color":gold(b+tipBoost)},g);el("stop",{offset:0.55,"stop-color":gold(b)},g);el("stop",{offset:1,"stop-color":gold(b-0.18)},g);return `url(#${id})`;}
+const LIGHT=-135; // luz vinda de cima à esquerda
+function lit(normalDeg){return 0.5+0.5*Math.cos((normalDeg-LIGHT)*D);}
+// --- linhas de rumo e carta náutica (sob a rosa)
+const RL=el("g",{mask:"url(#rmask)"},U);
+// só sobre o mar: máscara feita dos próprios pixels do mapa (azul-marinho = mar), com o esmaecer radial
+(function(){const img=document.getElementById("bg");const go=()=>{try{const c=document.createElement("canvas");c.width=1919;c.height=1079;const x=c.getContext("2d");x.drawImage(img,0,0);
+const d=x.getImageData(0,0,1919,1079),p=d.data;for(let i=0;i<p.length;i+=4){const r=p[i],g=p[i+1],b=p[i+2];const sea=(b>r+30&&b>g+12&&b<140&&r<60)?1:0;
+const k=i/4,px=k%1919,py=(k/1919)|0;const dd=Math.hypot(px-CX,py-CY)/900;const fade=dd<0.12?1:dd<0.55?1-(dd-0.12)/0.43*0.55:Math.max(0,0.45*(1-(dd-0.55)/0.45));
+const v=Math.round(255*sea*fade);p[i]=p[i+1]=p[i+2]=v;p[i+3]=255;}
+x.putImageData(d,0,0);const c2=document.createElement("canvas");c2.width=1919;c2.height=1079;const y=c2.getContext("2d");y.filter="blur(2.5px)";y.drawImage(c,0,0);
+const m=document.getElementById("rmask");m.innerHTML="";el("image",{href:c2.toDataURL(),x:0,y:0,width:1919,height:1079},m);}catch(e){document.title="ERR "+e}};
+if(img.complete)go();else img.onload=go;})();
+el("circle",{cx:CX,cy:CY,r:330,fill:"url(#seaHalo)"},U);
+for(let i=0;i<32;i++){const a=i*11.25*D,main=i%4===0,mid=i%2===0;
+el("line",{x1:CX,y1:CY,x2:CX+Math.sin(a)*1500,y2:CY-Math.cos(a)*1500,stroke:main?"#E7C982":mid?"#C9A65A":"#6FDCE8","stroke-opacity":main?0.42:mid?0.24:0.16,"stroke-width":main?1.3:0.8},RL);}
+[300,420].forEach((r,i)=>el("circle",{cx:CX,cy:CY,r,fill:"none",stroke:"#D9B866","stroke-opacity":i?0.12:0.22,"stroke-width":0.9,"stroke-dasharray":i?"2 7":"1 4"},RL));
+// rosas menores nos cruzamentos das linhas de rumo
+function miniRose(x,y,s,op){const g=el("g",{transform:`translate(${x},${y}) scale(${s})`,opacity:op},U);
+el("circle",{r:20,fill:"none",stroke:"#D9B866","stroke-width":1},g);
+for(let i=0;i<8;i++){const a=i*45,l=i%2?16:28,w=i%2?3:5;const p=el("g",{transform:`rotate(${a})`},g);
+el("path",{d:`M0 ${-l} L${w} ${-w} L0 0Z`,fill:gold(lit(a+90))},p);el("path",{d:`M0 ${-l} L${-w} ${-w} L0 0Z`,fill:gold(lit(a-90))},p);}
+el("circle",{r:2.5,fill:"#7FF4FF"},g);}
+// --- disco escuro e aros
+const disc=el("g",{},M);
+el("circle",{r:200,fill:"url(#disc)"},disc);
+function ring(r,w,b){el("circle",{r,fill:"none",stroke:gold(b),"stroke-width":w},M);}
+// aro externo em relevo (tubo de latão)
+ring(201,2.4,0.08);ring(198.5,2.2,0.95);ring(195.5,4,0.62);ring(192.5,2,0.3);ring(190.6,1.2,0.82);
+// faixa graduada
+el("circle",{r:180,fill:"none",stroke:"#071328","stroke-opacity":0.55,"stroke-width":20},M);
+ring(170,1.4,0.75);ring(168.4,1,0.2);
+for(let i=0;i<360;i+=2){const a=i*D,big=i%30===0,mid=i%10===0,l=big?14:mid?9:5;
+el("line",{x1:Math.sin(a)*190,y1:-Math.cos(a)*190,x2:Math.sin(a)*(190-l),y2:-Math.cos(a)*(190-l),stroke:gold(big?0.92:mid?0.72:0.55),"stroke-width":big?1.6:mid?1.1:0.7},M);}
+for(let i=30;i<360;i+=30){if(i%90===0)continue;const a=i*D,r=176;
+const t=el("text",{x:0,y:0,transform:`rotate(${i}) translate(0,${-r+12})`,"text-anchor":"middle","font-family":"Georgia, 'Times New Roman', serif","font-size":9.5,fill:gold(0.85),"letter-spacing":0.5},M);t.textContent=i;}
+// filigrana entre os aros
+for(let k=0;k<8;k++){const g=el("g",{transform:`rotate(${k*45+22.5})`},M);
+const s=gold(0.78);
+el("path",{d:"M-26 -158 C-18 -166 -6 -166 0 -160 C6 -166 18 -166 26 -158",fill:"none",stroke:s,"stroke-width":1.1},g);
+el("path",{d:"M-26 -158 C-30 -152 -24 -147 -20 -151",fill:"none",stroke:s,"stroke-width":1},g);
+el("path",{d:"M26 -158 C30 -152 24 -147 20 -151",fill:"none",stroke:s,"stroke-width":1},g);
+el("path",{d:"M0 -160 L3 -155 L0 -150 L-3 -155Z",fill:gold(0.95)},g);}
+// anel interno dourado
+ring(142,1.2,0.85);ring(140,2.6,0.4);ring(137.5,1,0.9);
+// --- pontas da rosa
+function point(ang,len,w,base,op){const g=el("g",{transform:`rotate(${ang})`,opacity:op},M);
+const bR=lit(ang+90)*0.75+base,bL=lit(ang-90)*0.75+base;
+el("path",{d:`M0 ${-len} L${w} ${-w*1.1} L0 0Z`,fill:grad(bR,0.12)},g);
+el("path",{d:`M0 ${-len} L${-w} ${-w*1.1} L0 0Z`,fill:grad(bL,0.12)},g);
+el("path",{d:`M0 ${-len} L${w} ${-w*1.1} L0 0 L${-w} ${-w*1.1}Z`,fill:"none",stroke:"#2A1A04","stroke-opacity":0.75,"stroke-width":0.7,"stroke-linejoin":"round"},g);
+el("line",{x1:0,y1:-len+4,x2:0,y2:-w*1.4,stroke:gold(0.98),"stroke-opacity":0.7,"stroke-width":0.6},g);}
+for(let i=0;i<32;i++)if(i%2)point(i*11.25,108,5.5,-0.02,0.95);
+for(let i=0;i<16;i++)if(i%2)point(i*22.5,128,8,0.0,1);
+for(let i=0;i<8;i++)if(i%2)point(i*45,150,12,0.05,1);
+for(let i=0;i<4;i++)point(i*90,198,17,0.1,1);
+// anel arcano (ciano) com runas
+const glowRing=el("circle",{r:96,fill:"none",stroke:"#47DCEB","stroke-width":5,"stroke-opacity":0.55,filter:"url(#glow)"},A);
+el("circle",{r:96,fill:"none",stroke:"#8EF4FF","stroke-width":1.1,"stroke-opacity":0.85},A);
+el("circle",{r:82,fill:"none",stroke:"#8EF4FF","stroke-width":0.7,"stroke-opacity":0.5,"stroke-dasharray":"2 3"},A);
+let seed=11;const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647;};
+const runes=el("g",{filter:"url(#glowS)"},A);
+for(let i=0;i<36;i++){const g=el("g",{transform:`rotate(${i*10+5}) translate(0,-89)`},runes);let d="";
+for(let k=0;k<3;k++){const x1=Math.round(rnd()*4-2)*1.6,y1=Math.round(rnd()*4-2)*1.6,x2=Math.round(rnd()*4-2)*1.6,y2=Math.round(rnd()*4-2)*1.6;d+=`M${x1} ${y1}L${x2} ${y2}`;}
+el("path",{d,fill:"none",stroke:"#B9FAFF","stroke-width":0.8,"stroke-linecap":"round","stroke-opacity":0.9},g);}
+// medalhão central e cristal Azaath
+el("circle",{r:70,fill:"url(#cyanGlow)",opacity:0.75},A);
+for(let i=0;i<8;i++){el("rect",{x:-1,y:-118,width:2,height:236,fill:"url(#ray)",transform:`rotate(${i*22.5+11.25})`,opacity:i%2?0.35:0.6},A);}
+const med=el("g",{},A);
+el("circle",{r:40,fill:"#0A1A33"},med);
+el("circle",{r:40,fill:"none",stroke:gold(0.15),"stroke-width":2.5},med);
+el("circle",{r:37.5,fill:"none",stroke:gold(0.95),"stroke-width":1.6},med);
+el("circle",{r:34,fill:"none",stroke:gold(0.55),"stroke-width":2.4},med);
+el("circle",{r:31,fill:"none",stroke:"#8EF4FF","stroke-width":0.6,"stroke-opacity":0.6},med);
+const gem=el("g",{filter:"url(#glowS)"},med);
+const H=26,Wd=13,mid=-4;
+const f=(pts,c)=>el("polygon",{points:pts.map(p=>p.join(",")).join(" "),fill:c,stroke:"#D6FDFF","stroke-width":0.35,"stroke-opacity":0.8},gem);
+f([[0,-H],[-Wd,mid],[0,mid+4]],"#B8FBFF");f([[0,-H],[Wd,mid],[0,mid+4]],"#56D9E8");
+f([[-Wd,mid],[0,mid+4],[0,H]],"#2FA9BC");f([[Wd,mid],[0,mid+4],[0,H]],"#0E6676");
+f([[0,-H],[-4,mid-6],[0,mid+4]],"#E8FFFF");
+el("circle",{cx:-4,cy:-12,r:1.8,fill:"#fff"},gem);
+// seta do norte em ciano e ouro
+const N=el("g",{filter:"url(#glowS)"},A);
+el("path",{d:"M0 -236 L10 -214 L0 -220 L-10 -214Z",fill:"#7FF4FF"},N);
+el("path",{d:"M0 -236 L10 -214 L0 -220Z",fill:"#C8FBFF"},N);
+el("path",{d:"M-16 -210 C-10 -206 -4 -208 0 -214 C4 -208 10 -206 16 -210",fill:"none",stroke:gold(0.9),"stroke-width":1.3},A);
+// letras
+const L=[["N",0,30,0.97],["L",90,23,0.85],["S",180,23,0.85],["O",270,23,0.85]];
+L.forEach(([t,a,sz,b])=>{const r=a*D,d=a===0?250:226;
+const tx=el("text",{x:Math.sin(r)*d,y:-Math.cos(r)*d+sz*0.36,"text-anchor":"middle","font-family":"'Cinzel','Trajan Pro',Georgia,serif","font-size":sz,"font-weight":600,fill:gold(b),stroke:"#1A1004","stroke-width":0.6,"paint-order":"stroke","letter-spacing":1,filter:"url(#bloom)"},A);tx.textContent=t;});
+// nomes dos mares
+function seaLabel(x,y,text,size,op){const g=el("g",{opacity:op},LB);
+const t=el("text",{x,y,"text-anchor":"middle","font-family":"'Cormorant Garamond',Georgia,serif","font-style":"italic","font-size":size,"letter-spacing":size*0.32,fill:"#D6E2F2",stroke:"#0A1830","stroke-width":2.5,"paint-order":"stroke"},g);t.textContent=text;
+const w=text.length*size*0.62+30;
+el("line",{x1:x-w/2-70,y1:y-size*0.3,x2:x-w/2,y2:y-size*0.3,stroke:"url(#labelLine)","stroke-width":1.1},g);
+el("line",{x1:x+w/2,y1:y-size*0.3,x2:x+w/2+70,y2:y-size*0.3,stroke:"url(#labelLineR)","stroke-width":1.1},g);
+el("path",{d:`M${x-w/2} ${y-size*0.3-3} l4 3 l-4 3 l-4 -3Z M${x+w/2} ${y-size*0.3-3} l4 3 l-4 3 l-4 -3Z`,fill:"#D9B866"},g);}
+seaLabel(960,880,"O Grande Mar",26,0.95);
+seaLabel(1720,640,"Mar Proibido",19,0.8);
+seaLabel(200,560,"Mar Velado",19,0.8);
+miniRose(1020,190,1.1,0.55);miniRose(190,880,1.1,0.5);miniRose(1730,900,1,0.5);
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Cormorant+Garamond:ital@1&display=swap" rel="stylesheet">
+</body></html>

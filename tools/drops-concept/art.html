@@ -1,0 +1,923 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<style>
+@font-face{font-family:Cinzel;src:url(../../AzaathUI/Media/Fonts/Cinzel-Regular.ttf)}
+@font-face{font-family:CinzelB;src:url(../../AzaathUI/Media/Fonts/Cinzel-Bold.ttf)}
+@font-face{font-family:PT;src:url(../../AzaathUI/Media/Fonts/PTSans-Regular.ttf)}
+@font-face{font-family:PTB;src:url(../../AzaathUI/Media/Fonts/PTSans-Bold.ttf)}
+@font-face{font-family:Fell;src:url(../../AzaathUI/Media/Fonts/IMFell-Italic.ttf)}
+html,body{margin:0;background:#000;overflow:hidden}
+canvas{display:block}
+</style></head><body>
+<script src="../skills-concept/weapons.js"></script>
+<script src="assets.js"></script>
+<canvas id="c" width="2000" height="1125"></canvas>
+<script>
+// Arte de Conceito da aba Drops — "O Relicário de Azaath" (V2: Tríptico + Texturas Reais)
+const W = 2000, H = 1125;
+const cv = document.getElementById("c"), g = cv.getContext("2d");
+
+let seed = 29;
+const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+
+// Atlas exato de Professions.lua (CRAFT_ATLAS)
+const ATLAS = {
+  CardN:      { file: "CraftFrames", x: 290, y: 1,   w: 286, h: 366, pad: 10, m: [40, 40, 40, 40] },
+  CardA:      { file: "CraftFrames", x: 1,   y: 1,   w: 287, h: 367, pad: 10, m: [40, 40, 40, 40] },
+  CardAFlare: { file: "CraftFrames", x: 893, y: 1,   w: 123, h: 101, add: true, cy: 40 },
+  WideN:      { file: "CraftFrames", x: 578, y: 1,   w: 312, h: 121, pad: 10, m: [30, 26, 30, 26] },
+  WideA:      { file: "CraftFrames", x: 578, y: 124, w: 313, h: 121, pad: 10, m: [30, 26, 30, 26] },
+  WideAFlare: { file: "CraftFrames", x: 1,   y: 370, w: 115, h: 83,  add: true, cy: 39 },
+  Search:     { file: "CraftFrames", x: 533, y: 469, w: 432, h: 87,  pad: 6,  m: [38, 0, 38, 0] },
+  PillN:      { file: "CraftFrames", x: 187, y: 470, w: 180, h: 54,  pad: 5,  m: [22, 0, 22, 0] },
+  PillA:      { file: "CraftFrames", x: 1,   y: 455, w: 184, h: 60,  pad: 7,  m: [24, 0, 24, 0] },
+  BtnGold:    { file: "CraftFrames", x: 578, y: 247, w: 301, h: 118, pad: 10, m: [56, 0, 56, 0] },
+  BtnDark:    { file: "CraftFrames", x: 578, y: 367, w: 240, h: 100, pad: 4,  m: [24, 24, 24, 24] },
+  BtnSquare:  { file: "CraftFrames", x: 893, y: 104, w: 100, h: 100, pad: 4,  m: [24, 24, 24, 24] },
+  BarEmpty:   { file: "CraftFrames", x: 1,   y: 526, w: 322, h: 45,  pad: 3,  m: [10, 0, 10, 0] },
+  BarFill:    { file: "CraftFrames", x: 325, y: 558, w: 322, h: 41,  pad: 3,  m: [8, 0, 8, 0] },
+  Diamond:    { file: "CraftFrames", x: 995, y: 104, w: 25,  h: 26 },
+  Runes:      { file: "CraftRings",  x: 1,   y: 1,   w: 640, h: 640 },
+  RingBronze: { file: "CraftRings",  x: 643, y: 1,   w: 350, h: 351 },
+  RingDark:   { file: "CraftRings",  x: 643, y: 354, w: 280, h: 279 },
+  RingSmall:  { file: "CraftRings",  x: 643, y: 635, w: 127, h: 130 },
+  StarGold:   { file: "CraftRings",  x: 925, y: 354, w: 95,  h: 94 },
+  StarGray:   { file: "CraftRings",  x: 925, y: 633, w: 90,  h: 87 },
+  GemOptimal: { file: "CraftRings",  x: 772, y: 635, w: 57,  h: 68 },
+  GemMedium:  { file: "CraftRings",  x: 1,   y: 643, w: 58,  h: 67 },
+  GemEasy:    { file: "CraftRings",  x: 61,  y: 643, w: 57,  h: 67 },
+  GemTrivial: { file: "CraftRings",  x: 831, y: 635, w: 56,  h: 68 },
+};
+
+const IMGS = {};
+const HELM_SPRITES = [];
+const TINTED_GEMS = {};
+let CODEX_CLEAN = null;
+
+function glow(x, y, r, col, a) {
+  const gr = g.createRadialGradient(x, y, 0, x, y, r);
+  gr.addColorStop(0, `rgba(${col},${a})`);
+  gr.addColorStop(0.38, `rgba(${col},${a * 0.42})`);
+  gr.addColorStop(1, `rgba(${col},0)`);
+  g.fillStyle = gr;
+  g.fillRect(x - r, y - r, r * 2, r * 2);
+}
+
+function tw(s, font, ls) {
+  g.save();
+  g.font = font;
+  if (ls) g.letterSpacing = ls + "px";
+  const w = g.measureText(s).width;
+  g.restore();
+  return w;
+}
+
+function text(s, x, y, o = {}) {
+  g.save();
+  g.font = o.font || "16px PT";
+  g.fillStyle = o.color || "#e8e2d2";
+  g.textAlign = o.align || "left";
+  g.textBaseline = o.base || "middle";
+  if (o.ls) g.letterSpacing = o.ls + "px";
+  g.shadowColor = "rgba(0,0,0,0.92)";
+  g.shadowOffsetX = 1.5;
+  g.shadowOffsetY = 1.5;
+  if (o.glow) {
+    g.shadowColor = o.glow;
+    g.shadowBlur = o.blur || 12;
+    g.shadowOffsetX = 0;
+    g.shadowOffsetY = 0;
+  }
+  g.fillText(s, x, y);
+  const w = g.measureText(s).width;
+  g.restore();
+  return w;
+}
+
+function drawWeapon(kind, x, y, s, ang, fill, stroke, lw) {
+  g.save();
+  g.translate(x, y);
+  g.rotate(ang || 0);
+  g.scale(s, s);
+  g.beginPath();
+  WEAPON[kind](g);
+  if (fill) { g.fillStyle = fill; g.fill("nonzero"); }
+  if (stroke) { g.strokeStyle = stroke; g.lineWidth = (lw || 1.4) / s; g.stroke(); }
+  g.restore();
+}
+
+function drawSprite(key, dx, dy, dw, dh, alpha = 1) {
+  const a = ATLAS[key];
+  const img = IMGS[a.file];
+  g.save();
+  if (alpha < 1) g.globalAlpha = alpha;
+  if (a.add) g.globalCompositeOperation = "lighter";
+  g.drawImage(img, a.x, a.y, a.w, a.h, dx, dy, dw, dh);
+  g.restore();
+}
+
+// 9-slice real fiel a Professions.lua H.Skin
+function drawFrame(key, X, Y, W_box, H_box, scaleOverride, opts = {}) {
+  const a = ATLAS[key];
+  const img = IMGS[a.file];
+  const [m0, m1, m2, m3] = a.m;
+  const s = scaleOverride || (m1 === 0 && m3 === 0 ? H_box / (a.h - a.pad * 2) : 0.65);
+  const pad = a.pad * s;
+  const ml = m0 + a.pad, mt = m1 + a.pad, mr = m2 + a.pad, mb = m3 + a.pad;
+  const ox = X - pad, oy = Y - pad, OW = W_box + pad * 2, OH = H_box + pad * 2;
+  const dl = ml * s, dt = mt * s, dr = mr * s, db = mb * s;
+
+  const cols = [
+    [a.x, ml, ox, dl],
+    [a.x + ml, a.w - ml - mr, ox + dl, OW - dl - dr],
+    [a.x + a.w - mr, mr, ox + OW - dr, dr],
+  ];
+  const rows = [
+    [a.y, mt, oy, dt],
+    [a.y + mt, a.h - mt - mb, oy + dt, OH - dt - db],
+    [a.y + a.h - mb, mb, oy + OH - db, db],
+  ];
+
+  g.save();
+  if (opts.alpha != null) g.globalAlpha = opts.alpha;
+  for (const [sy, sh, dy, dh] of rows) {
+    if (sh <= 0 || dh <= 0) continue;
+    for (const [sx, sw, dx, dw] of cols) {
+      if (sw <= 0 || dw <= 0) continue;
+      g.drawImage(img, sx, sy, sw, sh, Math.round(dx), Math.round(dy), Math.ceil(dw), Math.ceil(dh));
+    }
+  }
+  g.restore();
+
+  if (opts.diamond && (key === "CardN" || key === "WideN")) {
+    const d = ATLAS.Diamond;
+    const ds = Math.max(0.55, s);
+    drawSprite("Diamond", X + W_box / 2 - (d.w * ds) / 2, Y - (d.h * ds) / 2, d.w * ds, d.h * ds);
+    drawSprite("Diamond", X + W_box / 2 - (d.w * ds) / 2, Y + H_box - (d.h * ds) / 2, d.w * ds, d.h * ds);
+  }
+  const flKey = key + "Flare";
+  if (ATLAS[flKey] && !opts.noFlare) {
+    const fl = ATLAS[flKey];
+    const fs = Math.max(0.68, s);
+    drawSprite(flKey, X + W_box / 2 - (fl.w * fs) / 2, Y - fl.cy * fs, fl.w * fs, fl.h * fs);
+  }
+}
+
+// Pré-processa os 8 elmos pintados removendo o preto sólido para fundo transparente
+function prepareHelmSprites() {
+  const src = IMGS.Helmets;
+  const cw = Math.floor(src.width / 4), ch = Math.floor(src.height / 2);
+  for (let row = 0; row < 2; row++) {
+    for (let col = 0; col < 4; col++) {
+      const tmp = document.createElement("canvas");
+      tmp.width = cw; tmp.height = ch;
+      const tx = tmp.getContext("2d");
+      tx.drawImage(src, col * cw, row * ch, cw, ch, 0, 0, cw, ch);
+      const id = tx.getImageData(0, 0, cw, ch);
+      const d = id.data;
+      let minX = cw, minY = ch, maxX = 0, maxY = 0;
+      for (let y = 0; y < ch; y++) {
+        for (let x = 0; x < cw; x++) {
+          const i = (y * cw + x) * 4;
+          const r = d[i], gg = d[i + 1], b = d[i + 2];
+          const mx = Math.max(r, gg, b);
+          const a = Math.max(0, Math.min(1, (mx - 10) / 24));
+          d[i + 3] = Math.round(a * 255);
+          if (a > 0.25) {
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+          }
+        }
+      }
+      tx.putImageData(id, 0, 0);
+      const bw = Math.max(1, maxX - minX + 1), bh = Math.max(1, maxY - minY + 1);
+      const sz = Math.max(bw, bh) + 12;
+      const out = document.createElement("canvas");
+      out.width = sz; out.height = sz;
+      const ox = out.getContext("2d");
+      ox.drawImage(tmp, minX, minY, bw, bh, (sz - bw) / 2, (sz - bh) / 2, bw, bh);
+      HELM_SPRITES.push(out);
+    }
+  }
+}
+
+// Cria versões colorizadas da gema cristalina GemTrivial para Raro (azul) e Épico (roxo)
+function prepareTintedGem(name, targetRGB) {
+  const a = ATLAS.GemTrivial;
+  const cvG = document.createElement("canvas");
+  cvG.width = a.w; cvG.height = a.h;
+  const gx = cvG.getContext("2d");
+  gx.drawImage(IMGS.CraftRings, a.x, a.y, a.w, a.h, 0, 0, a.w, a.h);
+  const id = gx.getImageData(0, 0, a.w, a.h);
+  const d = id.data;
+  for (let i = 0; i < d.length; i += 4) {
+    if (d[i + 3] === 0) continue;
+    const lum = (0.3 * d[i] + 0.59 * d[i + 1] + 0.11 * d[i + 2]) / 255;
+    // Preserva os brilhos especulares altos em branco, colore o corpo facetado
+    const spec = Math.max(0, (lum - 0.65) / 0.35);
+    d[i]     = Math.min(255, Math.round(targetRGB[0] * (0.35 + lum * 0.95) * (1 - spec * 0.6) + 255 * spec * 0.6));
+    d[i + 1] = Math.min(255, Math.round(targetRGB[1] * (0.35 + lum * 0.95) * (1 - spec * 0.6) + 255 * spec * 0.6));
+    d[i + 2] = Math.min(255, Math.round(targetRGB[2] * (0.35 + lum * 0.95) * (1 - spec * 0.6) + 255 * spec * 0.6));
+  }
+  gx.putImageData(id, 0, 0);
+  TINTED_GEMS[name] = cvG;
+}
+
+// Remove o fundo azul-marinho opaco (#0a101c) ao redor da coroa e bordas externas de card.png
+function prepareCodexCard() {
+  const src = IMGS.CodexCard;
+  const Wc = src.width, Hc = src.height;
+  const cvC = document.createElement("canvas");
+  cvC.width = Wc; cvC.height = Hc;
+  const cx = cvC.getContext("2d");
+  cx.drawImage(src, 0, 0);
+  const id = cx.getImageData(0, 0, Wc, Hc);
+  const d = id.data;
+  // Flood-fill a partir dos cantos superiores e laterais fora da silhueta da coroa/card
+  const vis = new Uint8Array(Wc * Hc);
+  const stack = [0, Wc - 1, (Hc - 1) * Wc, Hc * Wc - 1];
+  const isSky = (i) => {
+    const r = d[i * 4], gg = d[i * 4 + 1], b = d[i * 4 + 2];
+    const mx = Math.max(r, gg, b);
+    return mx < 46 && (b - r) < 28;
+  };
+  while (stack.length) {
+    const p = stack.pop();
+    if (vis[p]) continue;
+    const x = p % Wc, y = (p / Wc) | 0;
+    // Não entra dentro do retângulo principal do card (15..545, 165..1030) nem dos botões (15..545, 1022..1084)
+    if (x >= 16 && x <= Wc - 17 && y >= 166 && y <= 1030) continue;
+    if (!isSky(p)) continue;
+    vis[p] = 1;
+    d[p * 4 + 3] = 0;
+    if (x > 0) stack.push(p - 1);
+    if (x < Wc - 1) stack.push(p + 1);
+    if (y > 0) stack.push(p - Wc);
+    if (y < Hc - 1) stack.push(p + Wc);
+  }
+  // Suaviza 1px de anti-alias ao redor dos pixels removidos
+  for (let y = 1; y < Hc - 1; y++) {
+    for (let x = 1; x < Wc - 1; x++) {
+      const p = y * Wc + x;
+      if (vis[p]) continue;
+      if (vis[p - 1] || vis[p + 1] || vis[p - Wc] || vis[p + Wc]) {
+        const mx = Math.max(d[p * 4], d[p * 4 + 1], d[p * 4 + 2]);
+        if (mx < 75) d[p * 4 + 3] = Math.round(d[p * 4 + 3] * 0.45);
+      }
+    }
+  }
+  cx.putImageData(id, 0, 0);
+  CODEX_CLEAN = cvC;
+}
+
+function drawHelmMedallion(cx, cy, ringSize, helmIdx, qrgb, ringKey = "RingSmall", active = false) {
+  g.save();
+  g.globalCompositeOperation = "lighter";
+  glow(cx, cy, ringSize * (active ? 0.95 : 0.72), qrgb, active ? 0.42 : 0.25);
+  g.restore();
+
+  // Poço escuro circular atrás do ícone
+  const holeR = ringSize * (ringKey === "RingBronze" ? 0.34 : ringKey === "RingDark" ? 0.35 : 0.38);
+  g.save();
+  g.beginPath();
+  g.arc(cx, cy, holeR, 0, Math.PI * 2);
+  const bg = g.createRadialGradient(cx, cy - holeR * 0.25, 2, cx, cy, holeR);
+  bg.addColorStop(0, `rgba(${qrgb},0.34)`);
+  bg.addColorStop(0.65, "rgba(10,18,26,0.95)");
+  bg.addColorStop(1, "rgba(3,7,11,0.99)");
+  g.fillStyle = bg;
+  g.fill();
+  g.clip();
+  const spr = HELM_SPRITES[helmIdx];
+  const isz = holeR * 1.88;
+  g.drawImage(spr, cx - isz / 2, cy - isz / 2, isz, isz);
+  g.restore();
+
+  // Aro de raridade sutil + aro esculpido da arte (RingSmall / RingBronze / RingDark)
+  g.save();
+  g.beginPath();
+  g.arc(cx, cy, holeR + 1, 0, Math.PI * 2);
+  g.strokeStyle = `rgba(${qrgb},0.85)`;
+  g.lineWidth = 1.6;
+  g.stroke();
+  g.restore();
+
+  drawSprite(ringKey, cx - ringSize / 2, cy - ringSize / 2, ringSize, ringSize);
+}
+
+function background() {
+  // 1. Salão rúnico real de Ofícios (ProfessionsBG / bg_1920x1080)
+  g.imageSmoothingQuality = "high";
+  g.drawImage(IMGS.HallBG, 0, 0, W, H);
+
+  // Véu escuro à esquerda para máxima legibilidade do catálogo
+  let lg = g.createLinearGradient(0, 0, 1180, 0);
+  lg.addColorStop(0, "rgba(3,8,13,0.90)");
+  lg.addColorStop(0.82, "rgba(4,10,16,0.82)");
+  lg.addColorStop(1, "rgba(4,10,16,0.18)");
+  g.fillStyle = lg;
+  g.fillRect(0, 0, 1180, H);
+
+  // 2. Palco central-direito do Provador 3D (x = 980..1530) — Guerreiro no Pedestal Rúnico
+  const WX = 1260, WY = 516, WW = 500, WH = 668;
+  // Máscara suave elíptica para fundir o guerreiro e o pedestal perfeitamente ao salão
+  const off = document.createElement("canvas");
+  off.width = WW; off.height = WH;
+  const ox = off.getContext("2d");
+  ox.drawImage(IMGS.Warrior, 0, 0, WW, WH);
+  ox.globalCompositeOperation = "destination-in";
+  const mg = ox.createRadialGradient(WW * 0.5, WH * 0.50, WW * 0.22, WW * 0.5, WH * 0.50, WW * 0.56);
+  mg.addColorStop(0, "rgba(255,255,255,1)");
+  mg.addColorStop(0.70, "rgba(255,255,255,0.94)");
+  mg.addColorStop(0.92, "rgba(255,255,255,0.22)");
+  mg.addColorStop(1, "rgba(255,255,255,0)");
+  ox.fillStyle = mg;
+  ox.fillRect(0, 0, WW, WH);
+
+  // Brilho de LootBeam atrás do personagem
+  g.save();
+  g.globalCompositeOperation = "lighter";
+  glow(WX, WY - 80, 320, "140,105,255", 0.16);
+  glow(WX, WY + 210, 260, "95,214,208", 0.22);
+  g.restore();
+
+  g.drawImage(off, WX - WW / 2, WY - WH / 2 + 46);
+
+  // Degradê escuro no topo (cabeçalho) e rodapé
+  let tg = g.createLinearGradient(0, 0, 0, 150);
+  tg.addColorStop(0, "rgba(2,5,9,0.94)");
+  tg.addColorStop(0.65, "rgba(2,5,9,0.62)");
+  tg.addColorStop(1, "rgba(2,5,9,0)");
+  g.fillStyle = tg;
+  g.fillRect(0, 0, W, 150);
+
+  let bg = g.createLinearGradient(0, H - 120, 0, H);
+  bg.addColorStop(0, "rgba(2,5,9,0)");
+  bg.addColorStop(1, "rgba(2,5,9,0.90)");
+  g.fillStyle = bg;
+  g.fillRect(0, H - 120, W, 120);
+}
+
+function drawHeader() {
+  // Retrato do personagem
+  g.save();
+  g.beginPath(); g.arc(68, 48, 30, 0, 7);
+  const av = g.createRadialGradient(64, 42, 3, 68, 48, 30);
+  av.addColorStop(0, "#2f4e62"); av.addColorStop(1, "#0b1620");
+  g.fillStyle = av; g.fill();
+  g.clip();
+  const pg = g.createLinearGradient(0, 18, 0, 82);
+  pg.addColorStop(0, "#a8c0d0"); pg.addColorStop(1, "#2a3c4a");
+  g.fillStyle = pg;
+  g.beginPath(); g.arc(68, 43, 11, 0, 7); g.fill();
+  g.beginPath(); g.ellipse(68, 78, 22, 19, 0, 0, 7); g.fill();
+  g.restore();
+  drawSprite("RingSmall", 68 - 42, 48 - 42, 84, 84);
+
+  text("MARAATH", 114, 37, { font: "25px Cinzel", color: "#f3f6f8", ls: 1 });
+  text("NÍVEL 60 ELFO NOTURNO GUERREIRO", 115, 61, { font: "11px Cinzel", color: "#b6c4cc", ls: 1 });
+
+  const tabs = ["SANTUÁRIO", "GRIMÓRIO", "TALENTOS", "OFÍCIOS", "DROPS", "REPUTAÇÃO", "PERÍCIAS", "GLADIADOR", "TESOURO", "CRÔNICAS"];
+  const gap = 25;
+  const ws = tabs.map((t) => tw(t, "13.5px Cinzel", 1.1));
+  const totalW = ws.reduce((a, b) => a + b, 0) + gap * (tabs.length - 1);
+  let tx = 1120 - totalW / 2;
+
+  const hlg = g.createLinearGradient(tx - 16, 0, tx + totalW + 16, 0);
+  hlg.addColorStop(0, "rgba(140,220,245,0)");
+  hlg.addColorStop(0.5, "rgba(140,220,245,0.28)");
+  hlg.addColorStop(1, "rgba(140,220,245,0)");
+  g.fillStyle = hlg;
+  g.fillRect(tx - 16, 54, totalW + 32, 1.5);
+
+  tabs.forEach((t, i) => {
+    const act = t === "DROPS";
+    text(t, tx, 39, {
+      font: "13.5px Cinzel",
+      color: act ? "#ffffff" : "#9aa6ae",
+      ls: 1.1,
+      glow: act ? "#7fe0ff" : null,
+      blur: 14,
+    });
+    if (act) {
+      const cx = tx + ws[i] / 2;
+      g.save();
+      g.globalCompositeOperation = "lighter";
+      glow(cx, 54, 52, "120,225,255", 0.55);
+      const fl = g.createLinearGradient(cx - 72, 0, cx + 72, 0);
+      fl.addColorStop(0, "rgba(140,235,255,0)");
+      fl.addColorStop(0.5, "rgba(210,248,255,0.95)");
+      fl.addColorStop(1, "rgba(140,235,255,0)");
+      g.fillStyle = fl;
+      g.fillRect(cx - 72, 53, 144, 2.5);
+      g.restore();
+      g.save();
+      g.strokeStyle = "#b5f2ff";
+      g.lineWidth = 2;
+      g.beginPath();
+      g.moveTo(cx - 5, 67); g.lineTo(cx, 61); g.lineTo(cx + 5, 67);
+      g.stroke();
+      g.restore();
+    }
+    tx += ws[i] + gap;
+  });
+
+  // Orbe Poder de Item com RingDark esculpido
+  drawSprite("RingDark", 1916 - 38, 46 - 38, 76, 76);
+  text("64", 1916, 46, { font: "20px Cinzel", color: "#d4f5ff", align: "center" });
+  text("PODER DE ITEM", 1916, 84, { font: "9.5px Cinzel", color: "#a8b4ba", align: "center", ls: 1 });
+}
+
+function drawCatalogPanel() {
+  const PX = 36, PY = 104, PW = 1002, PH = 950;
+  // Painel principal esculpido com CardN em 9-slice + preenchimento escuro legível
+  g.save();
+  g.fillStyle = "rgba(4,10,16,0.74)";
+  g.fillRect(PX + 10, PY + 10, PW - 20, PH - 20);
+  g.restore();
+  drawFrame("CardN", PX, PY, PW, PH, 0.70, { alpha: 0.72 });
+
+  const X0 = PX + 26, W0 = PW - 52; // 62 .. 1012 (950 px)
+
+  // Título + cascata ativa
+  text("RELICÁRIO DE AZAATH", X0, PY + 32, { font: "25px Cinzel", color: "#f2ebdc", ls: 2 });
+  text("Placa  ›  Capacete", X0 + 318, PY + 33, { font: "14px PTB", color: "#7fe0ff" });
+  text("24 capacetes encontrados  ·  Pág. 1 / 3", X0 + W0, PY + 33, { font: "13px PTB", color: "#e8c878", align: "right" });
+
+  // Linha divisória sutil
+  const barG = g.createLinearGradient(X0, 0, X0 + 460, 0);
+  barG.addColorStop(0, "#5fd6d0");
+  barG.addColorStop(0.65, "#d8b46a");
+  barG.addColorStop(1, "rgba(216,180,106,0)");
+  g.fillStyle = barG;
+  g.fillRect(X0, PY + 52, 460, 2);
+
+  // =========================================================================
+  // FUNIL NÍVEL 1: Busca (Search) + Zona (Todo o Mundo/Atual) + Origem (5)
+  // =========================================================================
+  const R1Y = PY + 64;
+  drawFrame("Search", X0, R1Y, 314, 36);
+  g.save();
+  g.strokeStyle = "#d8b46a"; g.lineWidth = 1.7;
+  g.beginPath(); g.arc(X0 + 21, R1Y + 17, 6, 0, 7); g.stroke();
+  g.beginPath(); g.moveTo(X0 + 26, R1Y + 22); g.lineTo(X0 + 31, R1Y + 27); g.stroke();
+  g.restore();
+  text("Buscar equipamento, chefe ou receita...", X0 + 40, R1Y + 18, { font: "13px PT", color: "#768a94" });
+
+  // Botão Zona (Todo o Mundo / Zona Atual)
+  const ZX = X0 + 324, ZW = 128;
+  drawFrame("PillN", ZX, R1Y + 2, ZW, 32);
+  text("Todo o Mundo", ZX + ZW / 2, R1Y + 18, { font: "12px PTB", color: "#d6e2e8", align: "center" });
+
+  // 5 Filtros de Origem (ORIGIN_FILTERS existentes completos)
+  const origins = [
+    { t: "Todas Origens", on: true },
+    { t: "Mundo Aberto", on: false },
+    { t: "Masmorra/Raide", on: false },
+    { t: "Craftável", on: false },
+    { t: "Quests", on: false },
+  ];
+  let ox = ZX + ZW + 12;
+  const availOrig = X0 + W0 - ox;
+  const oWidths = [100, 96, 114, 78, 68];
+  const oGap = Math.floor((availOrig - oWidths.reduce((a, b) => a + b, 0)) / 4);
+  origins.forEach((o, i) => {
+    const bw = oWidths[i];
+    drawFrame(o.on ? "PillA" : "PillN", ox, R1Y + 2, bw, 32);
+    text(o.t, ox + bw / 2, R1Y + 18, {
+      font: o.on ? "11.5px PTB" : "11.5px PT",
+      color: o.on ? "#ffffff" : "#9db0ba",
+      align: "center",
+    });
+    ox += bw + oGap;
+  });
+
+  // =========================================================================
+  // FUNIL NÍVEL 2: 9 Categorias Principais (ARMOR_FILTERS completos)
+  // =========================================================================
+  const R2Y = R1Y + 52;
+  const cats = [
+    { t: "Todos",     icon: "star" },
+    { t: "Placa",     icon: "armor", on: true },
+    { t: "Malha",     icon: "armor" },
+    { t: "Couro",     icon: "hide" },
+    { t: "Tecido",    icon: "needle" },
+    { t: "Armas",     icon: "great" },
+    { t: "Acess.",    icon: "shield" },
+    { t: "Materiais", icon: "crystal" },
+    { t: "Quest",     icon: "book" },
+  ];
+  const cg = 8, cw = (W0 - cg * 8) / 9, ch = 68;
+  cats.forEach((c, i) => {
+    const cx = X0 + i * (cw + cg);
+    drawFrame(c.on ? "CardA" : "CardN", cx, R2Y, cw, ch, 0.34);
+    const mcx = cx + cw / 2, mcy = R2Y + 24;
+    if (c.on) {
+      g.save();
+      g.globalCompositeOperation = "lighter";
+      glow(mcx, mcy, 30, "95,214,208", 0.38);
+      g.restore();
+      drawHelmMedallion(mcx, mcy, 38, 0, "95,214,208", "RingSmall", true);
+    } else {
+      drawSprite("RingSmall", mcx - 18, mcy - 18, 36, 36);
+      const ig = g.createLinearGradient(0, mcy - 12, 0, mcy + 12);
+      ig.addColorStop(0, "#dce8ef"); ig.addColorStop(1, "#5c707c");
+      const ang = (c.icon === "great" || c.icon === "needle") ? 0.55 : 0;
+      drawWeapon(c.icon, mcx, mcy, 0.19, ang, ig);
+    }
+    text(c.t, mcx, R2Y + 54, {
+      font: c.on ? "12px PTB" : "11.5px PT",
+      color: c.on ? "#ffffff" : "#b8c6ce",
+      align: "center",
+    });
+  });
+
+  // =========================================================================
+  // FUNIL NÍVEL 3A: Sub-filtro Contextual de Peça (Placa > Capacete!)
+  // =========================================================================
+  const R3Y = R2Y + ch + 14;
+  text("PEÇA (PLACA):", X0, R3Y + 15, { font: "11.5px CinzelB", color: "#d8b46a", ls: 1 });
+  const slots = [
+    { t: "Todas", w: 60 },
+    { t: "Capacete", w: 80, on: true },
+    { t: "Ombros", w: 70 },
+    { t: "Torso", w: 58 },
+    { t: "Braçadeiras", w: 92 },
+    { t: "Manoplas", w: 78 },
+    { t: "Cinto", w: 54 },
+    { t: "Calças", w: 62 },
+    { t: "Botas", w: 58 },
+  ];
+  let sx = X0 + 114;
+  const sGap = Math.floor((X0 + W0 - sx - slots.reduce((a, b) => a + b.w, 0)) / (slots.length - 1));
+  slots.forEach((sl) => {
+    drawFrame(sl.on ? "PillA" : "PillN", sx, R3Y, sl.w, 30);
+    text(sl.t, sx + sl.w / 2, R3Y + 15, {
+      font: sl.on ? "12px PTB" : "12px PT",
+      color: sl.on ? "#ffffff" : "#9db0ba",
+      align: "center",
+    });
+    sx += sl.w + sGap;
+  });
+
+  // =========================================================================
+  // FUNIL NÍVEL 3B: Nível (LEVEL_FILTERS) + Raridade com Gemas Reais
+  // =========================================================================
+  const R4Y = R3Y + 38;
+  text("NÍVEL:", X0, R4Y + 15, { font: "11.5px CinzelB", color: "#d8b46a", ls: 1 });
+  const levels = [
+    { t: "Nv: Todos", w: 78, on: true },
+    { t: "1–20", w: 54 },
+    { t: "21–40", w: 60 },
+    { t: "41–59", w: 60 },
+    { t: "60", w: 44 },
+  ];
+  let lx = X0 + 62;
+  levels.forEach((lv) => {
+    drawFrame(lv.on ? "PillA" : "PillN", lx, R4Y, lv.w, 30);
+    text(lv.t, lx + lv.w / 2, R4Y + 15, {
+      font: lv.on ? "12px PTB" : "12px PT",
+      color: lv.on ? "#ffffff" : "#9db0ba",
+      align: "center",
+    });
+    lx += lv.w + 6;
+  });
+
+  // Raridade (QUALITY_FILTERS com Gemas Cristalinas de CraftRings)
+  const quals = [
+    { t: "Todas",    w: 78,  gem: "GemTrivial", col: "#b4c2ca" },
+    { t: "Incomum+", w: 102, gem: "GemEasy",    col: "#4be864", on: true },
+    { t: "Raro+",    w: 86,  gem: "GemRare",    col: "#4da8ff" },
+    { t: "Épico",    w: 80,  gem: "GemEpic",    col: "#ca84ff" },
+  ];
+  let qx = X0 + W0;
+  for (let i = quals.length - 1; i >= 0; i--) {
+    const q = quals[i];
+    qx -= q.w;
+    drawFrame(q.on ? "PillA" : "PillN", qx, R4Y, q.w, 30);
+    if (TINTED_GEMS[q.gem]) {
+      g.drawImage(TINTED_GEMS[q.gem], qx + 10, R4Y + 6, 16, 19);
+    } else {
+      drawSprite(q.gem, qx + 10, R4Y + 6, 16, 19);
+    }
+    text(q.t, qx + 30, R4Y + 15, {
+      font: q.on ? "12px PTB" : "12px PT",
+      color: q.on ? "#ffffff" : "#b0c0c8",
+    });
+    qx -= 7;
+  }
+  text("RARIDADE:", qx - 76, R4Y + 15, { font: "11.5px CinzelB", color: "#d8b46a", ls: 1 });
+
+  // =========================================================================
+  // GRADE DE CARTAS ESCULPIDAS (WideN / WideA + Ícones Pintados)
+  // =========================================================================
+  const helms = [
+    {
+      name: "Elmo Coração de Leão", sub: "Cabeça · Placa", ilvl: 61, req: 56,
+      stats: "565 Armadura · +18 Força · +2% Crít. · +2% Ac.",
+      tag: "OFÍCIO", src: "Ferraria (300) · Rec: Elite Mão Negra", pct: "100%",
+      qrgb: "196,124,255", qhex: "#ca84ff", helmIdx: 0, sel: true,
+    },
+    {
+      name: "Elmo Ferro Negro", sub: "Cabeça · Placa", ilvl: 66, req: 60,
+      stats: "758 Armadura · +20 Vigor · +10 Res. Fogo",
+      tag: "OFÍCIO", src: "Ferraria (300) · Abismo Rocha Negra", pct: "100%",
+      qrgb: "196,124,255", qhex: "#ca84ff", helmIdx: 1,
+    },
+    {
+      name: "Capacete Viking com Chifres", sub: "Cabeça · Placa", ilvl: 42, req: 40,
+      stats: "303 Armadura · +10 Agilidade · +15 Vigor",
+      tag: "MASMORRA", src: "Eric, \"O Veloz\" · Uldaman", pct: "8.0%",
+      qrgb: "77,168,255", qhex: "#4da8ff", helmIdx: 2,
+    },
+    {
+      name: "Elmo do Valor", sub: "Cabeça · Placa", ilvl: 62, req: 57,
+      stats: "526 Armadura · +15 Força · +27 Vigor · +9 Agi",
+      tag: "MASMORRA", src: "Mestre Sombrio Gandling · Scolomântia", pct: "11.8%",
+      qrgb: "77,168,255", qhex: "#4da8ff", helmIdx: 3,
+    },
+    {
+      name: "Elmo da Forja de Luz", sub: "Cabeça · Placa", ilvl: 62, req: 57,
+      stats: "526 Armadura · +14 Força · +20 Vigor · +13 Int",
+      tag: "MASMORRA", src: "Mestre Sombrio Gandling · Scolomântia", pct: "6.3%",
+      qrgb: "77,168,255", qhex: "#4da8ff", helmIdx: 4,
+    },
+    {
+      name: "Elmo de Tório Encantado", sub: "Cabeça · Placa", ilvl: 62, req: 57,
+      stats: "526 Armadura · +12 Força · +25 Vigor · +9 Def.",
+      tag: "OFÍCIO", src: "Ferraria (300) · Missão: Tório Encantado", pct: "100%",
+      qrgb: "77,168,255", qhex: "#4da8ff", helmIdx: 5,
+    },
+    {
+      name: "Elmo da Alma Alva", sub: "Cabeça · Placa", ilvl: 60, req: 55,
+      stats: "629 Armadura · +15 Int · +15 Esp · +35 Cura",
+      tag: "MUNDO", src: "Feiticeiro Esq. · Pestilentas Oc. (37.7, 54.4)", pct: "1.4%",
+      qrgb: "77,168,255", qhex: "#4da8ff", helmIdx: 6,
+    },
+    {
+      name: "Elmo de Placa Imperial", sub: "Cabeça · Placa", ilvl: 59, req: 54,
+      stats: "456 Armadura · +18 Força · +17 Vigor",
+      tag: "MISSÃO", src: "Ferraria (295) · Missão: Placa Imperial", pct: "100%",
+      qrgb: "75,232,100", qhex: "#4be864", helmIdx: 7,
+    },
+  ];
+
+  const GY = R4Y + 44;
+  const GW = W0 - 18, GAPX = 16, GAPY = 14;
+  const CW = (GW - GAPX) / 2, CH = 144;
+
+  helms.forEach((it, idx) => {
+    const col = idx % 2, row = Math.floor(idx / 2);
+    const cx = X0 + col * (CW + GAPX);
+    const cy = GY + row * (CH + GAPY);
+
+    drawFrame(it.sel ? "WideA" : "WideN", cx, cy, CW, CH, 0.56, { diamond: !it.sel });
+
+    // Medalhão circular esculpido com ícone pintado
+    drawHelmMedallion(cx + 46, cy + 54, 68, it.helmIdx, it.qrgb, "RingSmall", it.sel);
+
+    // Nome + selo iLvl / Nv
+    text(it.name, cx + 88, cy + 28, { font: "15.5px PTB", color: it.qhex });
+    const bdg = `iLvl ${it.ilvl} · Nv.${it.req}`;
+    text(bdg, cx + CW - 16, cy + 28, { font: "11px PTB", color: "#d8b46a", align: "right" });
+
+    // Subtipo & Atributos
+    text(it.sub, cx + 88, cy + 51, { font: "12px PT", color: "#c9c0aa" });
+    text(it.stats, cx + 88, cy + 74, { font: "12.5px PT", color: "#68e67e" });
+
+    // Divisor sutil + Rodapé da carta
+    g.fillStyle = "rgba(255,255,255,0.08)";
+    g.fillRect(cx + 18, cy + 98, CW - 36, 1);
+
+    const tagCol = it.tag === "OFÍCIO" ? "#f0b85e" : it.tag === "MISSÃO" ? "#7ae4a4" : it.tag === "MUNDO" ? "#7fe0ff" : "#d49eff";
+    text(it.tag, cx + 20, cy + 121, { font: "10.5px PTB", color: tagCol, ls: 0.8 });
+    text("·  " + it.src, cx + 20 + tw(it.tag, "10.5px PTB", 0.8) + 6, cy + 121, { font: "12px PT", color: "#b6c4cc" });
+
+    const is100 = it.pct === "100%";
+    drawFrame(is100 ? "PillN" : "PillA", cx + CW - 76, cy + 109, 60, 24);
+    text(it.pct, cx + CW - 46, cy + 121, {
+      font: "11.5px PTB",
+      color: is100 ? "#f2d68a" : "#7ff0ea",
+      align: "center",
+    });
+  });
+
+  // Barra de rolagem lateral usando BarEmpty/BarFill vertical estilizada
+  const SBX = X0 + W0 - 6, SBH = 4 * CH + 3 * GAPY;
+  g.fillStyle = "rgba(255,255,255,0.06)";
+  g.fillRect(SBX, GY, 5, SBH);
+  const sg = g.createLinearGradient(0, GY, 0, GY + 160);
+  sg.addColorStop(0, "#7fe0ff"); sg.addColorStop(1, "#2a7c8a");
+  g.fillStyle = sg;
+  g.fillRect(SBX, GY, 5, 160);
+}
+
+function drawProvador3D() {
+  const CX = 1260;
+
+  // Cabeçalho flutuante discreto no topo do pedestal
+  drawFrame("PillN", CX - 130, 114, 260, 32);
+  text("PROVADOR 3D  ·  AO VIVO", CX, 130, { font: "12px CinzelB", color: "#7fe0ff", align: "center", ls: 1.5 });
+  text("Prévia no personagem: Elmo Coração de Leão", CX, 164, { font: "13px PT", color: "#d8b46a", align: "center" });
+
+  // Comparação rápida flutuando acima dos botões do pedestal
+  drawFrame("PillN", CX - 165, 922, 330, 28);
+  text("Equipado no slot: Elmo do Valor (iLvl 62)", CX, 936, { font: "12px PT", color: "#b8cad4", align: "center" });
+
+  // Controles do Provador 3D usando botões esculpidos BtnSquare e BtnDark
+  const BY = 964, BH = 40;
+  drawFrame("BtnSquare", CX - 184, BY, 40, BH, 0.44);
+  text("⟲", CX - 164, BY + 20, { font: "17px PTB", color: "#e8f4f8", align: "center" });
+
+  drawFrame("BtnDark", CX - 134, BY, 86, BH, 0.44);
+  text("GIRAR", CX - 91, BY + 20, { font: "11.5px CinzelB", color: "#e8e2d2", align: "center", ls: 1 });
+
+  drawFrame("BtnSquare", CX - 38, BY, 40, BH, 0.44);
+  text("⟳", CX - 18, BY + 20, { font: "17px PTB", color: "#e8f4f8", align: "center" });
+
+  drawFrame("BtnDark", CX + 14, BY, 96, BH, 0.44);
+  text("SÓ PEÇA", CX + 62, BY + 20, { font: "11.5px CinzelB", color: "#e8e2d2", align: "center", ls: 0.8 });
+
+  drawFrame("BtnDark", CX + 120, BY, 74, BH, 0.44);
+  text("RESET", CX + 157, BY + 20, { font: "11.5px CinzelB", color: "#d8b46a", align: "center", ls: 0.8 });
+}
+
+function drawRelicCodex() {
+  // Painel direito usando a moldura real com Coroa Rúnica de card.png!
+  const AX = 1474, AY = 72, AW = 492, AH = 990;
+  const CX = AX + AW / 2; // 1720
+  const C = CODEX_CLEAN; // 560 x 1090 com céu transparente ao redor da coroa
+  const scX = AW / C.width;
+
+  // 1. Fatia superior da arte do Card (Coroa Rúnica + Topo Dourado + Placa de Título)
+  const topSrcH = 330;
+  const topDstH = topSrcH * scX;
+  g.drawImage(C, 0, 0, C.width, topSrcH, AX, AY, AW, topDstH);
+
+  // 2. Fatia inferior da arte do Card (Roda de filigrana ciano + botões gêmeos inferiores)
+  const botSrcY = 968, botSrcH = C.height - botSrcY;
+  const botDstH = botSrcH * scX;
+  const botDstY = AY + AH - botDstH;
+  g.drawImage(C, 0, botSrcY, C.width, botSrcH, AX, botDstY, AW, botDstH);
+
+  // 3. Corpo intermediário limpo preservando as bordas laterais dourado->ciano reais de card.png
+  const midY = AY + topDstH - 2;
+  const midH = botDstY - midY + 4;
+  // Fundo interno limpo do códice
+  const bgG = g.createLinearGradient(0, midY, 0, midY + midH);
+  bgG.addColorStop(0, "rgba(12,24,36,0.96)");
+  bgG.addColorStop(0.5, "rgba(8,18,28,0.97)");
+  bgG.addColorStop(1, "rgba(6,14,22,0.98)");
+  g.fillStyle = bgG;
+  g.fillRect(AX + 22, midY, AW - 44, midH);
+
+  // Estica apenas os 36px das bordas esquerda e direita de card.png (sem o miolo)
+  const sideW = 38;
+  g.drawImage(C, 0, 380, sideW, 440, AX, midY, sideW * scX, midH);
+  g.drawImage(C, C.width - sideW, 380, sideW, 440, AX + AW - sideW * scX, midY, sideW * scX, midH);
+
+  // Preencher topo interno abaixo da placa com texto da peça
+  text("PLACA  ·  CABEÇA", CX, AY + 227 * scX, { font: "12px CinzelB", color: "#f2d68a", align: "center", ls: 1.5 });
+  text("ELMO CORAÇÃO DE LEÃO", CX, AY + 286 * scX, {
+    font: "20px CinzelB",
+    color: "#d89cff",
+    align: "center",
+    ls: 1,
+    glow: "rgba(196,124,255,0.45)",
+    blur: 10,
+  });
+
+  // 4. Rosácea Astrolábica (Runes + RingBronze + Ícone Pintado)
+  const RCY = AY + 356;
+  drawSprite("Runes", CX - 102, RCY - 102, 204, 204, 0.92);
+  drawHelmMedallion(CX, RCY, 128, 0, "196,124,255", "RingBronze", true);
+
+  // 3 Tags (Épico, iLvl, Nível)
+  const tags = [
+    { t: "ÉPICO", w: 68, c: "#d89cff", pill: "PillN" },
+    { t: "iLvl 61", w: 72, c: "#f2d68a", pill: "PillN" },
+    { t: "REQ. NÍVEL 56", w: 112, c: "#88ecff", pill: "PillA" },
+  ];
+  let tx = CX - (68 + 72 + 112 + 16) / 2;
+  tags.forEach((tg) => {
+    drawFrame(tg.pill, tx, AY + 458, tg.w, 24);
+    text(tg.t, tx + tg.w / 2, AY + 470, { font: "11px PTB", color: tg.c, align: "center", ls: 0.6 });
+    tx += tg.w + 8;
+  });
+
+  // 5. Bloco de Atributos
+  const X0 = AX + 28, W0 = AW - 56; // 1502 .. 1938 (436px)
+  const STY = AY + 498;
+  drawSprite("Diamond", X0, STY + 1, 14, 15);
+  text("ATRIBUTOS", X0 + 20, STY + 8, { font: "12.5px CinzelB", color: "#d8b46a", ls: 1.4 });
+  text("▲ +39 Arm. · +2% Crít. · +2% Ac.", X0 + W0, STY + 8, { font: "11.5px PTB", color: "#58e878", align: "right" });
+
+  drawFrame("BtnDark", X0, STY + 24, W0, 124, 0.50);
+  text("565 de Armadura", X0 + 16, STY + 46, { font: "14.5px PTB", color: "#ffffff" });
+  text("Placa · Cabeça", X0 + W0 - 16, STY + 46, { font: "13px PT", color: "#dbe6ec", align: "right" });
+  text("+18 de Força", X0 + 16, STY + 70, { font: "13.5px PTB", color: "#5ee870" });
+  g.fillStyle = "rgba(255,255,255,0.08)";
+  g.fillRect(X0 + 16, STY + 88, W0 - 32, 1);
+  text("Equipado: +2% de chance de acerto crítico.", X0 + 16, STY + 106, { font: "12.5px PT", color: "#3ee864" });
+  text("Equipado: +2% de chance de atingir um alvo.", X0 + 16, STY + 127, { font: "12.5px PT", color: "#3ee864" });
+
+  // 6. Seção "ONDE DROPAR / OBTER"
+  const SRY = STY + 164;
+  drawSprite("Diamond", X0, SRY + 1, 14, 15);
+  text("ONDE DROPAR / OBTER", X0 + 20, SRY + 8, { font: "12.5px CinzelB", color: "#7fe0ff", ls: 1.4 });
+  text("3 fontes", X0 + W0, SRY + 8, { font: "12px PT", color: "#8fa3ad", align: "right" });
+
+  // Fonte 1: Craft
+  const F1Y = SRY + 24;
+  drawFrame("WideN", X0, F1Y, W0, 72, 0.45);
+  drawSprite("RingSmall", X0 + 12, F1Y + 14, 44, 44);
+  drawWeapon("hammer", X0 + 34, F1Y + 36, 0.24, 0.5, "#f2d68a");
+  text("Ferraria (Nível 300)", X0 + 66, F1Y + 25, { font: "14px PTB", color: "#f6efe0" });
+  text("Receita: Instruções: Elmo Coração de Leão", X0 + 66, F1Y + 47, { font: "12px PT", color: "#d8b46a" });
+  drawFrame("PillN", X0 + W0 - 66, F1Y + 23, 54, 24);
+  text("100%", X0 + W0 - 39, F1Y + 35, { font: "11.5px PTB", color: "#f2d68a", align: "center" });
+
+  // Fonte 2: Drop de Receita (Masmorra)
+  const F2Y = F1Y + 80;
+  drawFrame("WideN", X0, F2Y, W0, 72, 0.45);
+  drawSprite("RingSmall", X0 + 12, F2Y + 14, 44, 44);
+  drawWeapon("great", X0 + 34, F2Y + 36, 0.24, 0.55, "#d89cff");
+  text("[Receita] Elite Mão Negra", X0 + 66, F2Y + 25, { font: "14px PTB", color: "#f6efe0" });
+  text("Pico da Rocha Negra  ·  Masmorra", X0 + 66, F2Y + 47, { font: "12px PT", color: "#9eb0ba" });
+  drawFrame("PillA", X0 + W0 - 66, F2Y + 23, 54, 24);
+  text("1.8%", X0 + W0 - 39, F2Y + 35, { font: "11.5px PTB", color: "#7ff0ea", align: "center" });
+
+  // Fonte 3: Coordenadas no Mapa + Botão Dourado Esculpido MARCAR NO MAPA (BtnGold)
+  const F3Y = F2Y + 80;
+  drawFrame("WideA", X0, F3Y, W0, 92, 0.45, { noFlare: true });
+  drawSprite("RingSmall", X0 + 12, F3Y + 16, 44, 44);
+  drawWeapon("star", X0 + 34, F3Y + 38, 0.24, 0, "#7fe0ff");
+  text("[Receita] Vigia da Forja Mão Negra", X0 + 66, F3Y + 25, { font: "14px PTB", color: "#f6efe0" });
+  text("Estepes Ardentes  ·  (29.4, 38.2)", X0 + 66, F3Y + 46, { font: "12px PTB", color: "#7fe0ff" });
+  text("1.4% de drop da receita", X0 + 66, F3Y + 68, { font: "11.5px PT", color: "#9eb0ba" });
+
+  // Botão Dourado Real (BtnGold)
+  drawFrame("BtnGold", X0 + W0 - 168, F3Y + 48, 156, 36);
+  g.save();
+  g.font = "11px CinzelB";
+  g.fillStyle = "#160e04";
+  g.textAlign = "center";
+  g.textBaseline = "middle";
+  g.letterSpacing = "0.6px";
+  g.shadowColor = "rgba(255,236,175,0.55)";
+  g.shadowOffsetX = 0; g.shadowOffsetY = 1;
+  g.fillText("MARCAR NO MAPA", X0 + W0 - 90, F3Y + 66);
+  g.restore();
+
+  // 7. Labels dos dois botões inferiores esculpidos de card.png
+  const btnY = botDstY + (botSrcH - 42) * scX;
+  drawSprite("StarGold", AX + 52, btnY - 12, 24, 24);
+  text("FAVORITAR", CX - 102, btnY, { font: "12.5px CinzelB", color: "#f2d68a", align: "center", ls: 1.5 });
+  text("LINK NO CHAT", CX + 120, btnY, { font: "12.5px CinzelB", color: "#d6eef6", align: "center", ls: 1.5 });
+}
+
+function drawFooter() {
+  text("INTEGRIDADE  100%", 40, 1094, { font: "12px Cinzel", color: "#b6c4cc", ls: 1 });
+  text("ARSENAL INTACTO", 218, 1094, { font: "12px Cinzel", color: "#e8c878", ls: 1 });
+  text("BOLSAS  24 / 68 LIVRES", 392, 1094, { font: "12px Cinzel", color: "#b6c4cc", ls: 1 });
+  text("FECHAR (ESC)", 1960, 1094, { font: "13px Cinzel", color: "#eef4f6", ls: 2.5, align: "right" });
+}
+
+const FONTS = ["28px Cinzel", "22px CinzelB", "16px PT", "16px PTB", "14px Fell"];
+function loadImg(src) {
+  return new Promise((ok, no) => {
+    const im = new Image();
+    im.onload = () => ok(im);
+    im.onerror = no;
+    im.src = src;
+  });
+}
+
+Promise.all([
+  ...Object.entries(ASSETS).map(([k, v]) => loadImg(v).then((im) => { IMGS[k] = im; })),
+  ...FONTS.map((f) => document.fonts.load(f)),
+]).then(() => {
+  prepareHelmSprites();
+  prepareCodexCard();
+  prepareTintedGem("GemRare", [55, 165, 255]);
+  prepareTintedGem("GemEpic", [195, 105, 255]);
+
+  background();
+  drawHeader();
+  drawCatalogPanel();
+  drawProvador3D();
+  drawRelicCodex();
+  drawFooter();
+
+  const pre = document.createElement("pre");
+  pre.id = "out";
+  pre.textContent = cv.toDataURL("image/png");
+  document.body.appendChild(pre);
+}).catch((e) => {
+  const pre = document.createElement("pre");
+  pre.textContent = "ERRO: " + (e && e.stack || e);
+  document.body.appendChild(pre);
+});
+</script></body></html>

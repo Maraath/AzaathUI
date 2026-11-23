@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Grimório Comparação</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=IM+Fell+English&display=swap" rel="stylesheet">
+<style>
+/* Réplica do layout de Modules/Grimoire.lua (mesmas coordenadas da arte) para conferir alinhamento */
+*{margin:0;padding:0;box-sizing:border-box}
+body{width:2752px;height:768px;background:#000;display:flex}
+.art{position:relative;width:1376px;height:768px;overflow:hidden}
+.bg{position:absolute;inset:0;background:url(preview/bg.png)}
+.ref{background:url(concept.png)}
+.c{position:absolute;transform:translate(-50%,-50%);white-space:nowrap}
+.cz{font-family:Cinzel,serif;font-weight:700}
+.sg{font-family:"Segoe UI";font-weight:600}
+.sr{font-family:"Segoe UI";font-weight:400}
+.ink{color:rgb(41,28,20)}
+.medal{position:absolute;width:80px;height:80px;transform:translate(-50%,-50%)}
+.medal .ic{position:absolute;left:16px;top:16px;width:48px;height:48px;border-radius:50%;background:url(concept.png)}
+.medal .rg{position:absolute;inset:0;background:url(preview/medal.png) 0 0/80px 80px}
+.seal{width:63px;height:63px}
+.seal .ic{left:10.5px;top:10.5px;width:42px;height:42px;filter:grayscale(1) sepia(.2) hue-rotate(200deg)}
+.seal .rg{background:url(preview/seal.png) 0 0/63px 63px}
+.glow{position:absolute;width:144px;height:144px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(255,199,92,.55),rgba(255,199,92,0) 65%);mix-blend-mode:screen}
+.ring{position:absolute;width:128px;height:128px;transform:translate(-50%,-50%);background:url(preview/tabring.png);mix-blend-mode:screen}
+svg{position:absolute;inset:0}
+.plate{width:88px;white-space:normal;text-align:center;line-height:1.05}
+</style></head><body>
+<div class="art"><div class="bg"></div>
+<svg viewBox="0 0 1376 768" width="1376" height="768" stroke="rgba(41,28,20,.82)" stroke-width="1.25" fill="none" id="lines"></svg>
+<div id="dyn"></div>
+</div>
+<div class="art ref"></div>
+<script>
+const D=document.getElementById('dyn'),S=document.getElementById('lines');
+const T=(x,y,txt,cls,size,color,extra='')=>D.insertAdjacentHTML('beforeend',`<div class="c ${cls}" style="left:${x}px;top:${y}px;font-size:${size}px;color:${color};${extra}">${txt}</div>`);
+const ls=(t)=>t.split('').join('&#8202;');
+// marcadores
+[[275,263,'GERAL'],[265,337,'ARMAS'],[255,410,'FÚRIA'],[245,485,'PROTEÇÃO']].forEach(([x,y,t])=>T(x,y,ls(t),'cz',13,'rgb(237,224,199)','font-weight:400;'+'','text-shadow:1px 1px 1px #000'));
+D.insertAdjacentHTML('beforeend',``);
+// página esquerda
+T(507,190,'CAPÍTULO IV · PROTEÇÃO','cz ink',18,'rgb(41,28,20)');
+T(506,210,'5 Feitiços  ·  Técnicas de Proteção','sg',11,'rgb(66,48,33)');
+const SL=[[432,266,423,316,'Fender Armadura'],[587,284,587,324,'Provocar'],[408,402,405,445,'Fúria Sanguinária'],[590,400,588,446,'Bloquear com Escudo'],[492,510,491,560,'Revanche']];
+D.insertAdjacentHTML('beforeend',``);
+SL.forEach(([x,y,lx,ly,n],i)=>{
+  D.insertAdjacentHTML('beforeend',`<div class="medal" style="left:${x}px;top:${y}px"><div class="ic" style="background-position:${-(x-25)}px ${-(y-25)}px"></div><div class="rg"></div></div>`);
+  T(lx,ly,n,'sg ink',13.5,'rgb(41,28,20)');
+  if(i==0)T(lx,ly+14,'(Grau 1)','sg ink',13,'rgb(41,28,20)');
+});
+[[379,522],[595,518]].forEach(([x,y])=>D.insertAdjacentHTML('beforeend',`<div class="medal seal" style="left:${x}px;top:${y}px"><div class="ic" style="background-position:${-(x-21)}px ${-(y-21)}px"></div><div class="rg"></div></div>`));
+const E=[[464,271,552,276,0],[557,302,445,380,1],[422,339,415,365,1],[589,337,591,360,1],[450,399,506,399,0],[514,399,555,398,0],[510,404,497,480,1],[425,456,460,485,1],[552,456,525,484,1],[501,386,507,395,0]];
+let p='';E.forEach(([a,b,c,d,ar])=>{p+=`<line x1="${a}" y1="${b}" x2="${c}" y2="${d}"/>`;if(ar){let dx=c-a,dy=d-b,l=Math.hypot(dx,dy);dx/=l;dy/=l;for(const s of[.45,-.45]){const rx=dx*Math.cos(s)-dy*Math.sin(s),ry=dx*Math.sin(s)+dy*Math.cos(s);p+=`<line x1="${c}" y1="${d}" x2="${c-rx*7}" y2="${d-ry*7}"/>`}}});
+p+=`<circle cx="510" cy="399" r="4.5"/><circle cx="501" cy="386" r="1.6" fill="rgba(41,28,20,.9)"/>`;
+const w=250;p+=`<line x1="${507-w/2-44}" y1="191" x2="${507-w/2-8}" y2="191"/><line x1="${507-w/2-38}" y1="193.5" x2="${507-w/2-12}" y2="193.5"/><line x1="${507+w/2+8}" y1="191" x2="${507+w/2+44}" y2="191"/><line x1="${507+w/2+12}" y1="193.5" x2="${507+w/2+38}" y2="193.5"/>`;
+S.innerHTML=p;
+// página direita
+T(858,184,'PROTEÇÃO · TÉCNICA','cz',12.5,'rgb(66,48,33)');
+T(860,207,ls('FENDER ARMADURA'),'cz',24,'rgb(41,28,20)');
+T(868,226,'GRAU 1','cz',11,'rgb(66,48,33)');
+D.insertAdjacentHTML('beforeend',`<div class="c" style="left:836px;top:225.5px;width:7px;height:7px;background:#d9a848;transform:translate(-50%,-50%) rotate(45deg)"></div>`);
+T(884,460,'15 de Raiva &nbsp;&nbsp;·&nbsp;&nbsp; Alcance de ataques corpo a corpo &nbsp;&nbsp;·&nbsp;&nbsp; Instantâneo','',15,'rgb(66,48,33)','font-family:IM Fell English,serif;white-space:normal;width:320px;text-align:center;line-height:17px');
+D.insertAdjacentHTML('beforeend',`<div class="sg" style="position:absolute;left:736px;top:488px;width:300px;text-align:center;font-size:13px;line-height:15px;color:rgb(41,28,20)">Reduz a armadura do alvo em 90 por 30 s. Acumula até 5 vezes. <span style="color:#7a2418">Requer Postura de Batalha</span></div>`);
+// mesa (estilo do livro)
+D.insertAdjacentHTML('beforeend','<div style="position:absolute;left:1040px;top:574px;width:320px;height:174px;background:url(preview/mesa.png) 0 0/320px 174px"></div>');
+T(1200,594,'MESA DE RUNAS','cz',11.5,'rgb(41,28,20)');
+S.insertAdjacentHTML('beforeend','<line x1="1100" y1="594" x2="1136" y2="594"/><line x1="1264" y1="594" x2="1300" y2="594"/>');
+[[1093,'BARRA 1',1],[1161,'BARRA 2'],[1229,'BARRA 3'],[1297,'LATERAL']].forEach(([x,t,on])=>{
+  D.insertAdjacentHTML('beforeend','<div class="c" style="left:'+x+'px;top:616px;width:66px;height:26px;background:url(preview/tab.png) 0 0/66px 26px;filter:brightness('+(on?1:.62)+')'+(on?';box-shadow:0 0 14px rgba(255,199,92,.55)':'')+'"></div>');
+  T(x+6,616,t,'cz',9,on?'rgb(255,235,189)':'rgb(150,140,125)','font-weight:400;text-shadow:1px 1px 1px #000');
+});
+const ic=[[1067,637],[1113,637],[1159,637],[1205,637],[1251,637],[1297,637],[1067,692],[1113,692]];
+[1080,1128,1176,1224,1272,1320].forEach((x,c)=>[657,709].forEach((y,r)=>{
+  const k=r*6+c, src=ic[k];
+  const inner = src
+    ? '<div class="ic" style="left:9px;top:9px;width:28px;height:28px;background-position:'+(-(src[0]+6))+'px '+(-(src[1]+6))+'px"></div>'
+    : '<div style="position:absolute;left:18px;top:22px;width:10px;height:2px;background:rgba(219,189,133,.55)"></div><div style="position:absolute;left:22px;top:18px;width:2px;height:10px;background:rgba(219,189,133,.55)"></div>';
+  D.insertAdjacentHTML('beforeend','<div class="medal" style="left:'+x+'px;top:'+y+'px;width:46px;height:46px"><div style="position:absolute;left:8px;top:8px;width:30px;height:30px;border-radius:50%;background:#2b1f14"></div>'+inner+'<div class="rg" style="background-size:46px 46px"></div><div style="position:absolute;right:-1px;bottom:0;width:15px;height:15px;border-radius:50%;background:#dbc499;border:1px solid #735229;font:600 8.5px Segoe UI;color:#291c14;text-align:center;line-height:14px">'+(k+1)+'</div></div>');
+}));
+T(617,727,ls('FEITIÇOS  19      PASSIVAS  7      ')+'<span style="color:#c09068">'+ls('SEM ATALHO  5')+'</span>','cz',9,'rgb(158,161,168)');
+</script></body></html>

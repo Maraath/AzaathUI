@@ -1,0 +1,885 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<style>
+@font-face{font-family:Cinzel;src:url(../../AzaathUI/Media/Fonts/Cinzel-Regular.ttf)}
+@font-face{font-family:CinzelB;src:url(../../AzaathUI/Media/Fonts/Cinzel-Bold.ttf)}
+@font-face{font-family:PT;src:url(../../AzaathUI/Media/Fonts/PTSans-Regular.ttf)}
+@font-face{font-family:PTB;src:url(../../AzaathUI/Media/Fonts/PTSans-Bold.ttf)}
+html,body{margin:0;background:#000;overflow:hidden}
+canvas{display:block}
+</style></head><body>
+<script src="../skills-concept/weapons.js"></script>
+<script src="assets_new_azaath.js"></script>
+<canvas id="obs" width="1920" height="1080"></canvas>
+<canvas id="pla" width="1920" height="1080"></canvas>
+<canvas id="cmp" width="2100" height="1320"></canvas>
+<script>
+"use strict";
+
+const W = 1920, H = 1080;
+const HELM_SPRITES = [];
+const RAW_IMGS = {};
+const CLEAN_PIECES = {};
+const TINTED_GEMS = {};
+
+const CRAFT_GEMS = {
+  GemEasy:    { x: 61,  y: 643, w: 57, h: 67 },
+  GemTrivial: { x: 831, y: 635, w: 56, h: 68 },
+};
+
+const THEMES = {
+  obs: {
+    key: "obs",
+    bgMode: "white",
+    name: "NOVO CONCEITO 1  ·  OBSIDIANA ESCULPIDA & AZAATH LÍQUIDO",
+    sub:  "Pedra vulcânica talhada, bronze antigo e veios de Azaath turquesa + reservatórios de cristal",
+    titleCol: "#ffebc2",
+    accentCol: "#3ef5e8",
+    accentRGB: "62,245,232",
+    secCol: "#1ab8c8",
+    secRGB: "26,184,200",
+    goldCol: "#e6b468",
+    goldRGB: "230,180,104",
+    panelInnerTop: "rgba(14,19,24,0.97)",
+    panelInnerBot: "rgba(7,10,14,0.98)",
+    wellFillTop: "rgba(10,14,18,0.78)",
+    wellFillBot: "rgba(6,9,12,0.84)",
+    pillNorm: { top: "#1c2228", bot: "#0f1317", border: "#987648", inner: "rgba(230,180,104,0.14)", text: "#e8dfc8", chamfer: false },
+    pillAct:  { top: "#11484c", bot: "#09262a", border: "#4ef8ea", inner: "rgba(78,248,234,0.34)", text: "#ffffff", glow: "62,245,232", chamfer: false },
+    ringBorder: ["#d9a458", "#3ef5e8"],
+    // Sprite 1200x896 (fundo branco)
+    codexCrop: { x: 23, y: 11, w: 553, h: 877, splitTop: 315, splitBotStart: 750,
+                 ay: 70, ah: 984, plaqueY: 279, tiYOff: 284, rcyOff: 348, tagYOff: 408, styOff: 450, sryOff: 626,
+                 dualBtnY: 822, leftBtnX: 168, rightBtnX: 429 },
+    wideCrop:  { x: 616, y: 13,  w: 567, h: 300, mx: 74, my: 64, scale: 0.44 },
+    sqCrop:    { x: 617, y: 312, w: 266, h: 273, mx: 56, my: 56, scale: 0.22 },
+    panelCrop: { x: 606, y: 582, w: 589, h: 314, mx: 108, my: 98, scale: 0.62 },
+  },
+  pla: {
+    key: "pla",
+    bgMode: "black",
+    name: "NOVO CONCEITO 2  ·  PLATINA NEGRA ESTELAR & PLASMA DE AZAATH",
+    sub:  "Platina escurecida geométrica, vidro azul-abissal, rebites astrais e canais de plasma ciano",
+    titleCol: "#ebf7ff",
+    accentCol: "#4ceeff",
+    accentRGB: "76,238,255",
+    secCol: "#3494ff",
+    secRGB: "52,148,255",
+    goldCol: "#e8c882",
+    goldRGB: "232,200,130",
+    panelInnerTop: "rgba(12,18,34,0.97)",
+    panelInnerBot: "rgba(6,9,20,0.98)",
+    wellFillTop: "rgba(9,14,28,0.78)",
+    wellFillBot: "rgba(5,8,18,0.84)",
+    pillNorm: { top: "#182136", bot: "#0c111e", border: "#7a8da8", inner: "rgba(155,205,255,0.16)", text: "#dce8f8", chamfer: true },
+    pillAct:  { top: "#124c6c", bot: "#09263a", border: "#66f2ff", inner: "rgba(102,242,255,0.36)", text: "#ffffff", glow: "76,238,255", chamfer: true },
+    ringBorder: ["#c6d4e6", "#4ceeff"],
+    // Sprite 1200x896 (fundo preto)
+    codexCrop: { x: 40, y: 14, w: 537, h: 852, splitTop: 266, splitBotStart: 725,
+                 ay: 86, ah: 968, plaqueY: 228, tiYOff: 256, rcyOff: 320, tagYOff: 384, styOff: 426, sryOff: 598,
+                 dualBtnY: 806, leftBtnX: 174, rightBtnX: 444 },
+    wideCrop:  { x: 640, y: 36,  w: 513, h: 269, mx: 66, my: 54, scale: 0.44 },
+    sqCrop:    { x: 635, y: 328, w: 232, h: 240, mx: 46, my: 46, scale: 0.23 },
+    panelCrop: { x: 630, y: 586, w: 570, h: 310, mx: 96, my: 74, scale: 0.65 },
+  },
+};
+
+function toRgbStr(col) {
+  if (!col) return "255,255,255";
+  const s = String(col).trim();
+  if (s[0] === "#") {
+    const h = s.slice(1);
+    const n = h.length === 3 ? h.split("").map(c => c + c).join("") : h;
+    return `${parseInt(n.slice(0, 2), 16)},${parseInt(n.slice(2, 4), 16)},${parseInt(n.slice(4, 6), 16)}`;
+  }
+  return s;
+}
+
+function glow(g, x, y, r, col, a) {
+  const rgb = toRgbStr(col);
+  const gr = g.createRadialGradient(x, y, 0, x, y, r);
+  gr.addColorStop(0, `rgba(${rgb},${a})`);
+  gr.addColorStop(0.38, `rgba(${rgb},${a * 0.40})`);
+  gr.addColorStop(1, `rgba(${rgb},0)`);
+  g.fillStyle = gr;
+  g.fillRect(x - r, y - r, r * 2, r * 2);
+}
+
+function tw(g, s, font, ls) {
+  g.save();
+  g.font = font;
+  if (ls) g.letterSpacing = ls + "px";
+  const w = g.measureText(s).width;
+  g.restore();
+  return w;
+}
+
+function text(g, s, x, y, o = {}) {
+  g.save();
+  g.font = o.font || "15px PT";
+  g.fillStyle = o.color || "#eef2f6";
+  g.textAlign = o.align || "left";
+  g.textBaseline = o.base || "middle";
+  if (o.ls) g.letterSpacing = o.ls + "px";
+  g.shadowColor = "rgba(0,0,0,0.96)";
+  g.shadowOffsetX = 1.5;
+  g.shadowOffsetY = 1.5;
+  if (o.glow) {
+    g.shadowColor = o.glow;
+    g.shadowBlur = o.blur || 10;
+    g.shadowOffsetX = 0;
+    g.shadowOffsetY = 0;
+  }
+  g.fillText(s, x, y);
+  const w = g.measureText(s).width;
+  g.restore();
+  return w;
+}
+
+function drawWeapon(g, kind, x, y, s, ang, fill, stroke, lw) {
+  g.save();
+  g.translate(x, y);
+  g.rotate(ang || 0);
+  g.scale(s, s);
+  g.beginPath();
+  WEAPON[kind](g);
+  if (fill) { g.fillStyle = fill; g.fill("nonzero"); }
+  if (stroke) { g.strokeStyle = stroke; g.lineWidth = (lw || 1.4) / s; g.stroke(); }
+  g.restore();
+}
+
+// Flood-fill alpha matting a partir das bordas externas (suporta fundo branco OU preto!)
+function makeCleanPiece(srcImg, box, opts = {}) {
+  const pad = opts.pad ?? 4;
+  const bgMode = opts.bgMode || "black";
+  const sx = Math.max(0, box.x - pad), sy = Math.max(0, box.y - pad);
+  const sw = Math.min(srcImg.width - sx, box.w + pad * 2);
+  const sh = Math.min(srcImg.height - sy, box.h + pad * 2);
+  const cv = document.createElement("canvas");
+  cv.width = sw; cv.height = sh;
+  const cx = cv.getContext("2d");
+  cx.drawImage(srcImg, sx, sy, sw, sh, 0, 0, sw, sh);
+  const id = cx.getImageData(0, 0, sw, sh);
+  const d = id.data;
+  const vis = new Uint8Array(sw * sh);
+  const stack = [];
+  for (let x = 0; x < sw; x++) { stack.push(x); stack.push((sh - 1) * sw + x); }
+  for (let y = 0; y < sh; y++) { stack.push(y * sw); stack.push(y * sw + (sw - 1)); }
+
+  const isBg = (i) => {
+    const o = i * 4;
+    if (bgMode === "white") return Math.min(d[o], d[o + 1], d[o + 2]) > 224;
+    return Math.max(d[o], d[o + 1], d[o + 2]) < 26;
+  };
+
+  while (stack.length) {
+    const p = stack.pop();
+    if (vis[p] || !isBg(p)) continue;
+    vis[p] = 1;
+    d[p * 4 + 3] = 0;
+    const x = p % sw, y = (p / sw) | 0;
+    if (x > 0) stack.push(p - 1);
+    if (x < sw - 1) stack.push(p + 1);
+    if (y > 0) stack.push(p - sw);
+    if (y < sh - 1) stack.push(p + sw);
+  }
+
+  // Suavização anti-halo de 1-2px na transição externa
+  for (let y = 1; y < sh - 1; y++) {
+    for (let x = 1; x < sw - 1; x++) {
+      const p = y * sw + x;
+      if (vis[p]) continue;
+      if (vis[p - 1] || vis[p + 1] || vis[p - sw] || vis[p + sw]) {
+        const o = p * 4;
+        if (bgMode === "white") {
+          const minC = Math.min(d[o], d[o + 1], d[o + 2]);
+          if (minC > 130) {
+            d[o + 3] = Math.round(d[o + 3] * Math.max(0.20, (224 - minC) / 94));
+            d[o] = Math.round(d[o] * 0.45);
+            d[o + 1] = Math.round(d[o + 1] * 0.45);
+            d[o + 2] = Math.round(d[o + 2] * 0.45);
+          }
+        } else {
+          const lum = Math.max(d[o], d[o + 1], d[o + 2]);
+          if (lum < 72) d[o + 3] = Math.round(d[o + 3] * Math.max(0.25, lum / 72));
+        }
+      }
+    }
+  }
+  cx.putImageData(id, 0, 0);
+  return { cv, pad, w: sw, h: sh };
+}
+
+function drawPainted9Slice(g, piece, mx, my, sc, X, Y, W_box, H_box, opts = {}) {
+  const im = piece.cv;
+  const IW = im.width, IH = im.height;
+  const ml = mx + piece.pad, mr = mx + piece.pad;
+  const mt = my + piece.pad, mb = my + piece.pad;
+  const pad = piece.pad * sc;
+  const ox = X - pad, oy = Y - pad, OW = W_box + pad * 2, OH = H_box + pad * 2;
+  const dl = Math.min(OW * 0.45, ml * sc), dr = Math.min(OW * 0.45, mr * sc);
+  const dt = my === 0 ? OH : Math.min(OH * 0.45, mt * sc);
+  const db = my === 0 ? 0  : Math.min(OH * 0.45, mb * sc);
+
+  const cols = [
+    [0, ml, ox, dl],
+    [ml, Math.max(1, IW - ml - mr), ox + dl, Math.max(0, OW - dl - dr)],
+    [IW - mr, mr, ox + OW - dr, dr],
+  ];
+  const rows = my === 0 ? [
+    [0, IH, oy, OH],
+  ] : [
+    [0, mt, oy, dt],
+    [mt, Math.max(1, IH - mt - mb), oy + dt, Math.max(0, OH - dt - db)],
+    [IH - mb, mb, oy + OH - db, db],
+  ];
+
+  g.save();
+  for (const [sy, sh, dy, dh] of rows) {
+    if (sh <= 0 || dh <= 0) continue;
+    for (const [sx, sw, dx, dw] of cols) {
+      if (sw <= 0 || dw <= 0) continue;
+      if (opts.skipCenter && sy === mt && sx === ml) continue;
+      g.drawImage(im, sx, sy, sw, sh, Math.round(dx), Math.round(dy), Math.ceil(dw), Math.ceil(dh));
+    }
+  }
+  g.restore();
+}
+
+function drawCapsule(g, T, x, y, w, h, active, tintCol) {
+  const st = active ? T.pillAct : T.pillNorm;
+  const r = st.chamfer ? 5 : h / 2;
+  g.save();
+  if (active && st.glow) {
+    g.save();
+    g.globalCompositeOperation = "lighter";
+    glow(g, x + w / 2, y + h / 2, Math.max(w * 0.54, 46), tintCol || st.glow, 0.30);
+    g.restore();
+  }
+  g.beginPath();
+  if (st.chamfer) {
+    const ch = Math.min(9, h * 0.32);
+    g.moveTo(x + ch, y); g.lineTo(x + w - ch, y); g.lineTo(x + w, y + ch);
+    g.lineTo(x + w, y + h - ch); g.lineTo(x + w - ch, y + h); g.lineTo(x + ch, y + h);
+    g.lineTo(x, y + h - ch); g.lineTo(x, y + ch); g.closePath();
+  } else {
+    g.roundRect(x, y, w, h, r);
+  }
+  const fg = g.createLinearGradient(0, y, 0, y + h);
+  fg.addColorStop(0, st.top); fg.addColorStop(1, st.bot);
+  g.fillStyle = fg;
+  g.fill();
+
+  g.save();
+  g.clip();
+  const sg = g.createLinearGradient(0, y, 0, y + h * 0.55);
+  sg.addColorStop(0, st.inner); sg.addColorStop(1, "rgba(255,255,255,0)");
+  g.fillStyle = sg;
+  g.fillRect(x, y, w, h * 0.55);
+  g.restore();
+
+  g.strokeStyle = tintCol && active ? tintCol : st.border;
+  g.lineWidth = active ? 1.85 : 1.25;
+  g.stroke();
+
+  if (active) {
+    const ug = g.createLinearGradient(x + 8, 0, x + w - 8, 0);
+    ug.addColorStop(0, "rgba(255,255,255,0)");
+    ug.addColorStop(0.5, st.border);
+    ug.addColorStop(1, "rgba(255,255,255,0)");
+    g.fillStyle = ug;
+    g.fillRect(x + 8, y + h - 2, w - 16, 1.8);
+  }
+  g.restore();
+}
+
+function drawItemMedallion(g, T, cx, cy, sz, helmIdx, qrgb, clean = false) {
+  const R = sz * 0.5;
+  if (!clean) {
+    g.save();
+    g.globalCompositeOperation = "lighter";
+    glow(g, cx, cy, sz * 0.78, qrgb, 0.32);
+    g.restore();
+  }
+  g.save();
+  g.beginPath(); g.arc(cx, cy, R - 2, 0, Math.PI * 2);
+  const well = g.createRadialGradient(cx, cy - R * 0.25, 2, cx, cy, R);
+  well.addColorStop(0, `rgba(${qrgb},0.28)`);
+  well.addColorStop(0.65, "rgba(8,14,22,0.96)");
+  well.addColorStop(1, "rgba(3,6,11,0.99)");
+  g.fillStyle = well; g.fill();
+  g.clip();
+  const spr = HELM_SPRITES[helmIdx % HELM_SPRITES.length];
+  const isz = sz * 0.88;
+  g.drawImage(spr, cx - isz / 2, cy - isz / 2, isz, isz);
+  g.restore();
+
+  g.save();
+  g.beginPath(); g.arc(cx, cy, R + 1, 0, Math.PI * 2);
+  const rg = g.createLinearGradient(cx, cy - R, cx, cy + R);
+  rg.addColorStop(0, T.ringBorder[0]); rg.addColorStop(1, T.ringBorder[1]);
+  g.strokeStyle = rg;
+  g.lineWidth = clean ? 4.5 : 3;
+  g.stroke();
+
+  g.beginPath(); g.arc(cx, cy, R - 2, 0, Math.PI * 2);
+  g.strokeStyle = `rgba(${qrgb},0.94)`;
+  g.lineWidth = clean ? 2.2 : 1.5;
+  g.stroke();
+  g.restore();
+}
+
+function strokeThemeFrame(g, T, x, y, w, h, col, lw) {
+  g.save();
+  g.strokeStyle = col;
+  g.lineWidth = lw;
+  g.beginPath();
+  if (T.pillNorm.chamfer) {
+    const ch = 10;
+    g.moveTo(x + ch, y); g.lineTo(x + w - ch, y); g.lineTo(x + w, y + ch);
+    g.lineTo(x + w, y + h - ch); g.lineTo(x + w - ch, y + h); g.lineTo(x + ch, y + h);
+    g.lineTo(x, y + h - ch); g.lineTo(x, y + ch); g.closePath();
+  } else {
+    g.roundRect(x, y, w, h, 4);
+  }
+  g.stroke();
+  g.restore();
+}
+
+function prepareHelms() {
+  const src = RAW_IMGS.Helmets;
+  const cw = Math.floor(src.width / 4), ch = Math.floor(src.height / 2);
+  for (let row = 0; row < 2; row++) {
+    for (let col = 0; col < 4; col++) {
+      const tmp = document.createElement("canvas");
+      tmp.width = cw; tmp.height = ch;
+      const tx = tmp.getContext("2d");
+      tx.drawImage(src, col * cw, row * ch, cw, ch, 0, 0, cw, ch);
+      const id = tx.getImageData(0, 0, cw, ch);
+      const d = id.data;
+      let minX = cw, minY = ch, maxX = 0, maxY = 0;
+      for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) {
+        const i = (y * cw + x) * 4;
+        const a = Math.max(0, Math.min(1, (Math.max(d[i], d[i + 1], d[i + 2]) - 10) / 24));
+        d[i + 3] = Math.round(a * 255);
+        if (a > 0.25) {
+          if (x < minX) minX = x; if (x > maxX) maxX = x;
+          if (y < minY) minY = y; if (y > maxY) maxY = y;
+        }
+      }
+      tx.putImageData(id, 0, 0);
+      const bw = Math.max(1, maxX - minX + 1), bh = Math.max(1, maxY - minY + 1);
+      const s = Math.max(bw, bh) + 12;
+      const out = document.createElement("canvas"); out.width = s; out.height = s;
+      out.getContext("2d").drawImage(tmp, minX, minY, bw, bh, (s - bw) / 2, (s - bh) / 2, bw, bh);
+      HELM_SPRITES.push(out);
+    }
+  }
+}
+
+function prepareGems() {
+  const rg = RAW_IMGS.CraftRings;
+  const mk = (key, rgb) => {
+    const a = CRAFT_GEMS[key];
+    const c = document.createElement("canvas"); c.width = a.w; c.height = a.h;
+    const gx = c.getContext("2d"); gx.drawImage(rg, a.x, a.y, a.w, a.h, 0, 0, a.w, a.h);
+    if (rgb) {
+      const id = gx.getImageData(0, 0, a.w, a.h), d = id.data;
+      for (let i = 0; i < d.length; i += 4) {
+        if (!d[i + 3]) continue;
+        const lum = (0.3 * d[i] + 0.59 * d[i + 1] + 0.11 * d[i + 2]) / 255;
+        const sp = Math.max(0, (lum - 0.65) / 0.35);
+        d[i]     = Math.min(255, Math.round(rgb[0] * (0.35 + lum * 0.95) * (1 - sp * 0.6) + 255 * sp * 0.6));
+        d[i + 1] = Math.min(255, Math.round(rgb[1] * (0.35 + lum * 0.95) * (1 - sp * 0.6) + 255 * sp * 0.6));
+        d[i + 2] = Math.min(255, Math.round(rgb[2] * (0.35 + lum * 0.95) * (1 - sp * 0.6) + 255 * sp * 0.6));
+      }
+      gx.putImageData(id, 0, 0);
+    }
+    return c;
+  };
+  TINTED_GEMS.GemTrivial = mk("GemTrivial", null);
+  TINTED_GEMS.GemEasy    = mk("GemEasy", null);
+  TINTED_GEMS.GemRare    = mk("GemTrivial", [55, 165, 255]);
+  TINTED_GEMS.GemEpic    = mk("GemTrivial", [195, 105, 255]);
+}
+
+function prepareThemePieces() {
+  for (const k of ["obs", "pla"]) {
+    const T = THEMES[k];
+    const img = RAW_IMGS[k];
+    CLEAN_PIECES[k] = {
+      codex: makeCleanPiece(img, T.codexCrop, { pad: 6, bgMode: T.bgMode }),
+      wide:  makeCleanPiece(img, T.wideCrop,  { pad: 6, bgMode: T.bgMode }),
+      panel: makeCleanPiece(img, T.panelCrop, { pad: 6, bgMode: T.bgMode }),
+      sq:    makeCleanPiece(img, T.sqCrop,    { pad: 4, bgMode: T.bgMode }),
+    };
+  }
+}
+
+function drawChrome(g, T) {
+  g.imageSmoothingQuality = "high";
+  g.drawImage(RAW_IMGS.HallBG, 0, 0, W, H);
+  g.fillStyle = "rgba(3,7,12,0.38)";
+  g.fillRect(0, 0, W, H);
+
+  let tg = g.createLinearGradient(0, 0, 0, 120);
+  tg.addColorStop(0, "rgba(2,5,9,0.92)"); tg.addColorStop(1, "rgba(2,5,9,0)");
+  g.fillStyle = tg; g.fillRect(0, 0, W, 120);
+
+  let bg = g.createLinearGradient(0, H - 70, 0, H);
+  bg.addColorStop(0, "rgba(2,5,9,0)"); bg.addColorStop(1, "rgba(2,5,9,0.90)");
+  g.fillStyle = bg; g.fillRect(0, H - 70, W, 70);
+
+  g.save();
+  g.beginPath(); g.arc(64, 46, 26, 0, 7);
+  g.fillStyle = "#182c3a"; g.fill(); g.clip();
+  g.fillStyle = "#8aa6b8";
+  g.beginPath(); g.arc(64, 41, 10, 0, 7); g.fill();
+  g.beginPath(); g.ellipse(64, 72, 19, 17, 0, 0, 7); g.fill();
+  g.restore();
+  g.save(); g.beginPath(); g.arc(64, 46, 27, 0, 7);
+  g.strokeStyle = T.goldCol; g.lineWidth = 2.4; g.stroke(); g.restore();
+
+  text(g, "MARAATH", 104, 36, { font: "23px Cinzel", color: "#f3f6f8", ls: 1 });
+  text(g, "NÍVEL 60 ELFO NOTURNO GUERREIRO", 105, 58, { font: "10.5px Cinzel", color: "#aebdc5", ls: 1 });
+
+  const tabs = ["SANTUÁRIO", "GRIMÓRIO", "TALENTOS", "OFÍCIOS", "DROPS", "REPUTAÇÃO", "PERÍCIAS", "GLADIADOR", "TESOURO", "CRÔNICAS"];
+  const gap = 24, ws = tabs.map((t) => tw(g, t, "13px Cinzel", 1));
+  let tx = 1010 - (ws.reduce((a, b) => a + b, 0) + gap * (tabs.length - 1)) / 2;
+  tabs.forEach((t, i) => {
+    const act = t === "DROPS";
+    text(g, t, tx, 40, { font: "13px Cinzel", color: act ? "#ffffff" : "#96a6b0", ls: 1, glow: act ? T.accentCol : null, blur: 14 });
+    if (act) {
+      const cx = tx + ws[i] / 2;
+      g.save(); g.globalCompositeOperation = "lighter";
+      glow(g, cx, 52, 46, T.accentRGB, 0.55);
+      const fl = g.createLinearGradient(cx - 60, 0, cx + 60, 0);
+      fl.addColorStop(0, "rgba(0,0,0,0)"); fl.addColorStop(0.5, T.accentCol); fl.addColorStop(1, "rgba(0,0,0,0)");
+      g.fillStyle = fl; g.fillRect(cx - 60, 52, 120, 2);
+      g.restore();
+    }
+    tx += ws[i] + gap;
+  });
+
+  g.save(); g.beginPath(); g.arc(1856, 44, 24, 0, 7);
+  g.fillStyle = "#08121c"; g.fill();
+  g.strokeStyle = T.goldCol; g.lineWidth = 2.6; g.stroke(); g.restore();
+  text(g, "64", 1856, 44, { font: "18px Cinzel", color: T.accentCol, align: "center" });
+  text(g, "PODER DE ITEM", 1856, 77, { font: "9px Cinzel", color: "#aebac2", align: "center", ls: 0.8 });
+
+  text(g, "INTEGRIDADE  100%", 36, 1066, { font: "11.5px Cinzel", color: "#b6c4cc", ls: 1 });
+  text(g, "ARSENAL INTACTO", 206, 1066, { font: "11.5px Cinzel", color: T.goldCol, ls: 1 });
+  text(g, "BOLSAS  24 / 68 LIVRES", 374, 1066, { font: "11.5px Cinzel", color: "#b6c4cc", ls: 1 });
+  text(g, "FECHAR (ESC)", 1884, 1066, { font: "12.5px Cinzel", color: "#eef4f6", ls: 2, align: "right" });
+}
+
+const ITEMS_ALPHA = [
+  { name: "Capacete Viking com Chifres", sub: "Cabeça · Placa", ilvl: 42, req: 40, stats: "303 Armadura · +10 Agi · +15 Vig", tag: "MASMORRA", src: "Eric, \"O Veloz\" · Uldaman", pct: "8.0%", qrgb: "56,170,255", qhex: "#4db0ff", h: 2 },
+  { name: "Elmo Coração de Leão", sub: "Cabeça · Placa", ilvl: 61, req: 56, stats: "565 Armadura · +18 Força · +2% Crít.", tag: "OFÍCIO", src: "Ferraria (300) · Rec: Mão Negra", pct: "100%", qrgb: "198,120,255", qhex: "#ca84ff", h: 0, sel: true },
+  { name: "Elmo da Alma Alva", sub: "Cabeça · Placa", ilvl: 60, req: 55, stats: "629 Armadura · +15 Int · +35 Cura", tag: "MUNDO", src: "Feiticeiro Esq. · Pestilentas Oc.", pct: "1.4%", qrgb: "56,170,255", qhex: "#4db0ff", h: 6 },
+  { name: "Elmo da Forja de Luz", sub: "Cabeça · Placa", ilvl: 62, req: 57, stats: "526 Armadura · +14 Força · +20 Vig", tag: "MASMORRA", src: "Mestre Gandling · Scolomântia", pct: "6.3%", qrgb: "56,170,255", qhex: "#4db0ff", h: 4 },
+  { name: "Elmo de Ferro Negro", sub: "Cabeça · Placa", ilvl: 66, req: 60, stats: "758 Armadura · +20 Vigor · +10 Res.", tag: "OFÍCIO", src: "Ferraria (300) · Abismo Rocha Negra", pct: "100%", qrgb: "198,120,255", qhex: "#ca84ff", h: 1 },
+  { name: "Elmo de Placa Imperial", sub: "Cabeça · Placa", ilvl: 59, req: 54, stats: "456 Armadura · +18 Força · +17 Vig", tag: "MISSÃO", src: "Ferraria (295) · Placa Imperial", pct: "100%", qrgb: "56,232,100", qhex: "#4be864", h: 7 },
+  { name: "Elmo de Tório Encantado", sub: "Cabeça · Placa", ilvl: 62, req: 57, stats: "526 Armadura · +12 Força · +25 Vig", tag: "OFÍCIO", src: "Ferraria (300) · Tório Encantado", pct: "100%", qrgb: "56,170,255", qhex: "#4db0ff", h: 5 },
+  { name: "Elmo do Valor", sub: "Cabeça · Placa", ilvl: 62, req: 57, stats: "526 Armadura · +15 Força · +27 Vig", tag: "MASMORRA", src: "Mestre Gandling · Scolomântia", pct: "11.8%", qrgb: "56,170,255", qhex: "#4db0ff", h: 3 },
+  { name: "Elmo Dracônico Carmesim", sub: "Cabeça · Placa", ilvl: 64, req: 58, stats: "612 Armadura · +22 Força · +18 Vig", tag: "MASMORRA", src: "Gen. Drakkisath · Rocha Negra", pct: "14.2%", qrgb: "198,120,255", qhex: "#ca84ff", h: 0 },
+  { name: "Elmo Escarlate Reforjado", sub: "Cabeça · Placa", ilvl: 44, req: 39, stats: "360 Armadura · +14 Força · +14 Vig", tag: "MASMORRA", src: "Com. Mograine · Monastério", pct: "21.5%", qrgb: "56,170,255", qhex: "#4db0ff", h: 2 },
+  { name: "Elmo Rúnico de Mitrila", sub: "Cabeça · Placa", ilvl: 51, req: 46, stats: "408 Armadura · +16 Vigor · +10 Def", tag: "OFÍCIO", src: "Ferraria (250) · Treinador", pct: "100%", qrgb: "56,232,100", qhex: "#4be864", h: 5 },
+  { name: "Elmo Templar de Safira", sub: "Cabeça · Placa", ilvl: 56, req: 51, stats: "488 Armadura · +15 Força · +16 Esp", tag: "MUNDO", src: "Guarda Real · Planaltos", pct: "2.6%", qrgb: "56,170,255", qhex: "#4db0ff", h: 4 },
+];
+
+function drawCatalog(g, T, pieces) {
+  const PX = 34, PY = 104, PW = 1346, PH = 950;
+  const X0 = PX + 26, W0 = PW - 52;
+
+  g.save();
+  const bgG = g.createLinearGradient(0, PY, 0, PY + PH);
+  bgG.addColorStop(0, T.panelInnerTop); bgG.addColorStop(1, T.panelInnerBot);
+  g.fillStyle = bgG;
+  g.fillRect(PX + 10, PY + 10, PW - 20, PH - 20);
+  g.restore();
+
+  drawPainted9Slice(g, pieces.panel, T.panelCrop.mx, T.panelCrop.my, T.panelCrop.scale, PX, PY, PW, PH, { skipCenter: true });
+
+  g.save();
+  const wg = g.createLinearGradient(0, PY + 52, 0, PY + 258);
+  wg.addColorStop(0, T.wellFillTop); wg.addColorStop(1, T.wellFillBot);
+  g.fillStyle = wg;
+  g.fillRect(PX + 14, PY + 52, PW - 28, 206);
+  g.restore();
+
+  text(g, "RELICÁRIO DE AZAATH", X0 + 18, PY + 31, { font: "23px CinzelB", color: T.titleCol, ls: 1.5 });
+  text(g, "Placa  ›  Capacete", X0 + 328, PY + 31, { font: "13.5px PTB", color: T.accentCol });
+  text(g, "12 de 48 itens  ·  Ordem Alfabética  ·  Pág. 1 / 4", PX + PW - 72, PY + 31, { font: "12.5px PTB", color: T.goldCol, align: "right" });
+
+  for (const dy of [PY + 51, PY + 258]) {
+    const dg = g.createLinearGradient(X0, 0, X0 + W0, 0);
+    dg.addColorStop(0, "rgba(0,0,0,0)");
+    dg.addColorStop(0.25, T.accentCol);
+    dg.addColorStop(0.5, T.goldCol);
+    dg.addColorStop(0.75, T.accentCol);
+    dg.addColorStop(1, "rgba(0,0,0,0)");
+    g.fillStyle = dg; g.fillRect(X0, dy, W0, 1.8);
+  }
+
+  const R1Y = PY + 60;
+  drawCapsule(g, T, X0, R1Y, 458, 34, false);
+  g.save(); g.strokeStyle = T.goldCol; g.lineWidth = 1.6;
+  g.beginPath(); g.arc(X0 + 20, R1Y + 16, 5.5, 0, 7); g.stroke();
+  g.beginPath(); g.moveTo(X0 + 24, R1Y + 20); g.lineTo(X0 + 29, R1Y + 25); g.stroke();
+  g.restore();
+  text(g, "Buscar equipamento, chefe, zona ou receita...", X0 + 38, R1Y + 17, { font: "12.5px PT", color: "#8ba0ae" });
+
+  drawCapsule(g, T, X0 + 468, R1Y + 1, 168, 32, false);
+  text(g, "Todo o Mundo", X0 + 468 + 84, R1Y + 17, { font: "12px PTB", color: T.pillNorm.text, align: "center" });
+
+  const origins = [
+    { t: "Todas Origens", w: 114, on: true },
+    { t: "Mundo Aberto",  w: 112 },
+    { t: "Masmorra/Raide", w: 134 },
+    { t: "Craftável",     w: 96 },
+    { t: "Quests",        w: 86 },
+  ];
+  let ox = X0 + 468 + 168 + 14;
+  const oGap = Math.floor((X0 + W0 - ox - origins.reduce((a, b) => a + b.w, 0)) / 4);
+  origins.forEach((o) => {
+    drawCapsule(g, T, ox, R1Y + 2, o.w, 30, o.on);
+    text(g, o.t, ox + o.w / 2, R1Y + 17, { font: o.on ? "11.5px PTB" : "11.5px PT", color: o.on ? "#ffffff" : T.pillNorm.text, align: "center" });
+    ox += o.w + oGap;
+  });
+
+  // Nível 2: 9 Mini-Cards com novas texturas `pieces.sq`
+  const R2Y = PY + 106;
+  const cats = [
+    { t: "Todos",     icon: "star" },
+    { t: "Placa",     icon: "armor", on: true },
+    { t: "Malha",     icon: "armor" },
+    { t: "Couro",     icon: "hide" },
+    { t: "Tecido",    icon: "needle" },
+    { t: "Armas",     icon: "great" },
+    { t: "Acess.",    icon: "shield" },
+    { t: "Materiais", icon: "crystal" },
+    { t: "Quest",     icon: "book" },
+  ];
+  const cg = 10, cw = Math.floor((W0 - cg * 8) / 9), ch = 70;
+  cats.forEach((c, i) => {
+    const cx = X0 + i * (cw + cg);
+    if (c.on) {
+      g.save(); g.globalCompositeOperation = "lighter";
+      glow(g, cx + cw / 2, R2Y + ch / 2, 74, T.accentRGB, 0.36);
+      g.restore();
+    }
+    drawPainted9Slice(g, pieces.sq, T.sqCrop.mx, T.sqCrop.my, T.sqCrop.scale, cx, R2Y, cw, ch);
+    if (c.on) {
+      strokeThemeFrame(g, T, cx + 2, R2Y + 2, cw - 4, ch - 4, T.accentCol, 2.1);
+      const ug = g.createLinearGradient(cx + 16, 0, cx + cw - 16, 0);
+      ug.addColorStop(0, "rgba(0,0,0,0)"); ug.addColorStop(0.5, T.accentCol); ug.addColorStop(1, "rgba(0,0,0,0)");
+      g.fillStyle = ug; g.fillRect(cx + 16, R2Y + ch - 4, cw - 32, 2.5);
+    }
+    const mcx = cx + cw / 2, mcy = R2Y + 25;
+    if (c.on) {
+      drawItemMedallion(g, T, mcx, mcy, 27, 0, T.accentRGB, true);
+    } else {
+      g.save(); g.beginPath(); g.arc(mcx, mcy, 13.5, 0, 7);
+      g.fillStyle = "#0b121c"; g.fill();
+      g.strokeStyle = T.goldCol; g.lineWidth = 1.5; g.stroke(); g.restore();
+      const ang = (c.icon === "great" || c.icon === "needle") ? 0.55 : 0;
+      drawWeapon(g, c.icon, mcx, mcy, 0.155, ang, "#ecd8a6");
+    }
+    text(g, c.t, mcx, R2Y + 49, { font: c.on ? "11.5px PTB" : "11px PTB", color: c.on ? "#ffffff" : T.titleCol, align: "center" });
+  });
+
+  // Nível 3A: Cascata de Peça
+  const R3Y = PY + 188;
+  text(g, "PEÇA (PLACA):", X0, R3Y + 13, { font: "11.5px CinzelB", color: T.goldCol, ls: 0.8 });
+  const slots = [
+    { t: "Todas", w: 66 }, { t: "Capacete", w: 84, on: true }, { t: "Ombros", w: 72 },
+    { t: "Torso", w: 64 }, { t: "Braçadeiras", w: 96 }, { t: "Manoplas", w: 82 },
+    { t: "Cinto", w: 64 }, { t: "Calças", w: 66 }, { t: "Botas", w: 64 },
+  ];
+  let sx = X0 + 118;
+  slots.forEach((sl) => {
+    drawCapsule(g, T, sx, R3Y, sl.w, 26, sl.on, T.goldCol);
+    text(g, sl.t, sx + sl.w / 2, R3Y + 13, { font: sl.on ? "11.5px PTB" : "11.5px PT", color: sl.on ? "#ffffff" : T.pillNorm.text, align: "center" });
+    sx += sl.w + 9;
+  });
+
+  // Nível 3B: Nível + Raridade
+  const R4Y = PY + 224;
+  text(g, "NÍVEL:", X0, R4Y + 13, { font: "11.5px CinzelB", color: T.goldCol, ls: 0.8 });
+  const levels = [
+    { t: "Nv: Todos", w: 82, on: true }, { t: "1–20", w: 58 },
+    { t: "21–40", w: 66 }, { t: "41–59", w: 66 }, { t: "60", w: 46 },
+  ];
+  let lx = X0 + 58;
+  levels.forEach((lv) => {
+    drawCapsule(g, T, lx, R4Y, lv.w, 26, lv.on);
+    text(g, lv.t, lx + lv.w / 2, R4Y + 13, { font: lv.on ? "11.5px PTB" : "11.5px PT", color: lv.on ? "#ffffff" : T.pillNorm.text, align: "center" });
+    lx += lv.w + 8;
+  });
+
+  const quals = [
+    { t: "Todas",    w: 82,  gem: "GemTrivial", col: "#dce6ec" },
+    { t: "Incomum+", w: 108, gem: "GemEasy",    col: "#4be864", on: true },
+    { t: "Raro+",    w: 88,  gem: "GemRare",    col: "#4da8ff" },
+    { t: "Épico",    w: 82,  gem: "GemEpic",    col: "#ca84ff" },
+  ];
+  let qx = X0 + W0;
+  for (let i = quals.length - 1; i >= 0; i--) {
+    const q = quals[i];
+    qx -= q.w;
+    drawCapsule(g, T, qx, R4Y, q.w, 26, q.on, q.col);
+    g.drawImage(TINTED_GEMS[q.gem], qx + 9, R4Y + 5, 13, 15);
+    text(g, q.t, qx + 27, R4Y + 13, { font: "11.5px PTB", color: q.on ? "#ffffff" : q.col });
+    qx -= 8;
+  }
+  text(g, "RARIDADE:", qx - 4, R4Y + 13, { font: "11.5px CinzelB", color: T.goldCol, align: "right", ls: 0.8 });
+
+  // Grade 3×4 (12 Cards de Itens com as novas texturas!)
+  const GY = PY + 266, gridW = W0 - 18, GAPX = 14, GAPY = 14;
+  const CW = Math.floor((gridW - 2 * GAPX) / 3), CH = 152;
+
+  ITEMS_ALPHA.forEach((it, idx) => {
+    const col = idx % 3, row = Math.floor(idx / 3);
+    const cx = X0 + col * (CW + GAPX);
+    const cy = GY + row * (CH + GAPY);
+
+    if (it.sel) {
+      g.save(); g.globalCompositeOperation = "lighter";
+      glow(g, cx + CW / 2, cy + CH / 2, CW * 0.58, T.accentRGB, 0.28);
+      g.restore();
+    }
+
+    drawPainted9Slice(g, pieces.wide, T.wideCrop.mx, T.wideCrop.my, T.wideCrop.scale, cx, cy, CW, CH);
+
+    if (it.sel) {
+      strokeThemeFrame(g, T, cx + 3, cy + 3, CW - 6, CH - 6, T.accentCol, 2.2);
+    }
+
+    g.save();
+    g.fillStyle = `rgba(${it.qrgb},0.90)`;
+    g.fillRect(cx + 11, cy + 16, 3.2, CH - 32);
+    g.fillStyle = "rgba(3,6,12,0.48)";
+    g.fillRect(cx + 14, cy + CH - 41, CW - 28, 28);
+    g.fillStyle = "rgba(255,255,255,0.10)";
+    g.fillRect(cx + 16, cy + CH - 42, CW - 32, 1);
+    g.restore();
+
+    drawItemMedallion(g, T, cx + 48, cy + 50, 56, it.h, it.qrgb, false);
+
+    const bdg = `iLvl ${it.ilvl} · Nv.${it.req}`;
+    const bdgW = Math.max(76, Math.ceil(tw(g, bdg, "10.5px PTB") + 16));
+    drawCapsule(g, T, cx + CW - bdgW - 14, cy + 16, bdgW, 20, false);
+    text(g, bdg, cx + CW - 14 - bdgW / 2, cy + 26, { font: "10.5px PTB", color: T.goldCol, align: "center" });
+
+    text(g, it.name, cx + 86, cy + 25, { font: "14px CinzelB", color: it.qhex });
+    text(g, it.sub, cx + 86, cy + 47, { font: "11.5px PT", color: "#cfc8b6" });
+    text(g, it.stats, cx + 86, cy + 70, { font: "12px PT", color: "#5ce674" });
+
+    const tagCol = it.tag === "OFÍCIO" ? T.goldCol : it.tag === "MISSÃO" ? "#56e67a" : it.tag === "MUNDO" ? T.accentCol : "#cb8eff";
+    text(g, it.tag, cx + 18, cy + CH - 24, { font: "10.5px PTB", color: tagCol, ls: 0.6 });
+    text(g, "· " + it.src, cx + 18 + tw(g, it.tag, "10.5px PTB", 0.6) + 5, cy + CH - 24, { font: "11.5px PT", color: "#c2ced6" });
+
+    const is100 = it.pct === "100%";
+    drawCapsule(g, T, cx + CW - 66, cy + CH - 35, 52, 22, !is100, T.goldCol);
+    text(g, it.pct, cx + CW - 40, cy + CH - 24, { font: "11px PTB", color: is100 ? T.goldCol : T.accentCol, align: "center" });
+  });
+
+  const SBX = X0 + W0 - 6, SBH = 4 * CH + 3 * GAPY;
+  g.fillStyle = "rgba(255,255,255,0.08)"; g.fillRect(SBX, GY, 5, SBH);
+  g.fillStyle = T.accentCol; g.fillRect(SBX, GY, 5, 190);
+}
+
+function drawCodex(g, T, pieces) {
+  const cc = T.codexCrop;
+  const AX = 1400, AY = cc.ay, AW = 486, AH = cc.ah;
+  const CX = AX + AW / 2;
+  const cd = pieces.codex.cv;
+  const cp = pieces.codex.pad;
+  const scX = AW / cc.w;
+
+  const relY = (absY) => Math.max(0, absY - cc.y + cp);
+  const topH = relY(cc.splitTop);
+  const topDstH = topH * scX;
+  const botStartY = relY(cc.splitBotStart);
+  const botH = cd.height - botStartY;
+  const botDstH = botH * scX;
+  const botDstY = AY + AH - botDstH;
+  const midDstY = AY + topDstH - 2;
+  const midDstH = botDstY - midDstY + 4;
+
+  g.drawImage(cd, cp, 0, cc.w, topH, AX, AY, AW, topDstH);
+  g.drawImage(cd, cp, topH, cc.w, botStartY - topH, AX, midDstY, AW, midDstH);
+  g.drawImage(cd, cp, botStartY, cc.w, botH, AX, botDstY, AW, botDstH);
+
+  const plY = AY + (cc.plaqueY - cc.y + cp) * scX;
+  text(g, "PLACA  ·  CABEÇA", CX, plY, { font: "11.5px CinzelB", color: T.titleCol, align: "center", ls: 1.5 });
+  text(g, "Elmo Coração de Leão", CX, AY + cc.tiYOff, { font: "18.5px CinzelB", color: "#ca84ff", align: "center", glow: "rgba(198,120,255,0.4)", blur: 10 });
+
+  const btnY = AY + AH - (cc.y + cc.h + cp - cc.dualBtnY) * scX;
+  const lx = AX + (cc.leftBtnX - cc.x + cp) * scX;
+  const rx = AX + (cc.rightBtnX - cc.x + cp) * scX;
+  text(g, "PROVADOR 3D", lx, btnY, { font: "11.5px CinzelB", color: T.goldCol, align: "center", ls: 0.8 });
+  text(g, "LINK NO CHAT", rx, btnY, { font: "11.5px CinzelB", color: "#e6f8ff", align: "center", ls: 0.8 });
+
+  // Medalhão LIMPO sem roda rúnica atrás do item!
+  const RCY = AY + cc.rcyOff;
+  drawItemMedallion(g, T, CX, RCY, 90, 0, "198,120,255", true);
+
+  const tags = [
+    { t: "ÉPICO", w: 84, c: "#ca84ff", on: false },
+    { t: "iLvl 61", w: 86, c: T.titleCol, on: false },
+    { t: "REQ. NÍVEL 56", w: 122, c: "#ffffff", on: true },
+  ];
+  const tagY = AY + cc.tagYOff;
+  let tx = CX - (84 + 86 + 122 + 16) / 2;
+  tags.forEach((tg) => {
+    drawCapsule(g, T, tx, tagY, tg.w, 25, tg.on, T.accentCol);
+    text(g, tg.t, tx + tg.w / 2, tagY + 12.5, { font: "11px PTB", color: tg.c, align: "center", ls: 0.5 });
+    tx += tg.w + 8;
+  });
+
+  const X0 = AX + 34, W0 = AW - 68;
+  const STY = AY + cc.styOff;
+  text(g, "◆  ATRIBUTOS DA RELÍQUIA", X0, STY + 7, { font: "11.5px CinzelB", color: T.goldCol, ls: 1 });
+  text(g, "▲ +4 iLvl vs. equipado", X0 + W0, STY + 7, { font: "11.5px PTB", color: "#5ce674", align: "right" });
+
+  drawPainted9Slice(g, pieces.wide, T.wideCrop.mx, T.wideCrop.my, 0.34, X0, STY + 20, W0, 148);
+  text(g, "Vincula-se ao ser recolhido", X0 + 22, STY + 44, { font: "12px PT", color: "#ffffff" });
+  text(g, "565 de Armadura", X0 + 22, STY + 64, { font: "12.5px PTB", color: "#ffffff" });
+  text(g, "Placa · Cabeça", X0 + W0 - 22, STY + 64, { font: "12px PT", color: "#dbe6ec", align: "right" });
+  text(g, "+18 de Força · +10 de Vigor", X0 + 22, STY + 85, { font: "12.5px PT", color: "#68ee82" });
+  g.fillStyle = "rgba(255,255,255,0.08)"; g.fillRect(X0 + 22, STY + 100, W0 - 44, 1);
+  text(g, "Equipar: +2% de chance de acerto crítico.", X0 + 22, STY + 118, { font: "12px PT", color: "#4be864" });
+  text(g, "Equipar: +2% de chance de atingir um alvo.", X0 + 22, STY + 138, { font: "12px PT", color: "#4be864" });
+
+  const SRY = AY + cc.sryOff;
+  text(g, "◆  ONDE DROPAR / OBTER", X0, SRY + 7, { font: "11.5px CinzelB", color: T.accentCol, ls: 1 });
+  text(g, "3 fontes", X0 + W0, SRY + 7, { font: "11.5px PT", color: "#9eb2be", align: "right" });
+
+  const srcs = [
+    { name: "Ferraria (Nível 300)", loc: "Receita: Instruções: Elmo Coração de Leão", ch: "100%", kind: "craft", icon: "hammer", col: T.goldCol },
+    { name: "[Receita] Elite Mão Negra", loc: "Pico da Rocha Negra  ·  Masmorra", ch: "1.8%", kind: "inst", icon: "great", col: "#ca84ff" },
+    { name: "[Receita] Vigia Mão Negra", loc: "Estepes Ardentes  ·  (29.4, 38.2)", ch: "1.4%", kind: "map", icon: "star", col: T.accentCol },
+  ];
+  srcs.forEach((s, idx) => {
+    const ry = SRY + 20 + idx * 72, rh = 66;
+    drawPainted9Slice(g, pieces.wide, T.wideCrop.mx, T.wideCrop.my, 0.32, X0, ry, W0, rh);
+    if (s.kind === "map") {
+      strokeThemeFrame(g, T, X0 + 2, ry + 2, W0 - 4, rh - 4, T.accentCol, 1.8);
+    }
+    g.save(); g.beginPath(); g.arc(X0 + 30, ry + rh / 2, 15.5, 0, 7);
+    g.fillStyle = "#0b121c"; g.fill();
+    g.strokeStyle = s.col; g.lineWidth = 1.8; g.stroke(); g.restore();
+    drawWeapon(g, s.icon, X0 + 30, ry + rh / 2, 0.165, s.kind === "star" ? 0 : 0.45, s.col);
+
+    text(g, s.name, X0 + 54, ry + 21, { font: "12.5px PTB", color: "#f6efe0" });
+    text(g, s.loc, X0 + 54, ry + 45, { font: "11.5px PT", color: s.col });
+
+    const is100 = s.ch === "100%";
+    drawCapsule(g, T, X0 + W0 - 64, ry + 8, 52, 20, !is100, T.goldCol);
+    text(g, s.ch, X0 + W0 - 38, ry + 18, { font: "10.5px PTB", color: is100 ? T.goldCol : T.accentCol, align: "center" });
+
+    if (s.kind === "map") {
+      const bw = 122, bh = 22, bx = X0 + W0 - bw - 12, by = ry + 35;
+      drawCapsule(g, T, bx, by, bw, bh, true, T.accentCol);
+      text(g, "MARCAR NO MAPA", bx + bw / 2, by + bh / 2, { font: "9px CinzelB", color: "#ffffff", align: "center", ls: 0.4 });
+    }
+  });
+}
+
+function renderConcept(canvasId, themeKey) {
+  const cv = document.getElementById(canvasId);
+  const g = cv.getContext("2d");
+  const T = THEMES[themeKey];
+  const pieces = CLEAN_PIECES[themeKey];
+  drawChrome(g, T);
+  drawCatalog(g, T, pieces);
+  drawCodex(g, T, pieces);
+}
+
+function renderComparison() {
+  const cv = document.getElementById("cmp");
+  const g = cv.getContext("2d");
+  g.fillStyle = "#060a12";
+  g.fillRect(0, 0, cv.width, cv.height);
+
+  text(g, "NOVAS TEXTURAS PINTADAS À MÃO  ·  O RELICÁRIO DE AZAATH", 1050, 38, { font: "24px CinzelB", color: "#ffe8a6", align: "center", ls: 2 });
+  text(g, "2 direções inéditas com texturas novas (Obsidiana & Azaath Líquido vs. Platina Negra & Plasma) — mesma disposição", 1050, 68, { font: "13px PT", color: "#9eb4c2", align: "center" });
+
+  const keys = ["obs", "pla"];
+  const colW = 980, startX = 50, colGap = 40;
+  keys.forEach((k, idx) => {
+    const T = THEMES[k];
+    const srcCv = document.getElementById(k);
+    const bx = startX + idx * (colW + colGap);
+
+    g.save();
+    g.fillStyle = "#0a101b"; g.fillRect(bx, 94, colW, 1200);
+    g.strokeStyle = T.goldCol; g.lineWidth = 1.6; g.strokeRect(bx, 94, colW, 1200);
+    g.restore();
+
+    text(g, T.name, bx + colW / 2, 122, { font: "16px CinzelB", color: T.titleCol, align: "center", ls: 0.8 });
+    text(g, T.sub, bx + colW / 2, 146, { font: "12px PT", color: "#9bb0be", align: "center" });
+
+    text(g, "MINI-CARDS DE FILTRO", bx + 26, 178, { font: "11px CinzelB", color: T.accentCol, ls: 1 });
+    g.drawImage(srcCv, 54, 206, 437, 78, bx + 26, 192, 540, 122);
+
+    text(g, "CARDS DE ITENS (SELECIONADO + NORMAL)", bx + 26, 336, { font: "11px CinzelB", color: T.accentCol, ls: 1 });
+    g.drawImage(srcCv, 490, 366, 434, 328, bx + 26, 352, 540, 408);
+
+    text(g, "MOLDURA GERAL DO RELICÁRIO", bx + 26, 784, { font: "11px CinzelB", color: T.goldCol, ls: 1 });
+    const gx = bx + 26, gy = 800, gw = 540, gh = 260;
+    g.drawImage(srcCv, 34, 104, 540, 260, gx, gy, gw, gh);
+    const fr = g.createLinearGradient(gx + gw - 44, 0, gx + gw, 0);
+    fr.addColorStop(0, "rgba(10,16,27,0)"); fr.addColorStop(1, "#0a101b");
+    g.fillStyle = fr; g.fillRect(gx + gw - 44, gy, 44, gh);
+
+    text(g, "CARD DO ITEM SELECIONADO (CÓDICE)", bx + 586 + 184, 178, { font: "11px CinzelB", color: T.accentCol, align: "center", ls: 1 });
+    const cc = T.codexCrop;
+    const maxH = 980;
+    const sc = Math.min(368 / 486, maxH / cc.ah);
+    const cw = Math.round(486 * sc), ch = Math.round(cc.ah * sc);
+    const dx = bx + 586 + Math.round((368 - cw) / 2);
+    const dy = 196 + Math.round((maxH - ch) / 2);
+    g.drawImage(srcCv, 1400, cc.ay, 486, cc.ah, dx, dy, cw, ch);
+    if (k === "obs") {
+      g.fillStyle = "#0a101b";
+      g.fillRect(dx + Math.round(cw * 0.78), dy, Math.ceil(cw * 0.22), Math.ceil(ch * 0.055));
+    }
+  });
+}
+
+const FONTS = ["24px CinzelB", "22px Cinzel", "16px PTB", "16px PT"];
+function loadImg(src) {
+  return new Promise((ok, no) => {
+    const im = new Image(); im.onload = () => ok(im); im.onerror = no; im.src = src;
+  });
+}
+
+Promise.all([
+  ...Object.entries(ASSETS).map(([k, v]) => loadImg(v).then((im) => { RAW_IMGS[k] = im; })),
+  ...FONTS.map((f) => document.fonts.load(f)),
+]).then(() => {
+  prepareHelms();
+  prepareGems();
+  prepareThemePieces();
+
+  renderConcept("obs", "obs");
+  renderConcept("pla", "pla");
+  renderComparison();
+
+  const pre = document.createElement("pre");
+  pre.id = "out";
+  pre.textContent = JSON.stringify({
+    obs: document.getElementById("obs").toDataURL("image/png"),
+    pla: document.getElementById("pla").toDataURL("image/png"),
+    cmp: document.getElementById("cmp").toDataURL("image/png"),
+  });
+  document.body.appendChild(pre);
+}).catch((e) => {
+  const pre = document.createElement("pre");
+  pre.textContent = "ERRO: " + (e && e.stack || e);
+  document.body.appendChild(pre);
+});
+</script></body></html>

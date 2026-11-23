@@ -1,0 +1,47 @@
+<!doctype html>
+<html><head><meta charset="utf-8"></head><body>
+<script src="weapons.js"></script>
+<script>
+// Texturas da aba Perícias para o jogo (lidas por gen.js):
+//   SkillsIcons  1024x1024  silhuetas em tons de cinza (o Lua tinge com SetVertexColor)
+//   SkillsRing   256x256    anel branco (trilho + "swipe" do Cooldown que enche o anel)
+//   SkillsParts  256x128    cápsula cheia, contorno da cápsula, selo dourado de "dominada"
+const out = {};
+function canvas(w, h) { const c = document.createElement("canvas"); c.width = w; c.height = h; return [c, c.getContext("2d")]; }
+
+// --- ícones ---
+{
+  const [c, g] = canvas(1024, 1024);
+  const turn = { sword: 0.6, great: 0.6, dagger: 0.6, axe: 0.5, axe2: 0, mace: 0.6, mace2: 0.5, spear: 0.6, staff: 0.5, wand: 0.6, pick: -0.6, hammer: -0.5, needle: 0.5, key: 0.5, gun: 0.5 };
+  const size = { great: 0.92, mace: 1.05, thrown: 1.0, fist: 0.98, shield: 1.0, spear: 0.86, crossbow: 1.0, gear: 1.2, star: 1.1 };
+  ICON_ORDER.forEach((k, i) => {
+    const cx = (i % 8) * 128 + 64, cy = Math.floor(i / 8) * 128 + 64, s = (size[k] || 0.95);
+    g.save(); g.translate(cx, cy); g.rotate(turn[k] || 0); g.scale(s, s);
+    g.beginPath(); WEAPON[k](g);
+    const gr = g.createLinearGradient(0, -55, 0, 55); gr.addColorStop(0, "#ffffff"); gr.addColorStop(0.55, "#e4e4e4"); gr.addColorStop(1, "#a8a8a8");
+    g.fillStyle = gr; g.fill("nonzero");
+    g.restore();
+  });
+  out.SkillsIcons = c.toDataURL("image/png");
+}
+// --- anel ---
+{
+  const [c, g] = canvas(256, 256);
+  g.fillStyle = "#fff"; g.beginPath(); g.arc(128, 128, 125, 0, Math.PI * 2); g.arc(128, 128, 125 * 0.88, 0, Math.PI * 2, true); g.fill("evenodd");
+  out.SkillsRing = c.toDataURL("image/png");
+}
+// --- peças ---
+{
+  const [c, g] = canvas(256, 128);
+  const cap = (y) => { g.beginPath(); g.moveTo(16, y + 1); g.lineTo(112, y + 1); g.arc(112, y + 16, 15, -Math.PI / 2, Math.PI / 2); g.lineTo(16, y + 31); g.arc(16, y + 16, 15, Math.PI / 2, Math.PI * 1.5); g.closePath(); };
+  g.fillStyle = "#fff"; cap(0); g.fill();
+  g.strokeStyle = "#fff"; g.lineWidth = 1.6; cap(32); g.stroke();
+  // selo dourado com visto (32x32 em 128,0)
+  const gr = g.createRadialGradient(140, 12, 2, 144, 16, 16); gr.addColorStop(0, "#f6dfa6"); gr.addColorStop(1, "#b98f45");
+  g.fillStyle = gr; g.beginPath(); g.arc(144, 16, 14, 0, Math.PI * 2); g.fill();
+  g.strokeStyle = "#1a1408"; g.lineWidth = 3.4; g.lineCap = "round"; g.lineJoin = "round";
+  g.beginPath(); g.moveTo(137, 16.5); g.lineTo(142.5, 22); g.lineTo(151.5, 10.5); g.stroke();
+  out.SkillsParts = c.toDataURL("image/png");
+}
+for (const [k, v] of Object.entries(out)) { const p = document.createElement("pre"); p.textContent = k + "=" + v; document.body.appendChild(p); }
+</script></body></html>

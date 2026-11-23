@@ -1,0 +1,13 @@
+<Bindings>
+	<Binding name="AZAATH_MOUSELOOK" header="AZAATH_ACTIONCAM" category="AzaathUI" runOnUp="true">AZAATH_MouseLookKey(keystate)</Binding>
+	<Binding name="AZAATH_FLIPCAMERA" category="AzaathUI" runOnUp="true">AZAATH_FlipCameraKey(keystate)</Binding>
+	<Binding name="AZAATH_SWAPSHOULDER" category="AzaathUI">AZAATH_SwapShoulder()</Binding>
+	<Binding name="AZAATH_RESETMOUSELOOK" category="AzaathUI">AZAATH_ResetMouseLook()</Binding>
+	<Binding name="AZAATH_ALLYCYCLE_NEXT" category="AzaathUI">AZAATH_AllyCycleUp()</Binding>
+	<Binding name="AZAATH_ALLYCYCLE_PREV" category="AzaathUI">AZAATH_AllyCycleDown()</Binding>
+	<Binding name="AZAATH_SUPPORTMODE" category="AzaathUI">do end</Binding>
+	<Binding name="AZAATH_RADIALMENU" category="AzaathUI">do end</Binding>
+	<Binding name="AZAATH_TOGGLEFOCUS" category="AzaathUI">AZAATH_ToggleFocusTarget()</Binding>
+	<Binding name="AZAATH_CYCLEFOCUS_NEXT" category="AzaathUI">AZAATH_CycleFocusNext()</Binding>
+	<Binding name="AZAATH_CYCLEFOCUS_PREV" category="AzaathUI">AZAATH_CycleFocusPrevious()</Binding>
+</Bindings>

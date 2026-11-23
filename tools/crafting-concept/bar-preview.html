@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Barra de criação</title>
+<style>
+body{margin:0;background:#05080c;color:#ccc;font-family:Segoe UI,sans-serif}
+canvas{display:block;margin:10px 0 0 0}body{overflow:hidden}
+p{text-align:center;font-size:13px;color:#8a9}
+</style></head><body>
+<p>Prévia da barra de criação com as texturas reais (mesmas camadas de Professions.lua) — escala 1,6x</p>
+<canvas id="c" width="1060" height="200"></canvas>
+<script>{const s=+(new URLSearchParams(location.search).get("sc")||1.6);const c=document.getElementById("c");c.width=Math.round(660*s);c.height=Math.round(125*s);}</script>
+<script>
+// Reproduz H.BuildFX / H.UpdateFX / H.UpdatePips do Professions.lua no canvas.
+const SC = +(new URLSearchParams(location.search).get("sc") || 1.6), W = 585, H = 20, X0 = 30, Y0 = 46;
+const A = { BarEmpty: { x: 1, y: 526, w: 322, h: 45, pad: 3, m: [10, 0, 10, 0] }, BarFill: { x: 325, y: 558, w: 322, h: 41, pad: 3 }, Diamond: { x: 995, y: 104, w: 25, h: 26 } };
+const TEAL = [0.28, 0.88, 0.84];
+const load = (s) => new Promise((r) => { const i = new Image(); i.onload = () => r(i); i.src = s; });
+function tint(img, rgb, gray) {
+  const c = document.createElement("canvas"); c.width = img.width; c.height = img.height;
+  const x = c.getContext("2d"); if (gray) x.filter = "grayscale(1)"; x.drawImage(img, 0, 0); x.filter = "none";
+  x.globalCompositeOperation = "multiply"; x.fillStyle = `rgb(${rgb.map((v) => v * 255).join(",")})`; x.fillRect(0, 0, c.width, c.height);
+  return c;
+}
+// PNG da prévia não tem alfa: recupera o alfa pela luminância do original
+function lumAlpha(c, src) {
+  const t = document.createElement("canvas"); t.width = src.width; t.height = src.height; const tx = t.getContext("2d"); tx.drawImage(src, 0, 0);
+  const a = tx.getImageData(0, 0, t.width, t.height).data, x = c.getContext("2d"), d = x.getImageData(0, 0, c.width, c.height);
+  for (let i = 0; i < a.length; i += 4) { const l = Math.max(a[i], a[i + 1], a[i + 2]) / 255; d.data[i + 3] = l * 255; if (l > 0) for (let k = 0; k < 3; k++) d.data[i + k] = Math.min(255, d.data[i + k] / l); }
+  x.putImageData(d, 0, 0); return c;
+}
+Promise.all(["../professions-ui-concept/preview/CraftFrames.png", "fx/CraftFlow.png", "fx/XPSpark.png", "fx/Glow.png", "fx/Star.png", "../professions-concept/bg_1920x1080.png", "fx/Diamond.png"].map(load)).then(([atlas, flame, spark, glow, star, bg, dia]) => {
+  const cv = document.getElementById("c"), g = cv.getContext("2d");
+  const glowT = tint(glow, TEAL), glowC = tint(glow, [0.35, 0.95, 1]), glowW = tint(glow, [0.75, 1, 1]), glowE = tint(glow, [0.55, 1, 0.95]);
+  const flameT = tint(flame, [0.40, 1, 0.95]), diaOn = lumAlpha(tint(dia, [0.55, 1, 1]), dia), diaOff = lumAlpha(tint(dia, [0.22, 0.30, 0.34]), dia), starT = tint(star, [0.8, 1, 1]);
+  const st = { t: 0, total: 20, done: 0, cast: 0, sweep: 0, flow: 0, flash: 0, flashMax: 1, emberT: 0, embers: [], pop: {} };
+  const add = (f) => { g.save(); g.globalCompositeOperation = "lighter"; f(); g.restore(); };
+  function spawn(x, spread, speed) {
+    st.embers.push({ x: x - Math.random() * spread, y: (Math.random() - 0.5) * 6, vx: -(10 + Math.random() * 30) * speed, vy: (12 + Math.random() * 34) * speed * (Math.random() < 0.5 ? 1 : -1), life: 0.5 + Math.random() * 0.5, size: 3 + Math.random() * 5 });
+    st.embers[st.embers.length - 1].max = st.embers[st.embers.length - 1].life;
+  }
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now; st.t += dt;
+    // simula a fila: 2 s por item
+    st.cast += dt / 2;
+    if (st.cast >= 1) {
+      st.cast = 0; st.done++;
+      const final = st.done >= st.total;
+      st.flash = st.flashMax = final ? 0.9 : 0.4;
+      for (let i = 0; i < (final ? 16 : 8); i++) spawn(final ? (W - 4) * Math.random() : (W - 4) - Math.random() * 40, 10, final ? 2.2 : 1.8);
+      st.pop[st.done] = 0.35;
+      if (final) st.done = 0;
+    }
+    const fw = (W - 4) * st.cast, pulse = 0.5 + 0.5 * Math.sin(st.t * 3.2), flick = 0.75 + 0.25 * Math.sin(st.t * 19) * Math.sin(st.t * 7.3);
+    g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, cv.width, cv.height);
+    g.drawImage(bg, 1290, 860, cv.width / SC, cv.height / SC, 0, 0, cv.width, cv.height);
+    g.setTransform(SC, 0, 0, SC, X0, Y0);
+    // textos
+    g.font = "bold 13px Cinzel, Georgia, serif"; g.fillStyle = "#f0e6d2"; g.fillText("CRIANDO  ·  Bandagem de Lã", 0, -8);
+    g.font = "13px Segoe UI"; g.fillStyle = "#47e0d6"; g.textAlign = "right";
+    g.fillText(`${st.done + 1} de ${st.total}  ·  ${(2 - st.cast * 2).toFixed(1).replace(".", ",")} s`, W, -8); g.textAlign = "left";
+    // halo
+    add(() => { g.globalAlpha = 0.18 + 0.22 * pulse; g.drawImage(glowT, -40, H / 2 - 30, W + 80, 60); });
+    // calha + moldura 9-slice (escala 0.46)
+    g.fillStyle = "rgb(4,9,13)"; g.fillRect(3, 3, W - 6, H - 6);
+    { const a = A.BarEmpty, s = 0.46, ml = (a.m[0] + a.pad), mr = (a.m[2] + a.pad), pad = a.pad * s;
+      g.drawImage(atlas, a.x, a.y, ml, a.h, -pad, -pad, ml * s, H + 2 * pad);
+      g.drawImage(atlas, a.x + ml, a.y, a.w - ml - mr, a.h, -pad + ml * s, -pad, W + 2 * pad - (ml + mr) * s, H + 2 * pad);
+      g.drawImage(atlas, a.x + a.w - mr, a.y, mr, a.h, W + pad - mr * s, -pad, mr * s, H + 2 * pad); }
+    // energia fantasma na barra toda
+    st.ghost = ((st.ghost || 0) + dt * 0.12) % 1;
+    g.save(); g.beginPath(); g.rect(3, 3, W - 6, H - 6); g.clip();
+    add(() => { g.globalAlpha = 0.16; for (let x = -((st.ghost * 120) % 120); x < W; x += 120) g.drawImage(tint(flame, [0.30, 0.85, 0.85]), 3 + x, 3, 120, H - 6); });
+    g.restore();
+    // preenchimento revelado
+    if (fw > 0.5) { const a = A.BarFill, u0 = a.x + a.pad, uw = (a.w - 2 * a.pad) * Math.max(0.01, st.cast);
+      g.drawImage(atlas, u0, a.y + a.pad, uw, a.h - 2 * a.pad, 2, 2, fw, H - 4); }
+    // efeitos aditivos sobre o preenchimento
+    st.flow = (st.flow + dt * 0.35) % 1; st.sweep = (st.sweep + dt / 1.6) % 1;
+    g.save(); g.beginPath(); g.rect(2, 2, fw, H - 4); g.clip();
+    add(() => {
+      g.globalAlpha = 0.35 + 0.25 * pulse; g.drawImage(glowC, 2, 2 - 6, fw, H - 4 + 12);
+      const tile = 120;
+      g.globalAlpha = 1; for (let x = ((st.flow * 2 * tile) % tile) - tile; x < fw; x += tile) g.drawImage(flameT, 2 + x, 2, tile, H - 4);
+      g.globalAlpha = 0.7; for (let x = -((st.flow * 1.3 * tile) % tile) - tile; x < fw + tile; x += tile) { g.save(); g.translate(2 + x + tile, 2 + H - 4); g.scale(-1, -1); g.drawImage(flameT, 0, 0, tile, H - 4); g.restore(); }
+      if (fw > 30) { g.globalAlpha = Math.sin(Math.PI * st.sweep) * 0.8; g.drawImage(glowW, 2 + fw * st.sweep - 35, H / 2 - 13, 70, 26); }
+    });
+    g.restore();
+    // ponta
+    if (fw > 0.5) add(() => {
+      const tg = 38 + 10 * pulse; g.globalAlpha = 0.35 + 0.3 * pulse; g.drawImage(glowT, 2 + fw - tg / 2, H / 2 - tg / 2, tg, tg);
+      g.globalAlpha = flick; g.drawImage(spark, 2 + fw + 8 - 40, H / 2 - 14, 40, 28);
+      const ss = 26 + 10 * pulse; g.save(); g.translate(2 + fw, H / 2); g.rotate(st.t * 0.8); g.globalAlpha = 0.5 + 0.5 * flick; g.drawImage(starT, -ss / 2, -ss / 2, ss, ss); g.restore();
+    });
+    // clarão
+    if (st.flash > 0) { st.flash -= dt; const k = Math.max(0, st.flash / st.flashMax); add(() => { g.globalAlpha = k * k; g.drawImage(glowW, -12, -12, W + 24, H + 24); }); }
+    // losangos da fila
+    const n = st.total, step = Math.min(19, (W - 40) / n);
+    for (let i = 1; i <= n; i++) {
+      const cx = W / 2 + (i - (n + 1) / 2) * step, cy = H + 10, d = A.Diamond;
+      let size = 11, gs = 24, ga = 0;
+      const p = st.pop[i] || 0; if (p > 0) { st.pop[i] = p - dt; const k = Math.max(0, p / 0.35); size += 9 * k; gs += 26 * k; ga = 0.45 * k; }
+      if (i <= st.done) { add(() => { g.globalAlpha = 0.55 + ga; g.drawImage(glowT, cx - gs / 2, cy - gs / 2, gs, gs); }); g.globalAlpha = 1; g.drawImage(diaOn, cx - size / 2, cy - size / 2, size, size); }
+      else if (i === st.done + 1) { add(() => { g.globalAlpha = 0.25 + 0.35 * pulse; g.drawImage(glowT, cx - 12, cy - 12, 24, 24); }); g.globalAlpha = 0.5 + 0.5 * pulse; g.drawImage(diaOn, cx - 5.5, cy - 5.5, 11, 11); }
+      else { g.globalAlpha = 0.9; g.drawImage(diaOff, cx - 5.5, cy - 5.5, 11, 11); }
+      g.globalAlpha = 1;
+    }
+    // fagulhas
+    st.emberT -= dt; if (st.emberT <= 0 && fw > 4) { st.emberT = 0.07 + Math.random() * 0.06; spawn(fw, 4, 1); }
+    st.embers = st.embers.filter((e) => (e.life -= dt) > 0);
+    add(() => { for (const e of st.embers) { e.x += e.vx * dt; e.y += e.vy * dt; e.vy *= 1 - 1.5 * dt; const k = e.life / e.max, sz = e.size * (0.4 + 0.6 * k);
+      g.globalAlpha = k; g.drawImage(glowE, 2 + e.x - sz / 2, H / 2 + e.y - sz / 2, sz, sz); } });
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+});
+</script></body></html>

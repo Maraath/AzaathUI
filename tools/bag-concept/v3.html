@@ -1,0 +1,730 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Inventário Flutuante — AzaathUI Concept V3</title>
+<style>
+@font-face{font-family:Cinzel;src:url(file:///D:/ProjectAzaath/AzaathUI/Media/Fonts/Cinzel-Regular.ttf)}
+@font-face{font-family:CinzelB;src:url(file:///D:/ProjectAzaath/AzaathUI/Media/Fonts/Cinzel-Bold.ttf)}
+@font-face{font-family:PTS;src:url(file:///D:/ProjectAzaath/AzaathUI/Media/Fonts/PTSans-Regular.ttf)}
+@font-face{font-family:PTSB;src:url(file:///D:/ProjectAzaath/AzaathUI/Media/Fonts/PTSans-Bold.ttf)}
+@font-face{font-family:Segoe;src:url(file:///D:/ProjectAzaath/AzaathUI/Media/Fonts/SegoeUI-Regular.ttf)}
+@font-face{font-family:SegoeB;src:url(file:///D:/ProjectAzaath/AzaathUI/Media/Fonts/SegoeUI-Semibold.ttf)}
+
+:root{
+  --gold:#c9a463; --gold2:#8a6d3a; --cy:#5fe3e6;
+  --txt:#e6e0d2; --mut:#8c9ba8; --dim:#5d6c78;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:#020508;overflow:hidden;width:1920px;height:1080px}
+.stage{position:relative;width:1920px;height:1080px;overflow:hidden;font-family:PTS,sans-serif;color:var(--txt);background:#04080d}
+.abs{position:absolute}
+.cz{font-family:Cinzel,serif}
+.czb{font-family:CinzelB,serif}
+
+/* Cenário Vivo do Mundo / Câmara (sem tela cheia bloqueando a esquerda) */
+.world-bg{position:absolute;inset:0;background:url('file:///D:/ProjectAzaath/tools/bag-concept/assets/vault_bg.jpg') center/cover no-repeat;filter:brightness(0.86) saturate(0.95)}
+.world-dim{position:absolute;inset:0;background:
+  linear-gradient(90deg, transparent 0%, rgba(3,8,14,0.18) 38%, rgba(3,7,12,0.58) 72%, rgba(3,6,11,0.72) 100%),
+  radial-gradient(60% 70% at 22% 52%, transparent 35%, rgba(2,5,9,0.58) 100%)}
+
+/* Personagem livre no mundo (à esquerda) + HUD da Azaath embaixo */
+.world-hero{position:absolute;left:58px;top:248px;width:360px;height:570px;
+  background:url('file:///D:/ProjectAzaath/tools/drops-concept/warrior_pedestal.jpg') center top/120% auto no-repeat;
+  -webkit-mask-image:radial-gradient(43% 47% at 50% 48%, #000 44%, rgba(0,0,0,0.45) 68%, transparent 92%),
+                     linear-gradient(180deg, transparent 0%, #000 10%, #000 78%, transparent 97%);
+  -webkit-mask-composite:source-in;opacity:0.94}
+.hud-preview{position:absolute;left:340px;bottom:-18px;width:580px;height:290px;
+  background:url('file:///D:/ProjectAzaath/tools/azaath-hud-concept/concept.png') center/contain no-repeat;
+  -webkit-mask-image:radial-gradient(48% 36% at 50% 54%, #000 56%, rgba(0,0,0,0.35) 78%, transparent 96%);
+  opacity:0.90;pointer-events:none;filter:drop-shadow(0 8px 24px rgba(0,0,0,0.95))}
+
+/* Badge contextual sutil mostrando que o lado esquerdo fica livre (Mundo / Mercador) */
+.world-hint{position:absolute;left:34px;top:28px;display:flex;align-items:center;gap:10px;
+  padding:8px 14px;background:rgba(7,13,20,0.72);border:1px solid rgba(138,109,58,0.38);backdrop-filter:blur(4px)}
+.world-hint .dot{width:8px;height:8px;transform:rotate(45deg);background:var(--cy);box-shadow:0 0 8px var(--cy)}
+.world-hint span{font-family:Cinzel,serif;font-size:11px;letter-spacing:1.8px;color:#cfd8e0}
+
+/* =====================================================================
+   JANELA FLUTUANTE DO INVENTÁRIO (Direita, compacta e arrastável)
+   ===================================================================== */
+.inv-win{position:absolute;left:1232px;top:92px;width:646px;height:858px;
+  background:linear-gradient(180deg,rgba(10,17,26,0.92) 0%,rgba(6,10,16,0.96) 100%);
+  border:1px solid rgba(138,109,58,0.58);
+  box-shadow:0 0 0 1px #020508,inset 0 1px 0 rgba(95,227,230,0.16),inset 0 0 36px rgba(0,0,0,0.85),0 24px 64px rgba(0,0,0,0.88)}
+.inv-win:before{content:"";position:absolute;inset:4px;border:1px solid rgba(201,164,99,0.16);pointer-events:none}
+.c-dia{position:absolute;width:8px;height:8px;transform:rotate(45deg);background:#122530;border:1px solid var(--gold);box-shadow:0 0 6px rgba(95,227,230,0.45)}
+.c-dia.tl{left:-4px;top:-4px}.c-dia.tr{right:-4px;top:-4px}.c-dia.bl{left:-4px;bottom:-4px}.c-dia.br{right:-4px;bottom:-4px}
+
+.inv-hdr{padding:18px 22px 0}
+.inv-top{display:flex;align-items:center;justify-content:space-between}
+.inv-title{display:flex;align-items:center;gap:12px}
+.inv-title h1{margin:0;font-family:Cinzel,serif;font-size:20px;font-weight:400;letter-spacing:3.2px;color:#f3ebd6;text-shadow:0 0 12px rgba(95,227,230,0.22)}
+.cap-pill{font-family:Cinzel,serif;font-size:10.5px;letter-spacing:1.2px;color:#9de8ed;padding:2px 8px;border:1px solid rgba(95,227,230,0.34);background:rgba(16,42,54,0.45);border-radius:2px}
+
+.top-right{display:flex;align-items:center;gap:18px}
+.view-tabs{display:flex;gap:18px;align-items:center}
+.vtab{position:relative;font-family:Cinzel,serif;font-size:11.5px;letter-spacing:2.2px;color:#788894;padding-bottom:5px}
+.vtab.on{color:#ebfbff;text-shadow:0 0 10px rgba(95,227,230,0.75)}
+.vtab.on:after{content:"";position:absolute;left:-24px;right:-24px;bottom:-9px;height:14px;background:url('file:///D:/ProjectAzaath/tools/bag-concept/assets/sh_navflare.png') center/100% 100% no-repeat;mix-blend-mode:screen;pointer-events:none}
+.close-btn{width:24px;height:24px;border-radius:50%;background:radial-gradient(circle,#12202b,#070d14);border:1px solid rgba(138,109,58,0.75);display:flex;align-items:center;justify-content:center}
+
+.inv-controls{display:flex;align-items:center;gap:8px;margin-top:12px}
+.search-box{flex:1;height:28px;background:rgba(4,9,14,0.92);border:1px solid #2b3c46;display:flex;align-items:center;padding:0 10px;gap:8px;color:#70808c;font-size:12.5px}
+.lens{width:10.5px;height:10.5px;border:1.8px solid #7f919e;border-radius:50%;position:relative}
+.lens:after{content:"";position:absolute;right:-5px;bottom:-4px;width:5px;height:1.8px;background:#7f919e;transform:rotate(45deg)}
+.qmark{margin-left:auto;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle,#f3d184,#9c7026);color:#140d02;font-weight:700;font-size:10.5px;display:flex;align-items:center;justify-content:center}
+
+.sort-lbl{font-size:11.5px;color:#8c9ba8;margin-left:4px}
+.ico-btn{width:26px;height:26px;background:rgba(10,18,26,0.9);border:1px solid #30414c;display:flex;align-items:center;justify-content:center}
+.ico-btn img{width:15px;height:15px;opacity:0.82}
+.ico-btn.on{border-color:#5fe3e6;box-shadow:0 0 10px rgba(95,227,230,0.35),inset 0 0 8px rgba(95,227,230,0.2)}
+.ico-btn.on img{opacity:1;filter:drop-shadow(0 0 4px #5fe3e6)}
+.org-btn{height:26px;padding:0 10px;background:linear-gradient(180deg,#152532,#0b131b);border:1px solid #6b5630;color:#e5dcc5;font-family:Cinzel,serif;font-size:10px;letter-spacing:1.4px;display:flex;align-items:center}
+
+.filter-strip{display:flex;gap:6px;margin-top:10px;padding-bottom:10px;border-bottom:1px solid rgba(201,164,99,0.2)}
+.fpill{padding:3.5px 10px;border-radius:11px;font-size:11px;letter-spacing:0.4px;color:#8e9da8;background:rgba(10,18,26,0.72);border:1px solid rgba(90,110,124,0.28)}
+.fpill.on{color:#f0fcff;background:linear-gradient(180deg,rgba(24,84,96,0.75),rgba(11,44,54,0.85));border-color:#5fe3e6;box-shadow:0 0 10px rgba(95,227,230,0.3)}
+
+/* Grade em 2 Colunas (5 slots por linha em cada coluna = 10 slots de largura) */
+.inv-body{position:relative;padding:12px 22px 0;display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.sec-hdr{display:flex;align-items:center;gap:7px;margin:0 0 7px}
+.sec-hdr .t{font-family:Cinzel,serif;font-size:11.5px;letter-spacing:2px;color:#dfd4b8}
+.sec-hdr .ln{flex:1;height:1px;background:linear-gradient(90deg,rgba(201,164,99,0.55),rgba(201,164,99,0.06))}
+.sec-hdr .n{font-family:CinzelB,serif;font-size:12px;color:#e6dec8}
+.sec-hdr .ar{width:14px;height:14px;border:1px solid #594726;background:#0a131a;position:relative}
+.sec-hdr .ar:after{content:"";position:absolute;left:2.5px;top:4.5px;border-top:5px solid #c9a463;border-left:4px solid transparent;border-right:4px solid transparent}
+
+.slot-grid{display:grid;grid-template-columns:repeat(5,50px);gap:7px;margin-bottom:14px}
+.islot{position:relative;width:50px;height:50px;background:radial-gradient(circle at 50% 35%,#1a2732,#091016 80%);
+  border:1px solid #35444e;box-shadow:inset 0 0 0 1px #000,inset 0 0 10px #000}
+.islot:before,.islot:after{content:"";position:absolute;width:6px;height:6px;border:1px solid rgba(201,164,99,0.55);pointer-events:none;z-index:3}
+.islot:before{left:-1px;top:-1px;border-right:0;border-bottom:0}
+.islot:after{right:-1px;bottom:-1px;border-left:0;border-top:0}
+.islot .ic-wrap{position:absolute;inset:3px;overflow:hidden;background:#070c11}
+.ic-img{width:100%;height:100%;background-repeat:no-repeat}
+
+.islot.q2{border-color:#2e9a46;box-shadow:inset 0 0 9px rgba(63,207,90,0.35),0 0 6px rgba(63,207,90,0.22)}
+.islot.q3{border-color:#2f78de;box-shadow:inset 0 0 9px rgba(61,148,255,0.40),0 0 8px rgba(61,148,255,0.28)}
+.islot.q4{border-color:#9e46eb;box-shadow:inset 0 0 11px rgba(194,77,255,0.48),0 0 10px rgba(194,77,255,0.36)}
+.islot.junk{opacity:0.65;border-color:#444a50}
+.islot.hovered{border-color:#d5ffff;box-shadow:0 0 0 2px #5fe3e6,0 0 18px rgba(95,227,230,0.85),inset 0 0 12px rgba(194,77,255,0.7);z-index:5}
+.islot .ilvl{position:absolute;left:3.5px;top:2.5px;font-family:CinzelB,serif;font-size:10px;color:#f5efe0;text-shadow:0 1px 3px #000,0 0 4px #000;z-index:4}
+.islot .cnt{position:absolute;right:3.5px;bottom:1.5px;font-family:CinzelB,serif;font-size:11.5px;color:#fff;text-shadow:0 1px 2px #000,0 0 4px #000;z-index:4}
+.islot .dur{position:absolute;left:4px;right:4px;bottom:3px;height:2.5px;background:#0a0f14;z-index:4}
+.islot .dur i{display:block;height:100%;background:#5fe3e6}
+.islot .dur.mid i{background:#f0a830}
+.islot .qbadge{position:absolute;right:-4px;top:-4px;width:16px;height:16px;background:url('file:///D:/ProjectAzaath/tools/bag-concept/assets/inv_badge.png') center/contain no-repeat;z-index:5}
+.islot .newgem{position:absolute;right:3px;top:3px;width:6.5px;height:6.5px;transform:rotate(45deg);background:#ffd966;box-shadow:0 0 6px #ffd966;z-index:5}
+
+.islot.round{border-radius:50%;border:0;background:none;box-shadow:none}
+.islot.round:before,.islot.round:after{display:none}
+.islot.round .ic-wrap{inset:4px;border-radius:50%}
+.islot.round .rframe{position:absolute;inset:-3px;background:url('file:///D:/ProjectAzaath/tools/bag-concept/assets/sh_roundframe.png') center/contain no-repeat;pointer-events:none;z-index:3}
+.islot.round.q3 .rframe{filter:drop-shadow(0 0 5px rgba(61,148,255,0.85))}
+.islot.round.q4 .rframe{filter:drop-shadow(0 0 5px rgba(194,77,255,0.9))}
+.islot.round.q2 .rframe{filter:drop-shadow(0 0 4px rgba(63,207,90,0.8))}
+.islot.round .cnt{right:2px;bottom:0px;font-size:11px;background:rgba(5,10,16,0.8);padding:0 3px;border-radius:3px}
+
+.islot.free{background:rgba(8,14,20,0.65);border:1px dashed #334550;display:flex;align-items:center;justify-content:center}
+.islot.free span{font-family:CinzelB,serif;font-size:15px;color:#788894}
+
+/* Faixa de Bolsas Equipadas + Capacidade dentro da janela */
+.bags-strip{position:absolute;left:22px;right:22px;bottom:68px;height:48px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 12px;background:rgba(7,12,19,0.72);border:1px solid rgba(138,109,58,0.28)}
+.bags-mini{display:flex;align-items:center;gap:6px}
+.bag-cell{position:relative;width:32px;height:32px;background:#080f16;border:1px solid #4a5a64;overflow:hidden}
+.bag-cell.on{border-color:#c9a463}
+.bag-cell .cap{position:absolute;right:1px;bottom:1px;font-family:CinzelB,serif;font-size:9px;color:#f5edd8;background:rgba(4,8,14,0.78);padding:0 2px;border-radius:2px;line-height:1.1}
+.cap-gauge-wrap{width:230px}
+.gauge{height:5px;background:#050a10;border:1px solid #23333d;position:relative;margin-top:4px}
+.gauge i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#1a8896,#5fe3e6);box-shadow:0 0 8px #5fe3e6}
+
+/* Rodapé da Janela */
+.inv-foot{position:absolute;left:22px;right:22px;bottom:14px;height:44px;border-top:1px solid rgba(201,164,99,0.22);display:flex;align-items:center;justify-content:space-between;padding-top:6px}
+.money{display:flex;align-items:center;gap:12px;font-family:CinzelB,serif;font-size:16px;color:#f4ecda}
+.coin{display:inline-block;width:12px;height:12px;border-radius:50%;margin-left:3.5px;vertical-align:-1px;box-shadow:0 1px 2px #000}
+.coin.g{background:radial-gradient(circle at 35% 30%,#fff6bd,#e5b53e 50%,#855810)}
+.coin.s{background:radial-gradient(circle at 35% 30%,#ffffff,#c2cbd1 50%,#5b646b)}
+.coin.c{background:radial-gradient(circle at 35% 30%,#ffd8b0,#c86f32 50%,#662f0f)}
+.foot-btns{display:flex;gap:8px}
+.sbtn{position:relative;height:30px;padding:0 12px;background:linear-gradient(180deg,rgba(22,34,48,0.9),rgba(10,16,24,0.95));
+  border:1px solid rgba(138,109,58,0.65);font-family:Cinzel,serif;font-size:10.5px;letter-spacing:1.4px;color:#efe6cf;display:flex;align-items:center;gap:5px}
+.sbtn.on{border-color:#5fe3e6;box-shadow:0 0 10px rgba(95,227,230,0.28)}
+.sbtn:after{content:"";position:absolute;left:10px;right:10px;bottom:-1px;height:2px;background:linear-gradient(90deg,transparent,#5fe3e6,transparent);box-shadow:0 0 8px #5fe3e6}
+.sbtn.gold:after{background:linear-gradient(90deg,transparent,#e6b450,transparent);box-shadow:0 0 8px #e6b450}
+
+/* Mini Radial (G) ancorado à esquerda do rodapé do Inventário (como no Inventory.lua) */
+.radial-float{position:absolute;left:1076px;top:766px;width:140px;height:164px;display:flex;flex-direction:column;align-items:center}
+.radial-disc{position:relative;width:128px;height:128px;border-radius:50%;
+  background:radial-gradient(circle,rgba(15,32,42,0.94) 0%,rgba(6,13,20,0.96) 72%);
+  border:1px solid rgba(201,164,99,0.62);box-shadow:0 0 24px rgba(95,227,230,0.22),inset 0 0 22px #000}
+.radial-ring{position:absolute;inset:12px;border-radius:50%;border:1px dashed rgba(95,227,230,0.3)}
+.radial-key{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:CinzelB,serif;font-size:14px;color:var(--gold);text-shadow:0 0 8px rgba(201,164,99,0.6)}
+.rad-slot{position:absolute;width:28px;height:28px;border-radius:50%;transform:translate(-50%,-50%);
+  background:#0a131b;border:1px solid #7d6232;box-shadow:0 0 6px #000}
+.rad-slot .in{position:absolute;inset:2px;border-radius:50%;overflow:hidden}
+.rad-slot .cnt{position:absolute;right:-3px;bottom:-3px;font-family:CinzelB,serif;font-size:9.5px;color:#fff;text-shadow:0 1px 2px #000,0 0 4px #000}
+.rad-slot.empty{border-color:#2c3a44;color:#5d6c78;display:flex;align-items:center;justify-content:center;font-size:12px}
+
+/* =====================================================================
+   NOVO CARD DE ITENS + COMPARAÇÃO (ANCORADO À ESQUERDA, ANCHOR_LEFT)
+   ===================================================================== */
+.icard{position:relative;width:348px;background:#131314;border:1px solid #050506;box-shadow:inset 0 0 0 1px #404247,0 22px 54px rgba(0,0,0,0.90)}
+.eq-tab{position:relative;display:inline-flex;align-items:center;justify-content:center;height:22px;padding:0 14px;background:#131314;
+  border:1px solid #050506;border-bottom:0;box-shadow:inset 1px 1px 0 #404247,inset -1px 0 0 #404247;margin-bottom:-1px;z-index:2}
+.eq-tab span{font-family:SegoeB,sans-serif;font-size:12px;color:#ffd140;border-bottom:1px solid rgba(255,209,64,0.72);padding-bottom:1px}
+
+.ic-head{position:relative;height:90px;overflow:hidden;border-bottom:1px solid rgba(255,255,255,0.45)}
+.ic-paper{position:absolute;inset:0;background:url('file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_grunge.png') center/100% 100% no-repeat;filter:brightness(1.05)}
+.ic-tint{position:absolute;inset:0;mix-blend-mode:multiply}
+.ic-smoke1{position:absolute;inset:-20px 0 0 0;background:url('file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_smoke1.png') 0 20%/115% auto repeat;mix-blend-mode:screen;opacity:0.52}
+.ic-smoke2{position:absolute;inset:-20px 0 0 0;background:url('file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_smoke2.png') 40% 50%/85% auto repeat;mix-blend-mode:screen;opacity:0.38}
+.ic-flare{position:absolute;left:0;right:0;bottom:0;height:70px;background:url('file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_flare.png') center bottom/100% 100% no-repeat;mix-blend-mode:screen;opacity:0.68}
+.ic-fx{position:absolute;inset:0;pointer-events:none}
+.ic-head-content{position:relative;z-index:3;height:100%;display:flex;align-items:center;padding:0 11px;gap:11px}
+.ic-icon-box{position:relative;width:70px;height:70px;flex:none;padding:3px;box-shadow:0 4px 12px rgba(0,0,0,0.7)}
+.ic-icon-inner{width:100%;height:100%;overflow:hidden;background:#08080a}
+.ic-hmeta{flex:1;min-width:0;height:70px;display:flex;flex-direction:column;justify-content:space-between;padding:1px 0}
+.ic-name{font-family:SegoeB,sans-serif;font-size:16.5px;line-height:1.15;text-shadow:1px 1px 2px #000}
+.ic-rar{font-family:SegoeB,sans-serif;font-size:12px;text-shadow:1px 1px 2px #000;margin-top:2px}
+.ic-botrow{display:flex;justify-content:space-between;font-family:SegoeB,sans-serif;font-size:12px;color:#fff;text-shadow:1px 1px 2px #000}
+
+.icard.epic .ic-head{border-bottom-color:rgba(219,107,255,0.65)}
+.icard.epic .ic-tint{background:linear-gradient(180deg,#5a1380 0%,#b838f5 100%)}
+.icard.epic .ic-smoke1,.icard.epic .ic-smoke2{filter:drop-shadow(0 0 8px #d45cff) sepia(1) hue-rotate(245deg) saturate(5)}
+.icard.epic .ic-flare{filter:sepia(1) hue-rotate(245deg) saturate(5)}
+.icard.epic .ic-icon-box{background:linear-gradient(180deg,#6e1b99,#08080a);border:1px solid #db6bff}
+.icard.epic .ic-name,.icard.epic .ic-rar{color:#df78ff}
+
+.icard.uncommon .ic-head{border-bottom-color:rgba(97,242,76,0.55)}
+.icard.uncommon .ic-tint{background:linear-gradient(180deg,#165919 0%,#36bf36 100%)}
+.icard.uncommon .ic-smoke1,.icard.uncommon .ic-smoke2{filter:sepia(1) hue-rotate(75deg) saturate(4)}
+.icard.uncommon .ic-flare{filter:sepia(1) hue-rotate(75deg) saturate(4)}
+.icard.uncommon .ic-icon-box{background:linear-gradient(180deg,#1d6e20,#08080a);border:1px solid #5fe84d}
+.icard.uncommon .ic-name,.icard.uncommon .ic-rar{color:#61f24c}
+
+.ic-body{padding:10px 14px 12px;font-family:Segoe,sans-serif;font-size:12.8px;color:#dcdcdc}
+.ilvl-row{display:flex;align-items:center;gap:9px;margin-bottom:4px}
+.ilvl-hex{width:30px;height:30px;background:url('file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_ilvl.png') center/contain no-repeat}
+.ilvl-val{font-family:SegoeB,sans-serif;font-size:32px;line-height:1;color:#fff;text-shadow:1px 1px 2px #000}
+
+.stat-ln{line-height:1.38;color:#dcdcdc}
+.stat-ln b{font-family:SegoeB,sans-serif;color:#fff;font-weight:400}
+
+.div-dia{position:relative;height:12px;margin:6px 0;display:flex;align-items:center}
+.div-dia:before,.div-dia:after{content:"";flex:1;height:1px;background:rgba(82,83,86,0.9)}
+.div-dia i{width:11px;height:11px;margin:0 4px;background:url('file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_diamond.png') center/contain no-repeat;opacity:0.78}
+
+.perk-row{display:flex;align-items:flex-start;gap:9px;margin:5px 0}
+.perk-ic{position:relative;width:26px;height:26px;flex:none;margin-top:1px}
+.perk-ic .in{position:absolute;inset:2px;border-radius:50%;overflow:hidden}
+.perk-ic .ring{position:absolute;inset:-1px;background:url('file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_perkring.png') center/contain no-repeat;opacity:0.92}
+.perk-txt{font-family:SegoeB,sans-serif;font-size:12.4px;line-height:1.32;color:#6ba8ff}
+.perk-txt .pre{color:#9ecbff}
+
+.flavor{font-size:12.2px;line-height:1.35;color:#c8c8c8;font-style:italic}
+.bind-ln{font-family:SegoeB,sans-serif;color:#3dcc6b;margin-bottom:2px}
+.sell-ln{display:flex;align-items:center;gap:6px;margin-top:5px}
+.sell-ln .lbl{color:#dcdcdc}
+.sell-ln .val{font-family:SegoeB,sans-serif;color:#fff;display:flex;align-items:center;gap:5px}
+.delta-ln{font-size:12px;line-height:1.35;color:#45e074}
+</style></head><body>
+<div class="stage">
+  <div class="world-bg"></div>
+  <div class="world-dim"></div>
+
+  <!-- Lado esquerdo livre: Mundo Aberto / Personagem / Espaço para Mercador -->
+  <div class="world-hero"></div>
+  <div class="hud-preview"></div>
+  <div class="world-hint"><i class="dot"></i><span>MUNDO ABERTO / ESPAÇO PARA MERCADOR & BANCO</span></div>
+
+  <!-- MINI RADIAL (G) aberto ao lado do botão no rodapé do inventário -->
+  <div class="radial-float">
+    <div class="radial-disc">
+      <div class="radial-ring"></div>
+      <span class="radial-key">G</span>
+      <div class="rad-slot" style="left:64.0px;top:20.0px">
+        <div class="in"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnIiBjeD0iNTAlIiBjeT0iNDUlIiByPSI2MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMzZDE1MWQiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwZTA2MDgiLz48L3JhZGlhbEdyYWRpZW50PgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImxpcSIgY3g9IjQyJSIgY3k9IjQwJSIgcj0iNjAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmY4NTk0Ii8+PHN0b3Agb2Zmc2V0PSI1NSUiIHN0b3AtY29sb3I9IiNjOTE4MzIiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM1OTA4MTQiLz48L3JhZGlhbEdyYWRpZW50PgogICAgPC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8cmVjdCB4PSI0MyIgeT0iMTQiIHdpZHRoPSIxNCIgaGVpZ2h0PSIxMCIgcng9IjIiIGZpbGw9IiM4ZjYzMzgiLz4KICAgIDxyZWN0IHg9IjQxIiB5PSIyMiIgd2lkdGg9IjE4IiBoZWlnaHQ9IjEyIiBmaWxsPSIjN2RhMGIwIiBvcGFjaXR5PSIwLjU1IiBzdHJva2U9IiNkOGVlZjgiIHN0cm9rZS13aWR0aD0iMSIvPgogICAgPHBhdGggZD0iTTQxIDM0IEwzMCA0OCBRMjIgNjAgMjggNzQgUTM0IDg2IDUwIDg2IFE2NiA4NiA3MiA3NCBRNzggNjAgNzAgNDggTDU5IDM0IFoiIGZpbGw9InVybCgjbGlxKSIgc3Ryb2tlPSIjZTRmNGZmIiBzdHJva2Utd2lkdGg9IjEuOCIvPgogICAgPGVsbGlwc2UgY3g9IjM5IiBjeT0iNTYiIHJ4PSI1IiByeT0iMTEiIHRyYW5zZm9ybT0icm90YXRlKC0xOCAzOSA1NikiIGZpbGw9IiNmZmZmZmYiIG9wYWNpdHk9IjAuNCIvPgogIDwvc3ZnPg==');background-size:cover;background-position:center;"></div></div><span class="cnt">15</span></div><div class="rad-slot" style="left:95.1px;top:32.9px">
+        <div class="in"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnIiBjeD0iNTAlIiBjeT0iNDUlIiByPSI2MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMxMjM2NGEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwNTBjMTIiLz48L3JhZGlhbEdyYWRpZW50PgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImxpcSIgY3g9IjQyJSIgY3k9IjQwJSIgcj0iNjAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjYThmOWZmIi8+PHN0b3Agb2Zmc2V0PSI1NSUiIHN0b3AtY29sb3I9IiMyMmE1YzkiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwYTNiNTIiLz48L3JhZGlhbEdyYWRpZW50PgogICAgPC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8cmVjdCB4PSI0MyIgeT0iMTQiIHdpZHRoPSIxNCIgaGVpZ2h0PSIxMCIgcng9IjIiIGZpbGw9IiM4ZjYzMzgiLz4KICAgIDxyZWN0IHg9IjQxIiB5PSIyMiIgd2lkdGg9IjE4IiBoZWlnaHQ9IjEyIiBmaWxsPSIjN2RhMGIwIiBvcGFjaXR5PSIwLjU1IiBzdHJva2U9IiNkOGVlZjgiIHN0cm9rZS13aWR0aD0iMSIvPgogICAgPHBhdGggZD0iTTQxIDM0IEwzMCA0OCBRMjIgNjAgMjggNzQgUTM0IDg2IDUwIDg2IFE2NiA4NiA3MiA3NCBRNzggNjAgNzAgNDggTDU5IDM0IFoiIGZpbGw9InVybCgjbGlxKSIgc3Ryb2tlPSIjZDhmOGZmIiBzdHJva2Utd2lkdGg9IjEuOCIvPgogICAgPGVsbGlwc2UgY3g9IjM5IiBjeT0iNTYiIHJ4PSI1IiByeT0iMTEiIHRyYW5zZm9ybT0icm90YXRlKC0xOCAzOSA1NikiIGZpbGw9IiNmZmZmZmYiIG9wYWNpdHk9IjAuNDUiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center;"></div></div><span class="cnt">8</span></div><div class="rad-slot" style="left:108.0px;top:64.0px">
+        <div class="in"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnIiBjeD0iNTAlIiBjeT0iNDUlIiByPSI2MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMxNjMyNDQiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwNzBkMTQiLz48L3JhZGlhbEdyYWRpZW50PgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImxpcSIgY3g9IjQyJSIgY3k9IjQyJSIgcj0iNjAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmZmMDk5Ii8+PHN0b3Agb2Zmc2V0PSI1NSUiIHN0b3AtY29sb3I9IiNlMzlkMjQiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM2YjNlMDYiLz48L3JhZGlhbEdyYWRpZW50PgogICAgPC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8cmVjdCB4PSI0MyIgeT0iMTMiIHdpZHRoPSIxNCIgaGVpZ2h0PSIxMCIgcng9IjIiIGZpbGw9IiM5YzZlM2UiLz4KICAgIDxyZWN0IHg9IjQwIiB5PSIyMyIgd2lkdGg9IjIwIiBoZWlnaHQ9IjExIiBmaWxsPSIjOGJiMGMyIiBvcGFjaXR5PSIwLjUiIHN0cm9rZT0iI2Q4ZWVmOCIgc3Ryb2tlLXdpZHRoPSIxIi8+CiAgICA8cG9seWdvbiBwb2ludHM9IjQwLDM0IDYwLDM0IDc0LDU2IDY2LDg0IDM0LDg0IDI2LDU2IiBmaWxsPSJ1cmwoI2xpcSkiIHN0cm9rZT0iI2U0ZjRmZiIgc3Ryb2tlLXdpZHRoPSIxLjgiLz4KICAgIDxwYXRoIGQ9Ik0zNiA1NiBMNDQgNDIiIHN0cm9rZT0iI2ZmZmZmZiIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtbGluZWNhcD0icm91bmQiIG9wYWNpdHk9IjAuNTUiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center;"></div></div><span class="cnt">4</span></div><div class="rad-slot" style="left:95.1px;top:95.1px">
+        <div class="in"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnIiBjeD0iNTAlIiBjeT0iNDUlIiByPSI2MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMyZTFiMTIiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwYzA4MDYiLz48L3JhZGlhbEdyYWRpZW50PgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9Im10IiBjeD0iNDUlIiBjeT0iNDAlIiByPSI1NSUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNlMzdjNGQiLz48c3RvcCBvZmZzZXQ9IjYwJSIgc3RvcC1jb2xvcj0iIzhjMzYxYSIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzQ1MTgwYSIvPjwvcmFkaWFsR3JhZGllbnQ+CiAgICA8L2RlZnM+CiAgICA8cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0idXJsKCNiZykiLz4KICAgIDxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDUwIDUwKSByb3RhdGUoLTMwKSB0cmFuc2xhdGUoLTUwIC01MCkiPgogICAgICA8cmVjdCB4PSI0NiIgeT0iNTQiIHdpZHRoPSI4IiBoZWlnaHQ9IjI4IiByeD0iMyIgZmlsbD0iI2VlZTVkMCIvPgogICAgICA8Y2lyY2xlIGN4PSI0NiIgY3k9IjgyIiByPSI1IiBmaWxsPSIjZWVlNWQwIi8+PGNpcmNsZSBjeD0iNTQiIGN5PSI4MiIgcj0iNSIgZmlsbD0iI2VlZTVkMCIvPgogICAgICA8ZWxsaXBzZSBjeD0iNTAiIGN5PSI0MCIgcng9IjI0IiByeT0iMjYiIGZpbGw9InVybCgjbXQpIiBzdHJva2U9IiMzODEzMDgiIHN0cm9rZS13aWR0aD0iMiIvPgogICAgICA8ZWxsaXBzZSBjeD0iNDQiIGN5PSIzMyIgcng9IjgiIHJ5PSI1IiBmaWxsPSIjZmZiZTk5IiBvcGFjaXR5PSIwLjQ1Ii8+CiAgICA8L2c+CiAgPC9zdmc+');background-size:cover;background-position:center;"></div></div><span class="cnt">12</span></div><div class="rad-slot" style="left:64.0px;top:108.0px">
+        <div class="in"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnIiBjeD0iNTAlIiBjeT0iNDUlIiByPSI2MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMyNDI5MzAiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwYTBjMTAiLz48L3JhZGlhbEdyYWRpZW50PgogICAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImNsIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2YyZWRlMiIvPjxzdG9wIG9mZnNldD0iNjUlIiBzdG9wLWNvbG9yPSIjYjhiMDllIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjNjk2MjU1Ii8+PC9saW5lYXJHcmFkaWVudD4KICAgIDwvZGVmcz4KICAgIDxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSJ1cmwoI2JnKSIvPgogICAgPGVsbGlwc2UgY3g9IjUwIiBjeT0iNDgiIHJ4PSIyNiIgcnk9IjI0IiBmaWxsPSJ1cmwoI2NsKSIgc3Ryb2tlPSIjNGY0ODNlIiBzdHJva2Utd2lkdGg9IjIiLz4KICAgIDxlbGxpcHNlIGN4PSI1MCIgY3k9IjQ4IiByeD0iMTAiIHJ5PSI5IiBmaWxsPSIjNWU1NzRjIi8+CiAgICA8cGF0aCBkPSJNNTIgNjggTDc4IDc4IEw3MiA4NiBMNDIgNzIgWiIgZmlsbD0idXJsKCNjbCkiIHN0cm9rZT0iIzRmNDgzZSIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center;"></div></div><span class="cnt">20</span></div><div class="rad-slot empty" style="left:32.9px;top:95.1px">+</div><div class="rad-slot empty" style="left:20.0px;top:64.0px">+</div><div class="rad-slot empty" style="left:32.9px;top:32.9px">+</div>
+    </div>
+    <div class="cz" style="margin-top:8px;font-size:9.5px;letter-spacing:1.8px;color:#b8c8d4;text-shadow:0 1px 3px #000">RADIAL (G)</div>
+  </div>
+
+  <!-- NOVO CARD DE ITENS + COMPARAÇÃO (ANCORADO À ESQUERDA DO ITEM, ANCHOR_LEFT) -->
+  <div class="abs" style="left:866px;top:164px;z-index:10">
+    <div class="icard epic">
+      <div class="ic-head">
+        <div class="ic-paper"></div>
+        <div class="ic-tint"></div>
+        <div class="ic-smoke1"></div>
+        <div class="ic-smoke2"></div>
+        <div class="ic-flare"></div>
+        <div class="ic-fx"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_spark.png" style="position:absolute;left:334px;top:49px;width:10px;height:10px;opacity:0.56;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #df78ff)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_spark.png" style="position:absolute;left:293px;top:61px;width:12px;height:12px;opacity:0.62;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #df78ff)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_spark.png" style="position:absolute;left:304px;top:40px;width:13px;height:13px;opacity:0.54;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #df78ff)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_spark.png" style="position:absolute;left:174px;top:21px;width:13px;height:13px;opacity:0.45;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #df78ff)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_ember.png" style="position:absolute;left:46px;top:71px;width:5px;height:15px;opacity:0.82;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #df78ff)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_ember.png" style="position:absolute;left:204px;top:75px;width:8px;height:25px;opacity:0.50;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #df78ff)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_spark.png" style="position:absolute;left:71px;top:35px;width:13px;height:13px;opacity:0.66;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #df78ff)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_ember.png" style="position:absolute;left:212px;top:82px;width:5px;height:16px;opacity:0.80;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #df78ff)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_ember.png" style="position:absolute;left:65px;top:44px;width:7px;height:24px;opacity:0.62;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #df78ff)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_ember.png" style="position:absolute;left:53px;top:31px;width:7px;height:23px;opacity:0.69;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #df78ff)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_spark.png" style="position:absolute;left:127px;top:29px;width:5px;height:5px;opacity:0.61;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #df78ff)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_ember.png" style="position:absolute;left:261px;top:19px;width:7px;height:21px;opacity:0.96;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #df78ff)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_ember.png" style="position:absolute;left:150px;top:82px;width:6px;height:21px;opacity:0.58;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #df78ff)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_spark.png" style="position:absolute;left:166px;top:56px;width:7px;height:7px;opacity:0.85;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #df78ff)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_spark.png" style="position:absolute;left:130px;top:77px;width:11px;height:11px;opacity:0.46;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #df78ff)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_spark.png" style="position:absolute;left:44px;top:56px;width:11px;height:11px;opacity:0.92;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #df78ff)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_spark.png" style="position:absolute;left:12px;top:32px;width:7px;height:7px;opacity:0.46;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #df78ff)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_spark.png" style="position:absolute;left:46px;top:16px;width:10px;height:10px;opacity:0.80;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #df78ff)"></div>
+        <div class="ic-head-content">
+          <div class="ic-icon-box"><div class="ic-icon-inner"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnIiBjeD0iNTAlIiBjeT0iNDUlIiByPSI2MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM0NTE5NmUiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwYjA2MTQiLz48L3JhZGlhbEdyYWRpZW50PgogICAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImJsYWRlIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2Y1ZWJmZiIvPjxzdG9wIG9mZnNldD0iNDUlIiBzdG9wLWNvbG9yPSIjYTg5M2M0Ii8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMzMyMzQ3Ii8+PC9saW5lYXJHcmFkaWVudD4KICAgICAgPGxpbmVhckdyYWRpZW50IGlkPSJydW5lIiB4MT0iMCIgeTE9IjEiIHgyPSIxIiB5Mj0iMCI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzVmZTNlNiIvPjxzdG9wIG9mZnNldD0iNTUlIiBzdG9wLWNvbG9yPSIjZGY3OGZmIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjZmZmZmZmIi8+PC9saW5lYXJHcmFkaWVudD4KICAgICAgPGxpbmVhckdyYWRpZW50IGlkPSJnb2xkIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2ZmZTdhNiIvPjxzdG9wIG9mZnNldD0iNTAlIiBzdG9wLWNvbG9yPSIjYzQ5NTQ1Ii8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjNWEzZDE0Ii8+PC9saW5lYXJHcmFkaWVudD4KICAgIDwvZGVmcz4KICAgIDxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSJ1cmwoI2JnKSIvPgogICAgPGNpcmNsZSBjeD0iNTIiIGN5PSI0OCIgcj0iMzgiIGZpbGw9IiNiNDU1ZmYiIG9wYWNpdHk9IjAuMjgiLz4KICAgIDxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDUwIDUwKSByb3RhdGUoNDIpIHRyYW5zbGF0ZSgtNTAgLTUwKSI+CiAgICAgIDxwYXRoIGQ9Ik01MCA4IEw1OCAyMiBMNTYgNjQgTDQ0IDY0IEw0MiAyMiBaIiBmaWxsPSJ1cmwoI2JsYWRlKSIgc3Ryb2tlPSIjZTlkY2ZmIiBzdHJva2Utd2lkdGg9IjEuMiIvPgogICAgICA8cGF0aCBkPSJNNTAgMTEgTDUwIDYyIiBzdHJva2U9IiMxZTEzMzAiIHN0cm9rZS13aWR0aD0iMi42Ii8+CiAgICAgIDxwYXRoIGQ9Ik01MCAxNyBMNTAgNTcgTTQ2LjUgMjcgTDUzLjUgMzEgTTQ2LjUgMzkgTDUzLjUgNDMgTTQ2LjUgNTEgTDUzLjUgNTUiIHN0cm9rZT0idXJsKCNydW5lKSIgc3Ryb2tlLXdpZHRoPSIyLjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogICAgICA8cGF0aCBkPSJNMjcgNjMgUTUwIDU3IDczIDYzIEw3MCA3MCBRNTAgNjYgMzAgNzAgWiIgZmlsbD0idXJsKCNnb2xkKSIgc3Ryb2tlPSIjZmZmMmMyIiBzdHJva2Utd2lkdGg9IjEiLz4KICAgICAgPHJlY3QgeD0iNDYuNSIgeT0iNjgiIHdpZHRoPSI3IiBoZWlnaHQ9IjE3IiByeD0iMiIgZmlsbD0iIzMyMTg0YSIgc3Ryb2tlPSJ1cmwoI2dvbGQpIiBzdHJva2Utd2lkdGg9IjEiLz4KICAgICAgPGNpcmNsZSBjeD0iNTAiIGN5PSI4OSIgcj0iNiIgZmlsbD0idXJsKCNnb2xkKSIgc3Ryb2tlPSIjZmZmMmMyIiBzdHJva2Utd2lkdGg9IjEiLz4KICAgICAgPGNpcmNsZSBjeD0iNTAiIGN5PSI2NSIgcj0iNC4yIiBmaWxsPSIjNWZlM2U2IiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMC45Ii8+CiAgICA8L2c+CiAgPC9zdmc+');background-size:cover;background-position:center;"></div></div></div>
+          <div class="ic-hmeta">
+            <div>
+              <div class="ic-name">Lâmina Rúnica de Azaath</div>
+              <div class="ic-rar">Épico &nbsp;•&nbsp; Único</div>
+            </div>
+            <div class="ic-botrow"><span>Espada</span><span>Duas Mãos</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ic-body">
+        <div class="ilvl-row"><div class="ilvl-hex"></div><div class="ilvl-val">48</div></div>
+        <div class="stat-ln"><b>84 - 142</b> Dano</div>
+        <div class="stat-ln"><b>2.80</b> Velocidade</div>
+        <div class="stat-ln"><b>40.4</b> Dano por Segundo</div>
+
+        <div class="div-dia"><i></i></div>
+        <div class="stat-ln"><b>+18</b> Força</div>
+        <div class="stat-ln"><b>+14</b> Vigor</div>
+        <div class="stat-ln"><b>+9</b> Taxa de Crítico</div>
+
+        <div class="div-dia"><i></i></div>
+        <div class="perk-row">
+          <div class="perk-ic"><div class="in"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnIiBjeD0iNTAlIiBjeT0iNTAlIiByPSI1NSUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM2MTI4MTYiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMxODA4MDQiLz48L3JhZGlhbEdyYWRpZW50PgogICAgICA8bGluZWFyR3JhZGllbnQgaWQ9InN3IiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2ZmZjBjMiIvPjxzdG9wIG9mZnNldD0iNTUlIiBzdG9wLWNvbG9yPSIjZTM5ZDI0Ii8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjNzgzZDA4Ii8+PC9saW5lYXJHcmFkaWVudD4KICAgIDwvZGVmcz4KICAgIDxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSJ1cmwoI2JnKSIvPgogICAgPHBhdGggZD0iTTUwIDE0IEw1NyAzMCBMNTUgNjIgTDQ1IDYyIEw0MyAzMCBaIiBmaWxsPSJ1cmwoI3N3KSIgc3Ryb2tlPSIjZmZmN2Q2IiBzdHJva2Utd2lkdGg9IjEiLz4KICAgIDxwYXRoIGQ9Ik0zMiA2MiBMNjggNjIgTDY2IDY4IEwzNCA2OCBaIiBmaWxsPSIjYzlhNDYzIi8+CiAgICA8cmVjdCB4PSI0NyIgeT0iNjgiIHdpZHRoPSI2IiBoZWlnaHQ9IjE0IiBmaWxsPSIjNWEzZDE0Ii8+CiAgICA8cGF0aCBkPSJNMjIgMzYgUTMyIDI0IDM4IDM2IE03OCAzNiBRNjggMjQgNjIgMzYiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmOWEzYyIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center;"></div></div><div class="ring"></div></div>
+          <div class="perk-txt"><span class="pre">Equipar:</span> Aumenta o Poder de Ataque em 36.</div>
+        </div>
+        <div class="perk-row">
+          <div class="perk-ic"><div class="in"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnIiBjeD0iNTAlIiBjeT0iNTAlIiByPSI1NSUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMxYzRmNzgiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwNzEzMjQiLz48L3JhZGlhbEdyYWRpZW50PgogICAgPC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8cG9seWdvbiBwb2ludHM9IjU2LDE0IDI4LDU0IDQ4LDU0IDQyLDg2IDcyLDQ0IDUyLDQ0IiBmaWxsPSIjOGVmN2ZmIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIvPgogIDwvc3ZnPg==');background-size:cover;background-position:center;"></div></div><div class="ring"></div></div>
+          <div class="perk-txt"><span class="pre">Chance ao acertar:</span> Canaliza Azoth arcano causando 65 de dano extra ao alvo.</div>
+        </div>
+
+        <div class="div-dia"><i></i></div>
+        <div class="flavor">Forjada nas câmaras abissais sob a luz das primeiras runas.</div>
+
+        <div class="div-dia"><i></i></div>
+        <div class="bind-ln">Vinculado ao equipar</div>
+        <div class="stat-ln"><b>95 / 95</b> Durabilidade</div>
+        <div class="stat-ln">Requer Nível 24</div>
+        <div class="sell-ln">
+          <span class="lbl">Preço de venda:</span>
+          <span class="val"><span>4<i class="coin g"></i></span><span>18<i class="coin s"></i></span><span>50<i class="coin c"></i></span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARD DE COMPARAÇÃO (AO LADO DO PRINCIPAL, COMO ShoppingTooltip1) -->
+  <div class="abs" style="left:506px;top:142px;z-index:9">
+    <div class="eq-tab"><span>Equipado no momento</span></div>
+    <div class="icard uncommon" style="width:342px">
+      <div class="ic-head" style="height:82px">
+        <div class="ic-paper"></div>
+        <div class="ic-tint"></div>
+        <div class="ic-smoke1"></div>
+        <div class="ic-flare"></div>
+        <div class="ic-fx"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_spark.png" style="position:absolute;left:285px;top:63px;width:13px;height:13px;opacity:0.62;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #61f24c)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_spark.png" style="position:absolute;left:279px;top:47px;width:8px;height:8px;opacity:0.48;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #61f24c)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_ember.png" style="position:absolute;left:104px;top:19px;width:7px;height:23px;opacity:0.65;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #61f24c)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_ember.png" style="position:absolute;left:277px;top:70px;width:3px;height:11px;opacity:0.55;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #61f24c)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_spark.png" style="position:absolute;left:321px;top:39px;width:5px;height:5px;opacity:0.58;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #61f24c)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_spark.png" style="position:absolute;left:162px;top:38px;width:14px;height:14px;opacity:0.48;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #61f24c)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_ember.png" style="position:absolute;left:51px;top:26px;width:7px;height:24px;opacity:0.91;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #61f24c)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_spark.png" style="position:absolute;left:41px;top:43px;width:12px;height:12px;opacity:0.93;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #61f24c)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_spark.png" style="position:absolute;left:20px;top:49px;width:6px;height:6px;opacity:0.76;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #61f24c)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_spark.png" style="position:absolute;left:315px;top:59px;width:9px;height:9px;opacity:0.65;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #61f24c)"></div>
+        <div class="ic-head-content">
+          <div class="ic-icon-box" style="width:62px;height:62px"><div class="ic-icon-inner"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnIiBjeD0iNTAlIiBjeT0iNDUlIiByPSI2MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMxOTQyMmIiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwNzEwMGMiLz48L3JhZGlhbEdyYWRpZW50PgogICAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImJsYWRlIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2YyZjdmNCIvPjxzdG9wIG9mZnNldD0iNTAlIiBzdG9wLWNvbG9yPSIjOTRhODlkIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMzU0MjNiIi8+PC9saW5lYXJHcmFkaWVudD4KICAgICAgPGxpbmVhckdyYWRpZW50IGlkPSJnb2xkIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2ZmZTdhNiIvPjxzdG9wIG9mZnNldD0iNTUlIiBzdG9wLWNvbG9yPSIjYjg4OTNhIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjNWEzZDE0Ii8+PC9saW5lYXJHcmFkaWVudD4KICAgIDwvZGVmcz4KICAgIDxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSJ1cmwoI2JnKSIvPgogICAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNTAgNTApIHJvdGF0ZSg0MikgdHJhbnNsYXRlKC01MCAtNTApIj4KICAgICAgPHBhdGggZD0iTTUwIDExIEw1NyAyNCBMNTYgNjQgTDQ0IDY0IEw0MyAyNCBaIiBmaWxsPSJ1cmwoI2JsYWRlKSIgc3Ryb2tlPSIjZGNlZWU0IiBzdHJva2Utd2lkdGg9IjEuMSIvPgogICAgICA8cGF0aCBkPSJNNTAgMTUgTDUwIDYxIiBzdHJva2U9IiMyYzNhMzIiIHN0cm9rZS13aWR0aD0iMi4yIi8+CiAgICAgIDxwYXRoIGQ9Ik0zMSA2MyBMNjkgNjMgTDY3IDY5IEwzMyA2OSBaIiBmaWxsPSJ1cmwoI2dvbGQpIiBzdHJva2U9IiNmNWRmYTIiIHN0cm9rZS13aWR0aD0iMC45Ii8+CiAgICAgIDxyZWN0IHg9IjQ2LjUiIHk9IjY5IiB3aWR0aD0iNyIgaGVpZ2h0PSIxNiIgcng9IjIiIGZpbGw9IiMyYjIxMTQiIHN0cm9rZT0idXJsKCNnb2xkKSIgc3Ryb2tlLXdpZHRoPSIxIi8+CiAgICAgIDxjaXJjbGUgY3g9IjUwIiBjeT0iODkiIHI9IjUuNSIgZmlsbD0idXJsKCNnb2xkKSIgc3Ryb2tlPSIjZjVkZmEyIiBzdHJva2Utd2lkdGg9IjAuOSIvPgogICAgICA8Y2lyY2xlIGN4PSI1MCIgY3k9IjY2IiByPSIzLjYiIGZpbGw9IiM0Y2U2N2EiIHN0cm9rZT0iI2U0ZmZlOSIgc3Ryb2tlLXdpZHRoPSIwLjYiLz4KICAgIDwvZz4KICA8L3N2Zz4=');background-size:cover;background-position:center;"></div></div></div>
+          <div class="ic-hmeta" style="height:62px">
+            <div>
+              <div class="ic-name" style="font-size:15.5px">Espada Larga da Vigília</div>
+              <div class="ic-rar">Incomum</div>
+            </div>
+            <div class="ic-botrow"><span>Espada</span><span>Duas Mãos</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ic-body" style="padding:9px 14px 11px">
+        <div class="ilvl-row" style="margin-bottom:3px"><div class="ilvl-hex" style="width:26px;height:26px"></div><div class="ilvl-val" style="font-size:26px">34</div></div>
+        <div class="stat-ln"><b>58 - 96</b> Dano &nbsp;·&nbsp; <b>2.60</b> Velocidade</div>
+        <div class="div-dia" style="margin:5px 0"><i></i></div>
+        <div class="stat-ln"><b>+10</b> Força &nbsp;·&nbsp; <b>+8</b> Vigor</div>
+        <div class="div-dia" style="margin:5px 0"><i></i></div>
+        <div class="perk-row" style="margin:3px 0">
+          <div class="perk-ic"><div class="in"><div class="ic-img" style="background-image:url('file:///D:/ProjectAzaath/tools/grimoire-concept/concept.png');background-size:589.7px 329.1px;background-position:-246.0px -153.4px;"></div></div><div class="ring"></div></div>
+          <div class="perk-txt"><span class="pre">Equipar:</span> Aumenta a taxa de acerto em 1%.</div>
+        </div>
+        <div class="div-dia" style="margin:5px 0"><i></i></div>
+        <div style="color:#b8b8b8;font-size:11.5px;margin-bottom:1px">Se equipar o item selecionado:</div>
+        <div class="delta-ln">+26 – 46 Dano &nbsp;·&nbsp; +8 Força &nbsp;·&nbsp; +6 Vigor</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JANELA FLUTUANTE DO INVENTÁRIO (DIREITA) -->
+  <main class="inv-win">
+    <i class="c-dia tl"></i><i class="c-dia tr"></i><i class="c-dia bl"></i><i class="c-dia br"></i>
+    <div class="inv-hdr">
+      <div class="inv-top">
+        <div class="inv-title">
+          <h1>INVENTÁRIO</h1>
+          <span class="cap-pill">46 / 66</span>
+        </div>
+        <div class="top-right">
+          <div class="view-tabs">
+            <span class="vtab on">CATEGORIAS</span>
+            <span class="vtab">BOLSAS</span>
+          </div>
+          <div class="close-btn"><svg width="10" height="10" viewBox="0 0 16 16"><path d="M3 3 L13 13 M13 3 L3 13" stroke="#c9bfa8" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+        </div>
+      </div>
+
+      <div class="inv-controls">
+        <div class="search-box"><span class="lens"></span><span>Buscar item...</span><span class="qmark">?</span></div>
+        <span class="sort-lbl">Ordenar</span>
+        <div class="ico-btn on"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/inv_clock.png"></div>
+        <div class="ico-btn"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/inv_star.png"></div>
+        <div class="ico-btn"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/inv_tier.png"></div>
+        <div class="org-btn">ORGANIZAR</div>
+      </div>
+
+      <div class="filter-strip">
+        <span class="fpill on">Todos</span>
+        <span class="fpill">Armas</span>
+        <span class="fpill">Equip.</span>
+        <span class="fpill">Consumíveis</span>
+        <span class="fpill">Materiais</span>
+        <span class="fpill">Missão</span>
+        <span class="fpill">Diversos</span>
+        <span class="fpill">Lixo</span>
+      </div>
+    </div>
+
+    <div class="inv-body">
+      <div><div><div class="sec-hdr"><span class="t">ARMAS</span><span class="ln"></span><span class="n">3</span><span class="ar"></span></div>
+      <div class="slot-grid"><div class="islot q4 hovered">
+      <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnIiBjeD0iNTAlIiBjeT0iNDUlIiByPSI2MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM0NTE5NmUiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwYjA2MTQiLz48L3JhZGlhbEdyYWRpZW50PgogICAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImJsYWRlIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2Y1ZWJmZiIvPjxzdG9wIG9mZnNldD0iNDUlIiBzdG9wLWNvbG9yPSIjYTg5M2M0Ii8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMzMyMzQ3Ii8+PC9saW5lYXJHcmFkaWVudD4KICAgICAgPGxpbmVhckdyYWRpZW50IGlkPSJydW5lIiB4MT0iMCIgeTE9IjEiIHgyPSIxIiB5Mj0iMCI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzVmZTNlNiIvPjxzdG9wIG9mZnNldD0iNTUlIiBzdG9wLWNvbG9yPSIjZGY3OGZmIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjZmZmZmZmIi8+PC9saW5lYXJHcmFkaWVudD4KICAgICAgPGxpbmVhckdyYWRpZW50IGlkPSJnb2xkIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2ZmZTdhNiIvPjxzdG9wIG9mZnNldD0iNTAlIiBzdG9wLWNvbG9yPSIjYzQ5NTQ1Ii8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjNWEzZDE0Ii8+PC9saW5lYXJHcmFkaWVudD4KICAgIDwvZGVmcz4KICAgIDxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSJ1cmwoI2JnKSIvPgogICAgPGNpcmNsZSBjeD0iNTIiIGN5PSI0OCIgcj0iMzgiIGZpbGw9IiNiNDU1ZmYiIG9wYWNpdHk9IjAuMjgiLz4KICAgIDxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDUwIDUwKSByb3RhdGUoNDIpIHRyYW5zbGF0ZSgtNTAgLTUwKSI+CiAgICAgIDxwYXRoIGQ9Ik01MCA4IEw1OCAyMiBMNTYgNjQgTDQ0IDY0IEw0MiAyMiBaIiBmaWxsPSJ1cmwoI2JsYWRlKSIgc3Ryb2tlPSIjZTlkY2ZmIiBzdHJva2Utd2lkdGg9IjEuMiIvPgogICAgICA8cGF0aCBkPSJNNTAgMTEgTDUwIDYyIiBzdHJva2U9IiMxZTEzMzAiIHN0cm9rZS13aWR0aD0iMi42Ii8+CiAgICAgIDxwYXRoIGQ9Ik01MCAxNyBMNTAgNTcgTTQ2LjUgMjcgTDUzLjUgMzEgTTQ2LjUgMzkgTDUzLjUgNDMgTTQ2LjUgNTEgTDUzLjUgNTUiIHN0cm9rZT0idXJsKCNydW5lKSIgc3Ryb2tlLXdpZHRoPSIyLjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogICAgICA8cGF0aCBkPSJNMjcgNjMgUTUwIDU3IDczIDYzIEw3MCA3MCBRNTAgNjYgMzAgNzAgWiIgZmlsbD0idXJsKCNnb2xkKSIgc3Ryb2tlPSIjZmZmMmMyIiBzdHJva2Utd2lkdGg9IjEiLz4KICAgICAgPHJlY3QgeD0iNDYuNSIgeT0iNjgiIHdpZHRoPSI3IiBoZWlnaHQ9IjE3IiByeD0iMiIgZmlsbD0iIzMyMTg0YSIgc3Ryb2tlPSJ1cmwoI2dvbGQpIiBzdHJva2Utd2lkdGg9IjEiLz4KICAgICAgPGNpcmNsZSBjeD0iNTAiIGN5PSI4OSIgcj0iNiIgZmlsbD0idXJsKCNnb2xkKSIgc3Ryb2tlPSIjZmZmMmMyIiBzdHJva2Utd2lkdGg9IjEiLz4KICAgICAgPGNpcmNsZSBjeD0iNTAiIGN5PSI2NSIgcj0iNC4yIiBmaWxsPSIjNWZlM2U2IiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMC45Ii8+CiAgICA8L2c+CiAgPC9zdmc+');background-size:cover;background-position:center;"></div></div>
+      
+      <span class="ilvl">48</span>
+      
+      <div class="dur "><i style="width:100%"></i></div>
+      
+      <div class="newgem"></div>
+    </div><div class="islot q3">
+      <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnIiBjeD0iNTAlIiBjeT0iNDUlIiByPSI2MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMxNDMyNDgiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwNjBjMTQiLz48L3JhZGlhbEdyYWRpZW50PgogICAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImVkZ2UiIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjYjBmOWZmIi8+PHN0b3Agb2Zmc2V0PSI1MCUiIHN0b3AtY29sb3I9IiM0ZTc5OTQiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMxYTI0MzAiLz48L2xpbmVhckdyYWRpZW50PgogICAgPC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1MCA1MCkgcm90YXRlKDMyKSB0cmFuc2xhdGUoLTUwIC01MCkiPgogICAgICA8cmVjdCB4PSI0NyIgeT0iMTQiIHdpZHRoPSI2IiBoZWlnaHQ9Ijc0IiByeD0iMiIgZmlsbD0iIzViM2QyNCIgc3Ryb2tlPSIjYzlhNDYzIiBzdHJva2Utd2lkdGg9IjAuOSIvPgogICAgICA8cGF0aCBkPSJNNTIgMjAgUTcyIDE2IDgyIDEwIFE5MCAzMCA4MiA1MiBRNzAgNDIgNTIgNDQgWiIgZmlsbD0idXJsKCNlZGdlKSIgc3Ryb2tlPSIjOGVmMmZmIiBzdHJva2Utd2lkdGg9IjEuMyIvPgogICAgICA8cGF0aCBkPSJNNDggMjAgUTI4IDE2IDE4IDEwIFExMCAzMCAxOCA1MiBRMzAgNDIgNDggNDQgWiIgZmlsbD0idXJsKCNlZGdlKSIgc3Ryb2tlPSIjOGVmMmZmIiBzdHJva2Utd2lkdGg9IjEuMyIvPgogICAgICA8Y2lyY2xlIGN4PSI1MCIgY3k9IjMyIiByPSI1IiBmaWxsPSIjNWZlM2U2IiBzdHJva2U9IiNlOWQyOWEiIHN0cm9rZS13aWR0aD0iMSIvPgogICAgPC9nPgogIDwvc3ZnPg==');background-size:cover;background-position:center;"></div></div>
+      
+      <span class="ilvl">36</span>
+      
+      <div class="dur "><i style="width:94%"></i></div>
+      
+      
+    </div><div class="islot q2">
+      <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnIiBjeD0iNTAlIiBjeT0iNDUlIiByPSI2MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMxYzNiMjgiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwNzBlMGIiLz48L3JhZGlhbEdyYWRpZW50PgogICAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImJsIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2VlZjVmMCIvPjxzdG9wIG9mZnNldD0iNTUlIiBzdG9wLWNvbG9yPSIjN2M5MDg0Ii8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMjgzMzJjIi8+PC9saW5lYXJHcmFkaWVudD4KICAgIDwvZGVmcz4KICAgIDxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSJ1cmwoI2JnKSIvPgogICAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNTAgNTApIHJvdGF0ZSg0NSkgdHJhbnNsYXRlKC01MCAtNTApIj4KICAgICAgPHBhdGggZD0iTTUwIDE1IEw1Ni41IDMyIEw1NCA2MiBMNDYgNjIgTDQzLjUgMzIgWiIgZmlsbD0idXJsKCNibCkiIHN0cm9rZT0iI2Q5ZjVlMyIgc3Ryb2tlLXdpZHRoPSIxIi8+CiAgICAgIDxwYXRoIGQ9Ik0zNSA2MSBRNTAgNTYgNjUgNjEgTDY0IDY2IEwzNiA2NiBaIiBmaWxsPSIjYzlhNDYzIi8+CiAgICAgIDxyZWN0IHg9IjQ3IiB5PSI2NiIgd2lkdGg9IjYiIGhlaWdodD0iMTUiIGZpbGw9IiMyYzI0MTgiIHN0cm9rZT0iI2M5YTQ2MyIgc3Ryb2tlLXdpZHRoPSIwLjgiLz4KICAgICAgPGNpcmNsZSBjeD0iNTAiIGN5PSI4NCIgcj0iNC41IiBmaWxsPSIjM2ZjZjVhIiBzdHJva2U9IiNlOWQyOWEiIHN0cm9rZS13aWR0aD0iMSIvPgogICAgPC9nPgogIDwvc3ZnPg==');background-size:cover;background-position:center;"></div></div>
+      
+      <span class="ilvl">29</span>
+      
+      <div class="dur "><i style="width:100%"></i></div>
+      
+      
+    </div></div></div><div><div class="sec-hdr"><span class="t">EQUIPAMENTO</span><span class="ln"></span><span class="n">5</span><span class="ar"></span></div>
+      <div class="slot-grid"><div class="islot q4">
+      <div class="ic-wrap"><div class="ic-img" style="background-image:url('file:///D:/ProjectAzaath/tools/drops-concept/helmets_grid.jpg');background-size:210.2px 117.3px;background-position:-56.8px -6.6px;mix-blend-mode:lighten;"></div></div>
+      
+      <span class="ilvl">45</span>
+      
+      <div class="dur "><i style="width:100%"></i></div>
+      
+      
+    </div><div class="islot q3">
+      <div class="ic-wrap"><div class="ic-img" style="background-image:url('file:///D:/ProjectAzaath/tools/drops-concept/helmets_grid.jpg');background-size:210.2px 117.3px;background-position:-161.9px -6.6px;mix-blend-mode:lighten;"></div></div>
+      
+      <span class="ilvl">38</span>
+      
+      <div class="dur "><i style="width:88%"></i></div>
+      
+      
+    </div><div class="islot q3">
+      <div class="ic-wrap"><div class="ic-img" style="background-image:url('file:///D:/ProjectAzaath/tools/drops-concept/helmets_grid.jpg');background-size:210.2px 117.3px;background-position:-109.4px -65.2px;mix-blend-mode:lighten;"></div></div>
+      
+      <span class="ilvl">34</span>
+      
+      <div class="dur "><i style="width:100%"></i></div>
+      
+      
+    </div><div class="islot q2">
+      <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnIiBjeD0iNTAlIiBjeT0iNDUlIiByPSI2MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMxODMzMjQiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwNzBlMGIiLz48L3JhZGlhbEdyYWRpZW50PgogICAgICA8bGluZWFyR3JhZGllbnQgaWQ9InN0IiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2Q1ZGVlNCIvPjxzdG9wIG9mZnNldD0iNTAlIiBzdG9wLWNvbG9yPSIjNjA2Yzc1Ii8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMjMyOTJlIi8+PC9saW5lYXJHcmFkaWVudD4KICAgIDwvZGVmcz4KICAgIDxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSJ1cmwoI2JnKSIvPgogICAgPHBhdGggZD0iTTM1IDIwIEw0MiAyMCBMNDIgNDIgTDQ1IDQyIEw0NSAxNiBMNTIgMTYgTDUyIDQyIEw1NSA0MiBMNTUgMTggTDYyIDE4IEw2MiA0NCBMNjYgNDQgTDY2IDI4IEw3MiAyOCBMNzIgNTYgUTcyIDY4IDYyIDcyIEw2MiA4NiBMMzYgODYgTDM2IDcyIFEyOCA2NiAyOCA1MiBMMjggMzYgTDM1IDM2IFoiIGZpbGw9InVybCgjc3QpIiBzdHJva2U9IiNjOWE0NjMiIHN0cm9rZS13aWR0aD0iMiIvPgogICAgPHJlY3QgeD0iMzQiIHk9IjY4IiB3aWR0aD0iMzAiIGhlaWdodD0iNSIgZmlsbD0iI2M5YTQ2MyIvPgogICAgPGNpcmNsZSBjeD0iNDkiIGN5PSI1NCIgcj0iNC4yIiBmaWxsPSIjM2ZjZjVhIi8+CiAgPC9zdmc+');background-size:cover;background-position:center;"></div></div>
+      
+      <span class="ilvl">31</span>
+      
+      <div class="dur mid"><i style="width:58%"></i></div>
+      
+      
+    </div><div class="islot q2">
+      <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnIiBjeD0iNTAlIiBjeT0iNDUlIiByPSI2MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMyOTE3NDIiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwOTA3MTAiLz48L3JhZGlhbEdyYWRpZW50PgogICAgICA8bGluZWFyR3JhZGllbnQgaWQ9InN0ZWVsIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2RjZTZlYyIvPjxzdG9wIG9mZnNldD0iNTAlIiBzdG9wLWNvbG9yPSIjNmU3Yzg1Ii8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMmIzMzM4Ii8+PC9saW5lYXJHcmFkaWVudD4KICAgIDwvZGVmcz4KICAgIDxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSJ1cmwoI2JnKSIvPgogICAgPHBhdGggZD0iTTIyIDIwIEwzNiAxNiBRNTAgMjggNjQgMTYgTDc4IDIwIEw4MiA0MiBMNzAgNDYgTDY4IDgwIFE1MCA4OCAzMiA4MCBMMzAgNDYgTDE4IDQyIFoiIGZpbGw9InVybCgjc3RlZWwpIiBzdHJva2U9IiNjOWE0NjMiIHN0cm9rZS13aWR0aD0iMi41Ii8+CiAgICA8cGF0aCBkPSJNNTAgMjggTDUwIDgwIE0zNCA0OCBMNjYgNDgiIHN0cm9rZT0iI2M5YTQ2MyIgc3Ryb2tlLXdpZHRoPSIxLjgiIG9wYWNpdHk9IjAuODUiLz4KICAgIDxwb2x5Z29uIHBvaW50cz0iNTAsMzYgNTYsNDUgNTAsNTQgNDQsNDUiIGZpbGw9IiNkMjZiZmYiIHN0cm9rZT0iI2ZmZjJjMiIgc3Ryb2tlLXdpZHRoPSIxIi8+CiAgPC9zdmc+');background-size:cover;background-position:center;"></div></div>
+      
+      <span class="ilvl">27</span>
+      
+      <div class="dur "><i style="width:100%"></i></div>
+      
+      
+    </div></div></div><div><div class="sec-hdr"><span class="t">CONSUMÍVEIS</span><span class="ln"></span><span class="n">10</span><span class="ar"></span></div>
+      <div class="slot-grid"><div class="islot">
+      <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnIiBjeD0iNTAlIiBjeT0iNDUlIiByPSI2MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMzZDE1MWQiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwZTA2MDgiLz48L3JhZGlhbEdyYWRpZW50PgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImxpcSIgY3g9IjQyJSIgY3k9IjQwJSIgcj0iNjAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmY4NTk0Ii8+PHN0b3Agb2Zmc2V0PSI1NSUiIHN0b3AtY29sb3I9IiNjOTE4MzIiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM1OTA4MTQiLz48L3JhZGlhbEdyYWRpZW50PgogICAgPC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8cmVjdCB4PSI0MyIgeT0iMTQiIHdpZHRoPSIxNCIgaGVpZ2h0PSIxMCIgcng9IjIiIGZpbGw9IiM4ZjYzMzgiLz4KICAgIDxyZWN0IHg9IjQxIiB5PSIyMiIgd2lkdGg9IjE4IiBoZWlnaHQ9IjEyIiBmaWxsPSIjN2RhMGIwIiBvcGFjaXR5PSIwLjU1IiBzdHJva2U9IiNkOGVlZjgiIHN0cm9rZS13aWR0aD0iMSIvPgogICAgPHBhdGggZD0iTTQxIDM0IEwzMCA0OCBRMjIgNjAgMjggNzQgUTM0IDg2IDUwIDg2IFE2NiA4NiA3MiA3NCBRNzggNjAgNzAgNDggTDU5IDM0IFoiIGZpbGw9InVybCgjbGlxKSIgc3Ryb2tlPSIjZTRmNGZmIiBzdHJva2Utd2lkdGg9IjEuOCIvPgogICAgPGVsbGlwc2UgY3g9IjM5IiBjeT0iNTYiIHJ4PSI1IiByeT0iMTEiIHRyYW5zZm9ybT0icm90YXRlKC0xOCAzOSA1NikiIGZpbGw9IiNmZmZmZmYiIG9wYWNpdHk9IjAuNCIvPgogIDwvc3ZnPg==');background-size:cover;background-position:center;"></div></div>
+      
+      
+      <span class="cnt">15</span>
+      
+      
+      
+    </div><div class="islot q2">
+      <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnIiBjeD0iNTAlIiBjeT0iNDUlIiByPSI2MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMxMjM2NGEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwNTBjMTIiLz48L3JhZGlhbEdyYWRpZW50PgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImxpcSIgY3g9IjQyJSIgY3k9IjQwJSIgcj0iNjAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjYThmOWZmIi8+PHN0b3Agb2Zmc2V0PSI1NSUiIHN0b3AtY29sb3I9IiMyMmE1YzkiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwYTNiNTIiLz48L3JhZGlhbEdyYWRpZW50PgogICAgPC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8cmVjdCB4PSI0MyIgeT0iMTQiIHdpZHRoPSIxNCIgaGVpZ2h0PSIxMCIgcng9IjIiIGZpbGw9IiM4ZjYzMzgiLz4KICAgIDxyZWN0IHg9IjQxIiB5PSIyMiIgd2lkdGg9IjE4IiBoZWlnaHQ9IjEyIiBmaWxsPSIjN2RhMGIwIiBvcGFjaXR5PSIwLjU1IiBzdHJva2U9IiNkOGVlZjgiIHN0cm9rZS13aWR0aD0iMSIvPgogICAgPHBhdGggZD0iTTQxIDM0IEwzMCA0OCBRMjIgNjAgMjggNzQgUTM0IDg2IDUwIDg2IFE2NiA4NiA3MiA3NCBRNzggNjAgNzAgNDggTDU5IDM0IFoiIGZpbGw9InVybCgjbGlxKSIgc3Ryb2tlPSIjZDhmOGZmIiBzdHJva2Utd2lkdGg9IjEuOCIvPgogICAgPGVsbGlwc2UgY3g9IjM5IiBjeT0iNTYiIHJ4PSI1IiByeT0iMTEiIHRyYW5zZm9ybT0icm90YXRlKC0xOCAzOSA1NikiIGZpbGw9IiNmZmZmZmYiIG9wYWNpdHk9IjAuNDUiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center;"></div></div>
+      
+      
+      <span class="cnt">8</span>
+      
+      
+      
+    </div><div class="islot q3">
+      <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnIiBjeD0iNTAlIiBjeT0iNDUlIiByPSI2MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMxNjMyNDQiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwNzBkMTQiLz48L3JhZGlhbEdyYWRpZW50PgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImxpcSIgY3g9IjQyJSIgY3k9IjQyJSIgcj0iNjAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmZmMDk5Ii8+PHN0b3Agb2Zmc2V0PSI1NSUiIHN0b3AtY29sb3I9IiNlMzlkMjQiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM2YjNlMDYiLz48L3JhZGlhbEdyYWRpZW50PgogICAgPC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8cmVjdCB4PSI0MyIgeT0iMTMiIHdpZHRoPSIxNCIgaGVpZ2h0PSIxMCIgcng9IjIiIGZpbGw9IiM5YzZlM2UiLz4KICAgIDxyZWN0IHg9IjQwIiB5PSIyMyIgd2lkdGg9IjIwIiBoZWlnaHQ9IjExIiBmaWxsPSIjOGJiMGMyIiBvcGFjaXR5PSIwLjUiIHN0cm9rZT0iI2Q4ZWVmOCIgc3Ryb2tlLXdpZHRoPSIxIi8+CiAgICA8cG9seWdvbiBwb2ludHM9IjQwLDM0IDYwLDM0IDc0LDU2IDY2LDg0IDM0LDg0IDI2LDU2IiBmaWxsPSJ1cmwoI2xpcSkiIHN0cm9rZT0iI2U0ZjRmZiIgc3Ryb2tlLXdpZHRoPSIxLjgiLz4KICAgIDxwYXRoIGQ9Ik0zNiA1NiBMNDQgNDIiIHN0cm9rZT0iI2ZmZmZmZiIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtbGluZWNhcD0icm91bmQiIG9wYWNpdHk9IjAuNTUiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center;"></div></div>
+      
+      
+      <span class="cnt">4</span>
+      
+      
+      
+    </div><div class="islot">
+      <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnIiBjeD0iNTAlIiBjeT0iNDUlIiByPSI2MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMyZTFiMTIiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwYzA4MDYiLz48L3JhZGlhbEdyYWRpZW50PgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9Im10IiBjeD0iNDUlIiBjeT0iNDAlIiByPSI1NSUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNlMzdjNGQiLz48c3RvcCBvZmZzZXQ9IjYwJSIgc3RvcC1jb2xvcj0iIzhjMzYxYSIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzQ1MTgwYSIvPjwvcmFkaWFsR3JhZGllbnQ+CiAgICA8L2RlZnM+CiAgICA8cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0idXJsKCNiZykiLz4KICAgIDxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDUwIDUwKSByb3RhdGUoLTMwKSB0cmFuc2xhdGUoLTUwIC01MCkiPgogICAgICA8cmVjdCB4PSI0NiIgeT0iNTQiIHdpZHRoPSI4IiBoZWlnaHQ9IjI4IiByeD0iMyIgZmlsbD0iI2VlZTVkMCIvPgogICAgICA8Y2lyY2xlIGN4PSI0NiIgY3k9IjgyIiByPSI1IiBmaWxsPSIjZWVlNWQwIi8+PGNpcmNsZSBjeD0iNTQiIGN5PSI4MiIgcj0iNSIgZmlsbD0iI2VlZTVkMCIvPgogICAgICA8ZWxsaXBzZSBjeD0iNTAiIGN5PSI0MCIgcng9IjI0IiByeT0iMjYiIGZpbGw9InVybCgjbXQpIiBzdHJva2U9IiMzODEzMDgiIHN0cm9rZS13aWR0aD0iMiIvPgogICAgICA8ZWxsaXBzZSBjeD0iNDQiIGN5PSIzMyIgcng9IjgiIHJ5PSI1IiBmaWxsPSIjZmZiZTk5IiBvcGFjaXR5PSIwLjQ1Ii8+CiAgICA8L2c+CiAgPC9zdmc+');background-size:cover;background-position:center;"></div></div>
+      
+      
+      <span class="cnt">12</span>
+      
+      
+      
+    </div><div class="islot">
+      <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnIiBjeD0iNTAlIiBjeT0iNDUlIiByPSI2MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMyNDI5MzAiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwYTBjMTAiLz48L3JhZGlhbEdyYWRpZW50PgogICAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImNsIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2YyZWRlMiIvPjxzdG9wIG9mZnNldD0iNjUlIiBzdG9wLWNvbG9yPSIjYjhiMDllIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjNjk2MjU1Ii8+PC9saW5lYXJHcmFkaWVudD4KICAgIDwvZGVmcz4KICAgIDxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSJ1cmwoI2JnKSIvPgogICAgPGVsbGlwc2UgY3g9IjUwIiBjeT0iNDgiIHJ4PSIyNiIgcnk9IjI0IiBmaWxsPSJ1cmwoI2NsKSIgc3Ryb2tlPSIjNGY0ODNlIiBzdHJva2Utd2lkdGg9IjIiLz4KICAgIDxlbGxpcHNlIGN4PSI1MCIgY3k9IjQ4IiByeD0iMTAiIHJ5PSI5IiBmaWxsPSIjNWU1NzRjIi8+CiAgICA8cGF0aCBkPSJNNTIgNjggTDc4IDc4IEw3MiA4NiBMNDIgNzIgWiIgZmlsbD0idXJsKCNjbCkiIHN0cm9rZT0iIzRmNDgzZSIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center;"></div></div>
+      
+      
+      <span class="cnt">20</span>
+      
+      
+      
+    </div><div class="islot">
+      <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnIiBjeD0iNTAlIiBjeT0iNDUlIiByPSI2MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMxNjMwM2QiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwNjBjMTIiLz48L3JhZGlhbEdyYWRpZW50PgogICAgICA8bGluZWFyR3JhZGllbnQgaWQ9InN0IiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2MyY2NkNCIvPjxzdG9wIG9mZnNldD0iNTAlIiBzdG9wLWNvbG9yPSIjNjk3NTgwIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMmIzMjM4Ii8+PC9saW5lYXJHcmFkaWVudD4KICAgIDwvZGVmcz4KICAgIDxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSJ1cmwoI2JnKSIvPgogICAgPGVsbGlwc2UgY3g9IjUwIiBjeT0iNTIiIHJ4PSIyOCIgcnk9IjM0IiBmaWxsPSJ1cmwoI3N0KSIgc3Ryb2tlPSIjMWIyMjI4IiBzdHJva2Utd2lkdGg9IjIiLz4KICAgIDxwYXRoIGQ9Ik01MCAzMiBDNjIgMzIgNjYgNDQgNjAgNTIgQzU0IDYwIDQ0IDU4IDQyIDUwIEM0MCA0MiA0NiAzOCA1MiA0MCBDNTYgNDIgNTQgNDggNTAgNDgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzVmZTNlNiIgc3Ryb2tlLXdpZHRoPSI0IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center;"></div></div>
+      
+      
+      <span class="cnt">1</span>
+      
+      
+      
+    </div><div class="islot q2">
+      <div class="ic-wrap"><div class="ic-img" style="background-image:url('file:///D:/ProjectAzaath/tools/craft-altar-concept/concept.jpg');background-size:709.7px 709.7px;background-position:-332.8px -591.9px;"></div></div>
+      
+      
+      <span class="cnt">3</span>
+      
+      
+      <div class="newgem"></div>
+    </div><div class="islot q2">
+      <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnIiBjeD0iNTAlIiBjeT0iNDUlIiByPSI2MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMzNjFjMTIiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwZDA3MDUiLz48L3JhZGlhbEdyYWRpZW50PgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImxpcSIgY3g9IjQyJSIgY3k9IjQyJSIgcj0iNjAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmZjMjg1Ii8+PHN0b3Agb2Zmc2V0PSI1NSUiIHN0b3AtY29sb3I9IiNkOTUzMWUiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM1ZTFiMDYiLz48L3JhZGlhbEdyYWRpZW50PgogICAgPC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8cmVjdCB4PSI0MyIgeT0iMTQiIHdpZHRoPSIxNCIgaGVpZ2h0PSIxMCIgcng9IjIiIGZpbGw9IiM4ZjYzMzgiLz4KICAgIDxwYXRoIGQ9Ik00MCAyNCBMNjAgMjQgTDU4IDM4IEw3NiA3NCBRNzYgODUgNjIgODUgTDM4IDg1IFEyNCA4NSAyNCA3NCBMNDIgMzggWiIgZmlsbD0idXJsKCNsaXEpIiBzdHJva2U9IiNmZmUwYzIiIHN0cm9rZS13aWR0aD0iMS42Ii8+CiAgPC9zdmc+');background-size:cover;background-position:center;"></div></div>
+      
+      
+      <span class="cnt">5</span>
+      
+      
+      
+    </div><div class="islot q3">
+      <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnIiBjeD0iNTAlIiBjeT0iNDUlIiByPSI2MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMyYTE2NDciLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwOTA2MTIiLz48L3JhZGlhbEdyYWRpZW50PgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImxpcSIgY3g9IjQyJSIgY3k9IjQyJSIgcj0iNjAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZTNiMGZmIi8+PHN0b3Agb2Zmc2V0PSI1NSUiIHN0b3AtY29sb3I9IiM4NzM4ZDkiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMzNTBjNjYiLz48L3JhZGlhbEdyYWRpZW50PgogICAgPC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8cmVjdCB4PSI0NCIgeT0iMTMiIHdpZHRoPSIxMiIgaGVpZ2h0PSI5IiByeD0iMiIgZmlsbD0iIzljNmUzZSIvPgogICAgPHBhdGggZD0iTTQxIDIyIEw1OSAyMiBMNTggMzQgUTc2IDQ2IDcyIDY4IFE2OCA4NSA1MCA4NSBRMzIgODUgMjggNjggUTI0IDQ2IDQyIDM0IFoiIGZpbGw9InVybCgjbGlxKSIgc3Ryb2tlPSIjZDljMmZmIiBzdHJva2Utd2lkdGg9IjEuNiIvPgogICAgPGVsbGlwc2UgY3g9IjM5IiBjeT0iNTQiIHJ4PSI0LjUiIHJ5PSIxMCIgdHJhbnNmb3JtPSJyb3RhdGUoLTE0IDM5IDU0KSIgZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMC4zOCIvPgogIDwvc3ZnPg==');background-size:cover;background-position:center;"></div></div>
+      
+      
+      <span class="cnt">2</span>
+      
+      
+      
+    </div><div class="islot q2">
+      <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnIiBjeD0iNTAlIiBjeT0iNDUlIiByPSI2MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMxNDNiMmEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwNjEwMGMiLz48L3JhZGlhbEdyYWRpZW50PgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImxpcSIgY3g9IjQyJSIgY3k9IjQyJSIgcj0iNjAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjYThmZmNmIi8+PHN0b3Agb2Zmc2V0PSI1NSUiIHN0b3AtY29sb3I9IiMyNmI4NmEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwYjRkMjkiLz48L3JhZGlhbEdyYWRpZW50PgogICAgPC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8cmVjdCB4PSI0NCIgeT0iMTQiIHdpZHRoPSIxMiIgaGVpZ2h0PSI5IiByeD0iMiIgZmlsbD0iIzljNmUzZSIvPgogICAgPHJlY3QgeD0iMzYiIHk9IjI2IiB3aWR0aD0iMjgiIGhlaWdodD0iNTgiIHJ4PSIxNCIgZmlsbD0idXJsKCNsaXEpIiBzdHJva2U9IiNjN2ZmZTEiIHN0cm9rZS13aWR0aD0iMS42Ii8+CiAgICA8bGluZSB4MT0iNDMiIHkxPSIzNiIgeDI9IjQzIiB5Mj0iNzIiIHN0cm9rZT0iI2ZmZmZmZiIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtbGluZWNhcD0icm91bmQiIG9wYWNpdHk9IjAuNCIvPgogIDwvc3ZnPg==');background-size:cover;background-position:center;"></div></div>
+      
+      
+      <span class="cnt">6</span>
+      
+      
+      
+    </div></div></div><div><div class="sec-hdr"><span class="t">ESPAÇO LIVRE</span><span class="ln"></span><span class="n">20</span><span class="ar"></span></div>
+      <div class="slot-grid"><div class="islot free"><span>20</span></div></div></div></div>
+      <div><div><div class="sec-hdr"><span class="t">MATERIAIS</span><span class="ln"></span><span class="n">9</span><span class="ar"></span></div>
+      <div class="slot-grid"><div class="islot q3 round">
+      <div class="ic-wrap"><div class="ic-img" style="background-image:url('file:///D:/ProjectAzaath/tools/craft-altar-concept/concept.jpg');background-size:709.7px 709.7px;background-position:-149.7px -515.9px;"></div></div>
+      <div class="rframe"></div>
+      
+      <span class="cnt">14</span>
+      
+      
+      
+    </div><div class="islot q4 round">
+      <div class="ic-wrap"><div class="ic-img" style="background-image:url('file:///D:/ProjectAzaath/tools/craft-altar-concept/concept.jpg');background-size:709.7px 709.7px;background-position:-332.8px -73.8px;"></div></div>
+      <div class="rframe"></div>
+      
+      <span class="cnt">6</span>
+      
+      
+      
+    </div><div class="islot q3 round">
+      <div class="ic-wrap"><div class="ic-img" style="background-image:url('file:///D:/ProjectAzaath/tools/craft-altar-concept/concept.jpg');background-size:709.7px 709.7px;background-position:-515.9px -149.7px;"></div></div>
+      <div class="rframe"></div>
+      
+      <span class="cnt">3</span>
+      
+      
+      
+    </div><div class="islot round">
+      <div class="ic-wrap"><div class="ic-img" style="background-image:url('file:///D:/ProjectAzaath/tools/craft-altar-concept/concept.jpg');background-size:709.7px 709.7px;background-position:-515.9px -515.9px;"></div></div>
+      <div class="rframe"></div>
+      
+      <span class="cnt">12</span>
+      
+      
+      
+    </div><div class="islot round">
+      <div class="ic-wrap"><div class="ic-img" style="background-image:url('file:///D:/ProjectAzaath/tools/craft-altar-concept/concept.jpg');background-size:709.7px 709.7px;background-position:-73.8px -332.8px;"></div></div>
+      <div class="rframe"></div>
+      
+      <span class="cnt">24</span>
+      
+      
+      
+    </div><div class="islot q2 round">
+      <div class="ic-wrap"><div class="ic-img" style="background-image:url('file:///D:/ProjectAzaath/tools/craft-altar-concept/concept.jpg');background-size:709.7px 709.7px;background-position:-591.9px -332.8px;"></div></div>
+      <div class="rframe"></div>
+      
+      <span class="cnt">2</span>
+      
+      
+      
+    </div><div class="islot round">
+      <div class="ic-wrap"><div class="ic-img" style="background-image:url('file:///D:/ProjectAzaath/tools/craft-altar-concept/concept.jpg');background-size:709.7px 709.7px;background-position:-149.7px -149.7px;"></div></div>
+      <div class="rframe"></div>
+      
+      <span class="cnt">18</span>
+      
+      
+      
+    </div><div class="islot round">
+      <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnIiBjeD0iNTAlIiBjeT0iNDUlIiByPSI2MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMxMzMzMjYiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwNTBlMGEiLz48L3JhZGlhbEdyYWRpZW50PgogICAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImxmIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2I1ZmZkNCIvPjxzdG9wIG9mZnNldD0iNTUlIiBzdG9wLWNvbG9yPSIjM2NiODc4Ii8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMTc1MjM0Ii8+PC9saW5lYXJHcmFkaWVudD4KICAgIDwvZGVmcz4KICAgIDxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSJ1cmwoI2JnKSIvPgogICAgPHBhdGggZD0iTTUwIDgyIFE0OCA1NCAzMiAzMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNWNjNDhjIiBzdHJva2Utd2lkdGg9IjMiLz4KICAgIDxwYXRoIGQ9Ik01MCA4MiBRNTQgNTIgNzAgMjgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzVjYzQ4YyIgc3Ryb2tlLXdpZHRoPSIzIi8+CiAgICA8cGF0aCBkPSJNMzIgMzAgUTE4IDM2IDIyIDUyIFEzNiA0OCAzMiAzMCBaIiBmaWxsPSJ1cmwoI2xmKSIvPgogICAgPHBhdGggZD0iTTUwIDE2IFEzOCAzNiA1MCA1NiBRNjIgMzYgNTAgMTYgWiIgZmlsbD0idXJsKCNsZikiLz4KICAgIDxwYXRoIGQ9Ik03MCAyOCBRODIgMzggNzYgNTQgUTYyIDQ2IDcwIDI4IFoiIGZpbGw9InVybCgjbGYpIi8+CiAgICA8cmVjdCB4PSI0NCIgeT0iNjgiIHdpZHRoPSIxMiIgaGVpZ2h0PSI1IiByeD0iMiIgZmlsbD0iI2M5YTQ2MyIvPgogIDwvc3ZnPg==');background-size:cover;background-position:center;"></div></div>
+      <div class="rframe"></div>
+      
+      <span class="cnt">16</span>
+      
+      
+      
+    </div><div class="islot q2 round">
+      <div class="ic-wrap"><div class="ic-img" style="background-image:url('file:///D:/ProjectAzaath/tools/craft-altar-concept/concept.jpg');background-size:709.7px 709.7px;background-position:-332.8px -591.9px;"></div></div>
+      <div class="rframe"></div>
+      
+      <span class="cnt">5</span>
+      
+      
+      
+    </div></div></div><div><div class="sec-hdr"><span class="t">MISSÃO</span><span class="ln"></span><span class="n">5</span><span class="ar"></span></div>
+      <div class="slot-grid"><div class="islot">
+      <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnIiBjeD0iNTAlIiBjeT0iNDUlIiByPSI2MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMyZTI1MTgiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwYzA5MDciLz48L3JhZGlhbEdyYWRpZW50PgogICAgICA8bGluZWFyR3JhZGllbnQgaWQ9InBhcmNoIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2Y1ZTZjNCIvPjxzdG9wIG9mZnNldD0iNjAlIiBzdG9wLWNvbG9yPSIjYzlhZDc4Ii8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjODc2YjNmIi8+PC9saW5lYXJHcmFkaWVudD4KICAgIDwvZGVmcz4KICAgIDxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSJ1cmwoI2JnKSIvPgogICAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNTAgNTApIHJvdGF0ZSgtMjIpIHRyYW5zbGF0ZSgtNTAgLTUwKSI+CiAgICAgIDxyZWN0IHg9IjI2IiB5PSIyMiIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjU2IiByeD0iNCIgZmlsbD0idXJsKCNwYXJjaCkiIHN0cm9rZT0iIzVjNDIyMCIgc3Ryb2tlLXdpZHRoPSIxLjgiLz4KICAgICAgPHJlY3QgeD0iMjIiIHk9IjE4IiB3aWR0aD0iNTYiIGhlaWdodD0iOSIgcng9IjQiIGZpbGw9IiNhODg0NGMiIHN0cm9rZT0iIzRhMzMxNCIgc3Ryb2tlLXdpZHRoPSIxLjIiLz4KICAgICAgPHJlY3QgeD0iMjIiIHk9IjczIiB3aWR0aD0iNTYiIGhlaWdodD0iOSIgcng9IjQiIGZpbGw9IiNhODg0NGMiIHN0cm9rZT0iIzRhMzMxNCIgc3Ryb2tlLXdpZHRoPSIxLjIiLz4KICAgICAgPGxpbmUgeDE9IjM0IiB5MT0iMzgiIHgyPSI2NiIgeTI9IjM4IiBzdHJva2U9IiM2NjRiMjYiIHN0cm9rZS13aWR0aD0iMiIvPgogICAgICA8bGluZSB4MT0iMzQiIHkxPSI0NyIgeDI9IjYyIiB5Mj0iNDciIHN0cm9rZT0iIzY2NGIyNiIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgICAgIDxsaW5lIHgxPSIzNCIgeTE9IjU2IiB4Mj0iNTQiIHkyPSI1NiIgc3Ryb2tlPSIjNjY0YjI2IiBzdHJva2Utd2lkdGg9IjIiLz4KICAgICAgPGNpcmNsZSBjeD0iNjIiIGN5PSI2MCIgcj0iOCIgZmlsbD0iI2E4MWMxYyIgc3Ryb2tlPSIjZjBiNjVhIiBzdHJva2Utd2lkdGg9IjEuNCIvPgogICAgPC9nPgogIDwvc3ZnPg==');background-size:cover;background-position:center;"></div></div>
+      
+      
+      
+      
+      <div class="qbadge"></div>
+      <div class="newgem"></div>
+    </div><div class="islot">
+      <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnIiBjeD0iNTAlIiBjeT0iNDUlIiByPSI2MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMyYjE4NDAiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwOTA2MTIiLz48L3JhZGlhbEdyYWRpZW50PgogICAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImNvdiIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM1YTM0ODAiLz48c3RvcCBvZmZzZXQ9IjYwJSIgc3RvcC1jb2xvcj0iIzJlMTY0NyIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzE3MGEyNCIvPjwvbGluZWFyR3JhZGllbnQ+CiAgICA8L2RlZnM+CiAgICA8cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0idXJsKCNiZykiLz4KICAgIDxyZWN0IHg9IjI0IiB5PSIxNiIgd2lkdGg9IjU0IiBoZWlnaHQ9IjY4IiByeD0iNCIgZmlsbD0idXJsKCNjb3YpIiBzdHJva2U9IiNjOWE0NjMiIHN0cm9rZS13aWR0aD0iMi41Ii8+CiAgICA8cmVjdCB4PSIyNCIgeT0iMTYiIHdpZHRoPSI5IiBoZWlnaHQ9IjY4IiBmaWxsPSIjMWUwZTMwIiBzdHJva2U9IiNjOWE0NjMiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgICA8Y2lyY2xlIGN4PSI1MyIgY3k9IjUwIiByPSIxNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNWZlM2U2IiBzdHJva2Utd2lkdGg9IjIiLz4KICAgIDxwb2x5Z29uIHBvaW50cz0iNTMsMzkgNjIsNTAgNTMsNjEgNDQsNTAiIGZpbGw9IiM1ZmUzZTYiIG9wYWNpdHk9IjAuOSIvPgogIDwvc3ZnPg==');background-size:cover;background-position:center;"></div></div>
+      
+      
+      
+      
+      <div class="qbadge"></div>
+      
+    </div><div class="islot">
+      <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnIiBjeD0iNTAlIiBjeT0iNDUlIiByPSI2MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMxNDMyNGUiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwNjBkMTYiLz48L3JhZGlhbEdyYWRpZW50PgogICAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmZlYWE4Ii8+PHN0b3Agb2Zmc2V0PSI1NSUiIHN0b3AtY29sb3I9IiNjNDk1NDUiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM1ZTQyMTQiLz48L2xpbmVhckdyYWRpZW50PgogICAgPC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1MCA1MCkgcm90YXRlKC0zNSkgdHJhbnNsYXRlKC01MCAtNTApIj4KICAgICAgPGNpcmNsZSBjeD0iNTAiIGN5PSIyOCIgcj0iMTQiIGZpbGw9Im5vbmUiIHN0cm9rZT0idXJsKCNnKSIgc3Ryb2tlLXdpZHRoPSI2Ii8+CiAgICAgIDxyZWN0IHg9IjQ3IiB5PSI0MCIgd2lkdGg9IjYiIGhlaWdodD0iNDQiIGZpbGw9InVybCgjZykiLz4KICAgICAgPHJlY3QgeD0iNTMiIHk9IjY4IiB3aWR0aD0iMTIiIGhlaWdodD0iNSIgZmlsbD0idXJsKCNnKSIvPgogICAgICA8cmVjdCB4PSI1MyIgeT0iNzciIHdpZHRoPSI5IiBoZWlnaHQ9IjUiIGZpbGw9InVybCgjZykiLz4KICAgICAgPGNpcmNsZSBjeD0iNTAiIGN5PSIyOCIgcj0iNCIgZmlsbD0iIzVmZTNlNiIvPgogICAgPC9nPgogIDwvc3ZnPg==');background-size:cover;background-position:center;"></div></div>
+      
+      
+      <span class="cnt">3</span>
+      
+      <div class="qbadge"></div>
+      
+    </div><div class="islot">
+      <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnIiBjeD0iNTAlIiBjeT0iNDUlIiByPSI2MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMxNjMwM2QiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwNjBjMTIiLz48L3JhZGlhbEdyYWRpZW50PgogICAgICA8bGluZWFyR3JhZGllbnQgaWQ9InN0IiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2MyY2NkNCIvPjxzdG9wIG9mZnNldD0iNTAlIiBzdG9wLWNvbG9yPSIjNjk3NTgwIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMmIzMjM4Ii8+PC9saW5lYXJHcmFkaWVudD4KICAgIDwvZGVmcz4KICAgIDxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSJ1cmwoI2JnKSIvPgogICAgPGVsbGlwc2UgY3g9IjUwIiBjeT0iNTIiIHJ4PSIyOCIgcnk9IjM0IiBmaWxsPSJ1cmwoI3N0KSIgc3Ryb2tlPSIjMWIyMjI4IiBzdHJva2Utd2lkdGg9IjIiLz4KICAgIDxwYXRoIGQ9Ik01MCAzMiBDNjIgMzIgNjYgNDQgNjAgNTIgQzU0IDYwIDQ0IDU4IDQyIDUwIEM0MCA0MiA0NiAzOCA1MiA0MCBDNTYgNDIgNTQgNDggNTAgNDgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzVmZTNlNiIgc3Ryb2tlLXdpZHRoPSI0IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center;"></div></div>
+      
+      
+      
+      
+      <div class="qbadge"></div>
+      
+    </div><div class="islot">
+      <div class="ic-wrap"><div class="ic-img" style="background-image:url('file:///D:/ProjectAzaath/tools/craft-altar-concept/concept.jpg');background-size:709.7px 709.7px;background-position:-149.7px -515.9px;"></div></div>
+      
+      
+      
+      
+      <div class="qbadge"></div>
+      
+    </div></div></div><div><div class="sec-hdr"><span class="t">DIVERSOS</span><span class="ln"></span><span class="n">3</span><span class="ar"></span></div>
+      <div class="slot-grid"><div class="islot q3">
+      <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnIiBjeD0iNTAlIiBjeT0iNDUlIiByPSI2MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMxNDMyNGUiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwNjBkMTYiLz48L3JhZGlhbEdyYWRpZW50PgogICAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmZlYWE4Ii8+PHN0b3Agb2Zmc2V0PSI1NSUiIHN0b3AtY29sb3I9IiNjNDk1NDUiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM1ZTQyMTQiLz48L2xpbmVhckdyYWRpZW50PgogICAgPC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1MCA1MCkgcm90YXRlKC0zNSkgdHJhbnNsYXRlKC01MCAtNTApIj4KICAgICAgPGNpcmNsZSBjeD0iNTAiIGN5PSIyOCIgcj0iMTQiIGZpbGw9Im5vbmUiIHN0cm9rZT0idXJsKCNnKSIgc3Ryb2tlLXdpZHRoPSI2Ii8+CiAgICAgIDxyZWN0IHg9IjQ3IiB5PSI0MCIgd2lkdGg9IjYiIGhlaWdodD0iNDQiIGZpbGw9InVybCgjZykiLz4KICAgICAgPHJlY3QgeD0iNTMiIHk9IjY4IiB3aWR0aD0iMTIiIGhlaWdodD0iNSIgZmlsbD0idXJsKCNnKSIvPgogICAgICA8cmVjdCB4PSI1MyIgeT0iNzciIHdpZHRoPSI5IiBoZWlnaHQ9IjUiIGZpbGw9InVybCgjZykiLz4KICAgICAgPGNpcmNsZSBjeD0iNTAiIGN5PSIyOCIgcj0iNCIgZmlsbD0iIzVmZTNlNiIvPgogICAgPC9nPgogIDwvc3ZnPg==');background-size:cover;background-position:center;"></div></div>
+      
+      
+      
+      
+      
+      
+    </div><div class="islot q2">
+      <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnIiBjeD0iNTAlIiBjeT0iNDUlIiByPSI2MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMxNjM4MjYiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwNzEwMGMiLz48L3JhZGlhbEdyYWRpZW50PgogICAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmZlYWE4Ii8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjOGM2MzIwIi8+PC9saW5lYXJHcmFkaWVudD4KICAgIDwvZGVmcz4KICAgIDxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSJ1cmwoI2JnKSIvPgogICAgPHBhdGggZD0iTTI0IDE0IFE1MCA1NCA3NiAxNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ1cmwoI2cpIiBzdHJva2Utd2lkdGg9IjMuNSIgc3Ryb2tlLWRhc2hhcnJheT0iNCAyIi8+CiAgICA8cG9seWdvbiBwb2ludHM9IjUwLDM2IDY4LDU4IDUwLDg0IDMyLDU4IiBmaWxsPSIjMmJkOTY1IiBzdHJva2U9InVybCgjZykiIHN0cm9rZS13aWR0aD0iMyIvPgogICAgPHBvbHlnb24gcG9pbnRzPSI1MCw0NCA2MCw1OCA1MCw3NCA0MCw1OCIgZmlsbD0iIzllZmZiZSIgb3BhY2l0eT0iMC43Ii8+CiAgPC9zdmc+');background-size:cover;background-position:center;"></div></div>
+      
+      
+      
+      
+      
+      
+    </div><div class="islot q3">
+      <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnIiBjeD0iNTAlIiBjeT0iNDUlIiByPSI2MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMxMzMzNTIiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwNTBiMTQiLz48L3JhZGlhbEdyYWRpZW50PgogICAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmZlYWE4Ii8+PHN0b3Agb2Zmc2V0PSI1MCUiIHN0b3AtY29sb3I9IiNjNDk1NDUiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM1ZTQyMTQiLz48L2xpbmVhckdyYWRpZW50PgogICAgPC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8ZWxsaXBzZSBjeD0iNTAiIGN5PSI1OCIgcng9IjI0IiByeT0iMjIiIGZpbGw9Im5vbmUiIHN0cm9rZT0idXJsKCNnKSIgc3Ryb2tlLXdpZHRoPSI5Ii8+CiAgICA8ZWxsaXBzZSBjeD0iNTAiIGN5PSI1OCIgcng9IjI0IiByeT0iMjIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZjRjYyIgc3Ryb2tlLXdpZHRoPSIxLjIiIG9wYWNpdHk9IjAuNyIvPgogICAgPHBvbHlnb24gcG9pbnRzPSI1MCwyMCA2MiwzMiA1MCw0NCAzOCwzMiIgZmlsbD0iIzQ2YjZmZiIgc3Ryb2tlPSIjZmZlYWE4IiBzdHJva2Utd2lkdGg9IjIuMiIvPgogICAgPHBvbHlnb24gcG9pbnRzPSI1MCwyNCA1NywzMiA1MCwzOSA0MywzMiIgZmlsbD0iI2JmZjNmZiIvPgogIDwvc3ZnPg==');background-size:cover;background-position:center;"></div></div>
+      
+      
+      
+      
+      
+      
+    </div></div></div><div><div class="sec-hdr"><span class="t">LIXO</span><span class="ln"></span><span class="n">2</span><span class="ar"></span></div>
+      <div class="slot-grid"><div class="islot junk">
+      <div class="ic-wrap"><div class="ic-img" style="background-image:url('file:///D:/ProjectAzaath/tools/drops-concept/helmets_grid.jpg');background-size:210.2px 117.3px;background-position:-109.4px -6.6px;mix-blend-mode:lighten;"></div></div>
+      
+      
+      
+      <div class="dur mid"><i style="width:22%"></i></div>
+      
+      
+    </div><div class="islot junk">
+      <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnIiBjeD0iNTAlIiBjeT0iNDUlIiByPSI2MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMyNDI5MzAiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwYTBjMTAiLz48L3JhZGlhbEdyYWRpZW50PgogICAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImNsIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2YyZWRlMiIvPjxzdG9wIG9mZnNldD0iNjUlIiBzdG9wLWNvbG9yPSIjYjhiMDllIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjNjk2MjU1Ii8+PC9saW5lYXJHcmFkaWVudD4KICAgIDwvZGVmcz4KICAgIDxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSJ1cmwoI2JnKSIvPgogICAgPGVsbGlwc2UgY3g9IjUwIiBjeT0iNDgiIHJ4PSIyNiIgcnk9IjI0IiBmaWxsPSJ1cmwoI2NsKSIgc3Ryb2tlPSIjNGY0ODNlIiBzdHJva2Utd2lkdGg9IjIiLz4KICAgIDxlbGxpcHNlIGN4PSI1MCIgY3k9IjQ4IiByeD0iMTAiIHJ5PSI5IiBmaWxsPSIjNWU1NzRjIi8+CiAgICA8cGF0aCBkPSJNNTIgNjggTDc4IDc4IEw3MiA4NiBMNDIgNzIgWiIgZmlsbD0idXJsKCNjbCkiIHN0cm9rZT0iIzRmNDgzZSIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center;"></div></div>
+      
+      
+      <span class="cnt">3</span>
+      
+      
+      
+    </div></div></div></div>
+    </div>
+
+    <!-- Bolsas Equipadas & Barra de Capacidade -->
+    <div class="bags-strip">
+      <div class="bags-mini">
+        <span class="cz" style="font-size:10px;letter-spacing:1.6px;color:#b8ae96;margin-right:4px">BOLSAS</span>
+        <div class="bag-cell on"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnIiBjeD0iNTAlIiBjeT0iNDUlIiByPSI2MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMyYjIxMTgiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwYzA5MDciLz48L3JhZGlhbEdyYWRpZW50PgogICAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImxlYSIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNhODc2NDgiLz48c3RvcCBvZmZzZXQ9IjYwJSIgc3RvcC1jb2xvcj0iIzVjM2ExZSIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzJlMWIwZCIvPjwvbGluZWFyR3JhZGllbnQ+CiAgICA8L2RlZnM+CiAgICA8cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0idXJsKCNiZykiLz4KICAgIDxwYXRoIGQ9Ik0zNiAyNiBRNTAgMTQgNjQgMjYiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2M5YTQ2MyIgc3Ryb2tlLXdpZHRoPSI0Ii8+CiAgICA8cGF0aCBkPSJNMjQgMzQgUTI0IDI0IDUwIDI0IFE3NiAyNCA3NiAzNCBMODAgNzYgUTgwIDg2IDUwIDg2IFEyMCA4NiAyMCA3NiBaIiBmaWxsPSJ1cmwoI2xlYSkiIHN0cm9rZT0iI2M5YTQ2MyIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgICA8cGF0aCBkPSJNMjMgMzggUTUwIDU2IDc3IDM4IEw3NiA0OCBRNTAgNjYgMjQgNDggWiIgZmlsbD0iIzNhMjMxMSIgc3Ryb2tlPSIjYzlhNDYzIiBzdHJva2Utd2lkdGg9IjEuMiIvPgogICAgPHJlY3QgeD0iNDQiIHk9IjQ3IiB3aWR0aD0iMTIiIGhlaWdodD0iMTQiIHJ4PSIyIiBmaWxsPSIjZTBiODZiIiBzdHJva2U9IiM1YTNiMTQiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgICA8Y2lyY2xlIGN4PSI1MCIgY3k9IjU0IiByPSIyLjUiIGZpbGw9IiM1ZmUzZTYiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center;"></div><span class="cap">16</span></div>
+        <div class="bag-cell on"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnIiBjeD0iNTAlIiBjeT0iNDUlIiByPSI2MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMxNDMyMmEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwNjBkMGIiLz48L3JhZGlhbEdyYWRpZW50PgogICAgICA8bGluZWFyR3JhZGllbnQgaWQ9InNsayIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMzZmE2OGEiLz48c3RvcCBvZmZzZXQ9IjYwJSIgc3RvcC1jb2xvcj0iIzFjNWM0YiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzBkMmUyNiIvPjwvbGluZWFyR3JhZGllbnQ+CiAgICA8L2RlZnM+CiAgICA8cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0idXJsKCNiZykiLz4KICAgIDxwYXRoIGQ9Ik0zOCAxOCBMNjIgMTggTDU2IDMwIEw0NCAzMCBaIiBmaWxsPSIjMmM3YTY1IiBzdHJva2U9IiNjOWE0NjMiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgICA8cGF0aCBkPSJNNDAgMzAgUTIwIDQ2IDI0IDc0IFEyOCA4NiA1MCA4NiBRNzIgODYgNzYgNzQgUTgwIDQ2IDYwIDMwIFoiIGZpbGw9InVybCgjc2xrKSIgc3Ryb2tlPSIjYzlhNDYzIiBzdHJva2Utd2lkdGg9IjIiLz4KICAgIDxyZWN0IHg9IjM5IiB5PSIyOCIgd2lkdGg9IjIyIiBoZWlnaHQ9IjUiIHJ4PSIyIiBmaWxsPSIjZTBiODZiIi8+CiAgICA8cG9seWdvbiBwb2ludHM9IjUwLDQ4IDU4LDU4IDUwLDY4IDQyLDU4IiBmaWxsPSIjNWZlM2U2IiBzdHJva2U9IiNmZmU3YTYiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgPC9zdmc+');background-size:cover;background-position:center;"></div><span class="cap">14</span></div>
+        <div class="bag-cell on"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnIiBjeD0iNTAlIiBjeT0iNDUlIiByPSI2MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMxYTJjNGEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwNzBjMTYiLz48L3JhZGlhbEdyYWRpZW50PgogICAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImFyYyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMzZjZkYjMiLz48c3RvcCBvZmZzZXQ9IjYwJSIgc3RvcC1jb2xvcj0iIzFiMzQ1YyIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzBkMWEzMCIvPjwvbGluZWFyR3JhZGllbnQ+CiAgICA8L2RlZnM+CiAgICA8cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0idXJsKCNiZykiLz4KICAgIDxwYXRoIGQ9Ik0yMiAzMCBRNTAgMjAgNzggMzAgTDgyIDc4IFE1MCA4OCAxOCA3OCBaIiBmaWxsPSJ1cmwoI2FyYykiIHN0cm9rZT0iIzg4YzllOCIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgICA8cGF0aCBkPSJNMjIgMzQgTDUwIDU2IEw3OCAzNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYzlhNDYzIiBzdHJva2Utd2lkdGg9IjIuNSIvPgogICAgPGNpcmNsZSBjeD0iNTAiIGN5PSI1NiIgcj0iNyIgZmlsbD0iIzVmZTNlNiIgc3Ryb2tlPSIjZmZmMmMyIiBzdHJva2Utd2lkdGg9IjEuNSIvPgogIDwvc3ZnPg==');background-size:cover;background-position:center;"></div><span class="cap">12</span></div>
+        <div class="bag-cell on"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnIiBjeD0iNTAlIiBjeT0iNDUlIiByPSI2MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMyYjIxMTgiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwYzA5MDciLz48L3JhZGlhbEdyYWRpZW50PgogICAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImxlYSIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNhODc2NDgiLz48c3RvcCBvZmZzZXQ9IjYwJSIgc3RvcC1jb2xvcj0iIzVjM2ExZSIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzJlMWIwZCIvPjwvbGluZWFyR3JhZGllbnQ+CiAgICA8L2RlZnM+CiAgICA8cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0idXJsKCNiZykiLz4KICAgIDxwYXRoIGQ9Ik0zNiAyNiBRNTAgMTQgNjQgMjYiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2M5YTQ2MyIgc3Ryb2tlLXdpZHRoPSI0Ii8+CiAgICA8cGF0aCBkPSJNMjQgMzQgUTI0IDI0IDUwIDI0IFE3NiAyNCA3NiAzNCBMODAgNzYgUTgwIDg2IDUwIDg2IFEyMCA4NiAyMCA3NiBaIiBmaWxsPSJ1cmwoI2xlYSkiIHN0cm9rZT0iI2M5YTQ2MyIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgICA8cGF0aCBkPSJNMjMgMzggUTUwIDU2IDc3IDM4IEw3NiA0OCBRNTAgNjYgMjQgNDggWiIgZmlsbD0iIzNhMjMxMSIgc3Ryb2tlPSIjYzlhNDYzIiBzdHJva2Utd2lkdGg9IjEuMiIvPgogICAgPHJlY3QgeD0iNDQiIHk9IjQ3IiB3aWR0aD0iMTIiIGhlaWdodD0iMTQiIHJ4PSIyIiBmaWxsPSIjZTBiODZiIiBzdHJva2U9IiM1YTNiMTQiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgICA8Y2lyY2xlIGN4PSI1MCIgY3k9IjU0IiByPSIyLjUiIGZpbGw9IiM1ZmUzZTYiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center;"></div><span class="cap">12</span></div>
+        <div class="bag-cell"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPgogICAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnIiBjeD0iNTAlIiBjeT0iNDUlIiByPSI2MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMxYTJjNGEiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwNzBjMTYiLz48L3JhZGlhbEdyYWRpZW50PgogICAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImFyYyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMzZjZkYjMiLz48c3RvcCBvZmZzZXQ9IjYwJSIgc3RvcC1jb2xvcj0iIzFiMzQ1YyIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzBkMWEzMCIvPjwvbGluZWFyR3JhZGllbnQ+CiAgICA8L2RlZnM+CiAgICA8cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0idXJsKCNiZykiLz4KICAgIDxwYXRoIGQ9Ik0yMiAzMCBRNTAgMjAgNzggMzAgTDgyIDc4IFE1MCA4OCAxOCA3OCBaIiBmaWxsPSJ1cmwoI2FyYykiIHN0cm9rZT0iIzg4YzllOCIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgICA8cGF0aCBkPSJNMjIgMzQgTDUwIDU2IEw3OCAzNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYzlhNDYzIiBzdHJva2Utd2lkdGg9IjIuNSIvPgogICAgPGNpcmNsZSBjeD0iNTAiIGN5PSI1NiIgcj0iNyIgZmlsbD0iIzVmZTNlNiIgc3Ryb2tlPSIjZmZmMmMyIiBzdHJva2Utd2lkdGg9IjEuNSIvPgogIDwvc3ZnPg==');background-size:cover;background-position:center;opacity:0.45"></div><span class="cap" style="color:#8c9ba8">12</span></div>
+      </div>
+      <div class="cap-gauge-wrap">
+        <div style="display:flex;justify-content:space-between;font-size:10.5px;color:#9eb0bd">
+          <span class="cz" style="letter-spacing:1.4px">ESPAÇO LIVRE</span><span style="color:#e6f9ff">20 / 66 LIVRES</span>
+        </div>
+        <div class="gauge"><i style="width:70%"></i></div>
+      </div>
+    </div>
+
+    <div class="inv-foot">
+      <div class="money">
+        <span>142<i class="coin g"></i></span>
+        <span>65<i class="coin s"></i></span>
+        <span>30<i class="coin c"></i></span>
+      </div>
+      <div class="foot-btns">
+        <div class="sbtn on">RADIAL (G)</div>
+        <div class="sbtn gold">VENDER LIXO</div>
+        <div class="sbtn">REPARAR</div>
+      </div>
+    </div>
+  </main>
+</div>
+</body></html>

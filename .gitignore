@@ -1,0 +1,18 @@
+# Ambiente local / Claude
+.claude/
+.claudeignore
+
+# Pacotes, cópias e caches
+dist/
+backups/
+tools/.cache/
+**/out/
+node_modules/
+*.zip
+*.bak
+*.log
+
+# Sistema
+Thumbs.db
+desktop.ini
+.DS_Store

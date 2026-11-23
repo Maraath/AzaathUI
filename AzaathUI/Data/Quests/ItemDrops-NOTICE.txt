@@ -1,0 +1,23 @@
+Data/Quests/ItemDrops.lua - origem dos dados
+
+Gerado por tools/map-extract/itemdrops.js (menu de drops do Santuário). Combina:
+
+- Polestar_QuestDB / Polestar_ItemDB: itens de missão, atributos, drops e ofícios do Forever.
+- pfQuest (https://github.com/shagu/pfQuest), licença MIT, (c) Eric Mauser (Shagu):
+  chance de drop por criatura, objetos e vendedores.
+- AzerothCore (https://github.com/azerothcore/azerothcore-wotlk), licença GPL-2.0 ou posterior:
+  recompensas de missão, tabelas de loot (chance exata) e vendedores. Só entra o que existe no
+  Forever (missões do Polestar e criaturas/objetos conhecidos pelo Polestar ou pelo pfQuest).
+- QuestieDB (https://github.com/Questie/QuestieDB), licença GPL-3.0, arquivos
+  data/Classic/classicNpcDB.lua e classicObjectDB.lua: posição de NPCs/objetos que faltavam
+  e a zona da masmorra/raide onde ficam.
+- OneForAll (https://github.com/smoergi/OneForAll_Forever), licença GPL-3.0 ou posterior,
+  (c) 2026 Smoergi: loot dos chefes e inimigos comuns das masmorras/raides do Forever, chances de
+  drop e receitas dropadas por chefes (Data/Dungeons, DungeonDropChance.lua, Professions/BossDrops.lua).
+  Os fatos dele vêm, segundo o próprio projeto, de Wowhead Forever, foreverchanges.pro e QuestieDB.
+- Nomes em pt-BR: QuestieDB (GPL-3.0), l10n/Forever e l10n/Classic, lookupItems/lookupNpcs/lookupObjects;
+  nomes do próprio cliente (ItemSparse, Map, DungeonEncounter, AreaTable via wago.tools) e do Polestar_ptBR.
+
+Créditos aos autores desses projetos. Nenhum arquivo deles é distribuído com o addon; só os fatos
+extraídos (item, fonte, chance, posição) entram em ItemDrops.lua.
+

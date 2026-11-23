@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Barra de ação BDO</title>
+<style>
+  @font-face { font-family: "BDO"; src: url(NotoSans-Medium.ttf); }
+  @font-face { font-family: "BDOB"; src: url(NotoSans-SemiBold.ttf); }
+  html, body { margin: 0; background: #0b0e10; }
+  #stage { display: block; width: 100%; height: auto; }
+  #status { position: fixed; right: 8px; top: 8px; color: #9c9; font: 12px sans-serif; }
+</style>
+</head>
+<body>
+<div id="host"></div>
+<div id="status"></div>
+<script>
+// Conceito: barra de ação no estilo Throne and Liberty (direcionais de 4 losangos)
+// vestida com a arte da HUD BDO (losango translúcido, borda escura, filete quente,
+// dourado do filete de XP). 1920 x 460 = faixa de baixo de uma tela 1080p.
+const W = 1920, H = 460;
+const P = []; // pedaços de SVG
+const defs = [];
+const TOP = []; // por cima de tudo (aro de proc)
+let uid = 0;
+const id = (p) => `${p}${++uid}`;
+const dia = (cx, cy, r) => `${cx},${cy - r} ${cx + r},${cy} ${cx},${cy + r} ${cx - r},${cy}`;
+
+// ---------------------------------------------------------------- fundo
+defs.push(`
+  <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#26343a"/><stop offset="0.55" stop-color="#151d21"/><stop offset="1" stop-color="#0a0d0f"/>
+  </linearGradient>
+  <radialGradient id="mist" cx="0.5" cy="0.15" r="0.7">
+    <stop offset="0" stop-color="#5d7a80" stop-opacity="0.35"/><stop offset="1" stop-color="#5d7a80" stop-opacity="0"/>
+  </radialGradient>
+  <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.012 0.03" numOctaves="4" seed="7"/>
+    <feColorMatrix values="0 0 0 0 0.55  0 0 0 0 0.62  0 0 0 0 0.6  0 0 0 0.22 0"/></filter>
+  <filter id="soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3"/></filter>
+  <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4"/></filter>
+  <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#f6e2a0"/><stop offset="0.45" stop-color="#d5ac55"/><stop offset="1" stop-color="#9c7630"/>
+  </linearGradient>
+  <linearGradient id="goldLine" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#d5ac55" stop-opacity="0"/><stop offset="0.2" stop-color="#d5ac55" stop-opacity="0.75"/>
+    <stop offset="0.5" stop-color="#f3dc96" stop-opacity="0.95"/><stop offset="0.8" stop-color="#d5ac55" stop-opacity="0.75"/>
+    <stop offset="1" stop-color="#d5ac55" stop-opacity="0"/>
+  </linearGradient>
+  <radialGradient id="vig" cx="0.5" cy="0.5" r="0.62">
+    <stop offset="0.55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.75"/>
+  </radialGradient>
+  <linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#fff" stop-opacity="0.22"/><stop offset="0.45" stop-color="#fff" stop-opacity="0"/>
+  </linearGradient>
+`);
+P.push(`<rect width="${W}" height="${H}" fill="url(#sky)"/>`);
+P.push(`<rect width="${W}" height="${H}" fill="url(#mist)"/>`);
+P.push(`<rect width="${W}" height="${H}" filter="url(#grain)"/>`);
+// chão: faixa mais clara e rochas desfocadas
+P.push(`<path d="M0 300 C 300 270, 600 320, 960 290 S 1600 260, 1920 300 L1920 460 L0 460Z" fill="#1d2629" opacity="0.8"/>`);
+P.push(`<ellipse cx="380" cy="330" rx="260" ry="40" fill="#2e3b3e" opacity="0.5" filter="url(#shadow)"/>`);
+P.push(`<ellipse cx="1560" cy="320" rx="300" ry="46" fill="#33403f" opacity="0.45" filter="url(#shadow)"/>`);
+
+// ---------------------------------------------------------------- ícones
+// cada ícone: fundo (c1 -> c2) + figura clara; desenhado numa caixa 100 x 100
+const SHAPES = {
+  blade: `<path d="M22 78 L70 22 L80 20 L78 30 L30 82Z"/><path d="M18 70 L32 84 L26 88 L14 76Z"/><path d="M28 64 L38 74 L22 90 L12 80Z" opacity="0.7"/>`,
+  flame: `<path d="M50 14 C 62 34, 78 42, 72 66 C 68 82, 58 88, 50 88 C 38 88, 28 80, 28 64 C 28 50, 40 44, 42 30 C 48 38, 50 44, 50 14Z"/><path d="M50 52 C 56 60, 62 66, 58 76 C 54 84, 44 82, 42 74 C 40 66, 48 62, 50 52Z" opacity="0.6"/>`,
+  bolt: `<path d="M58 10 L28 54 L46 54 L38 90 L74 40 L54 40Z"/>`,
+  shield: `<path d="M50 14 L80 24 C 80 56, 70 76, 50 88 C 30 76, 20 56, 20 24Z"/><path d="M50 24 L70 31 C 70 54, 63 68, 50 77Z" opacity="0.55"/>`,
+  leaf: `<path d="M20 80 C 22 40, 50 18, 84 16 C 82 50, 60 78, 20 80Z"/><path d="M24 76 L70 30" stroke="#000" stroke-opacity="0.35" stroke-width="3"/>`,
+  drop: `<path d="M50 12 C 64 36, 76 50, 76 64 C 76 80, 64 90, 50 90 C 36 90, 24 80, 24 64 C 24 50, 36 36, 50 12Z"/>`,
+  star: `<polygon points="50,10 60,38 90,40 66,58 74,88 50,70 26,88 34,58 10,40 40,38"/>`,
+  arrow: `<path d="M16 84 L66 34 L58 26 L86 14 L74 42 L66 34" stroke="currentColor" stroke-width="7" fill="none" stroke-linejoin="round"/><path d="M14 76 L24 86 L16 90 L10 84Z"/>`,
+  orb: `<circle cx="50" cy="50" r="26"/><circle cx="42" cy="42" r="9" opacity="0.6"/><circle cx="50" cy="50" r="36" fill="none" stroke="currentColor" stroke-width="3" opacity="0.5"/>`,
+  moon: `<path d="M64 14 C 40 18, 24 40, 30 64 C 36 84, 60 92, 80 82 C 58 82, 42 66, 44 46 C 46 30, 56 20, 64 14Z"/>`,
+  cross: `<path d="M42 12 H58 V42 H88 V58 H58 V88 H42 V58 H12 V42 H42Z"/>`,
+  eye: `<path d="M8 50 C 26 24, 74 24, 92 50 C 74 76, 26 76, 8 50Z"/><circle cx="50" cy="50" r="13" fill="#000" opacity="0.65"/><circle cx="50" cy="50" r="6"/>`,
+  spiral: `<path d="M50 50 m0 -4 a4 4 0 1 1 -4 4 a10 10 0 1 1 10 10 a18 18 0 1 1 -18 -18 a28 28 0 1 1 28 28" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>`,
+  claw: `<path d="M24 20 C 40 40, 42 62, 30 86" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round"/><path d="M48 14 C 64 36, 66 60, 54 88" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round"/><path d="M72 20 C 86 42, 86 64, 76 84" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round"/>`,
+  skull: `<path d="M50 14 C 72 14, 84 30, 82 50 C 80 62, 72 66, 70 74 L70 84 H30 L30 74 C 28 66, 20 62, 18 50 C 16 30, 28 14, 50 14Z"/><circle cx="38" cy="48" r="8" fill="#000" opacity="0.7"/><circle cx="62" cy="48" r="8" fill="#000" opacity="0.7"/>`,
+  rune: `<path d="M50 10 L86 50 L50 90 L14 50Z" fill="none" stroke="currentColor" stroke-width="6"/><path d="M50 24 V76 M34 42 L66 58 M66 42 L34 58" stroke="currentColor" stroke-width="6" stroke-linecap="round"/>`,
+};
+const ICONS = [
+  ["blade", "#7a2a18", "#1a0806", "#ffcf9a"], ["flame", "#b8420c", "#2a0700", "#ffd36b"],
+  ["bolt", "#2a4fa8", "#060d26", "#d6ecff"], ["shield", "#5c5a44", "#141410", "#f2e5b4"],
+  ["leaf", "#2f6b2a", "#06160a", "#d8ffb0"], ["drop", "#1d6a7a", "#041418", "#b8f6ff"],
+  ["star", "#7a5a12", "#1a1002", "#fff0a8"], ["arrow", "#4a6a2a", "#0e1406", "#eaffc2"],
+  ["orb", "#5a2a8a", "#10061e", "#f0d4ff"], ["moon", "#2a3a6a", "#080c1c", "#e0e8ff"],
+  ["cross", "#8a6a2a", "#1e1406", "#fff4cc"], ["eye", "#6a1a3a", "#16040c", "#ffc4dc"],
+  ["spiral", "#1a5a5a", "#041212", "#c4fff4"], ["claw", "#6a3a1a", "#160a04", "#ffd8b0"],
+  ["skull", "#3a3a3a", "#0c0c0c", "#e8e8e0"], ["rune", "#3a1a6a", "#0a0418", "#d8c4ff"],
+];
+function icon(i, size) {
+  const [shape, c1, c2, fg] = ICONS[i % ICONS.length];
+  const g = id("ig"), f = id("if");
+  defs.push(`<radialGradient id="${g}" cx="0.42" cy="0.38" r="0.75"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></radialGradient>
+    <linearGradient id="${f}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="${fg}"/></linearGradient>`);
+  const s = size / 100;
+  return `<g transform="scale(${s})">
+    <rect width="100" height="100" fill="url(#${g})"/>
+    <g fill="${fg}" color="${fg}" opacity="0.55" filter="url(#soft)">${SHAPES[shape]}</g>
+    <g fill="url(#${f})" color="${fg}">${SHAPES[shape]}</g>
+    <rect width="100" height="100" fill="url(#vig)"/>
+  </g>`;
+}
+
+// ---------------------------------------------------------------- losango de habilidade
+// st: { icon, key, cd, proc, oor, empty, active }
+function slot(cx, cy, r, st, inward) {
+  const out = [];
+  out.push(`<polygon points="${dia(cx, cy + 3, r + 2)}" fill="#000" opacity="0.45" filter="url(#shadow)"/>`);
+  out.push(`<polygon points="${dia(cx, cy, r)}" fill="#2e2c30" fill-opacity="0.78"/>`);
+  if (!st.empty) {
+    const clip = id("c");
+    defs.push(`<clipPath id="${clip}"><polygon points="${dia(cx, cy, r - 2)}"/></clipPath>`);
+    out.push(`<g clip-path="url(#${clip})"><g transform="translate(${cx - r},${cy - r})">${icon(st.icon, 2 * r)}</g>
+      <polygon points="${dia(cx, cy, r)}" fill="url(#gloss)"/></g>`);
+  } else {
+    out.push(`<polygon points="${dia(cx, cy, r - 6)}" fill="none" stroke="#7a6a5a" stroke-opacity="0.18" stroke-width="1"/>`);
+  }
+  if (st.oor) out.push(`<polygon points="${dia(cx, cy, r - 2)}" fill="#b0221c" fill-opacity="0.42"/>`);
+  if (st.cd) {
+    out.push(`<polygon points="${dia(cx, cy, r - 2)}" fill="#3c2270" fill-opacity="0.72"/>`);
+    out.push(`<text x="${cx}" y="${cy + r * 0.2}" text-anchor="middle" font-family="BDOB" font-size="${Math.round(r * 0.56)}" fill="#f4f0ff" stroke="#000" stroke-opacity="0.75" stroke-width="3" paint-order="stroke">${st.cd}</text>`);
+  }
+  // moldura: borda escura grossa + filete quente por dentro + traço claro por fora
+  out.push(`<polygon points="${dia(cx, cy, r + 1.6)}" fill="none" stroke="#c8c8d2" stroke-opacity="0.16" stroke-width="1.2"/>`);
+  out.push(`<polygon points="${dia(cx, cy, r)}" fill="none" stroke="#141317" stroke-width="3.2"/>`);
+  out.push(`<polygon points="${dia(cx, cy, r - 2.8)}" fill="none" stroke="#6a5a4c" stroke-opacity="0.85" stroke-width="1.3"/>`);
+  if (st.proc) {
+    TOP.push(`<polygon points="${dia(cx, cy, r + 4)}" fill="none" stroke="#ffd36a" stroke-width="4" opacity="0.9" filter="url(#glow)"/>`);
+    TOP.push(`<polygon points="${dia(cx, cy, r + 4)}" fill="none" stroke="#fff3c4" stroke-width="1.4"/>`);
+  }
+  // tecla: plaquinha no vértice voltado para o centro do grupo (ou embaixo)
+  if (st.key) {
+    const [vx, vy] = inward || [0, 1];
+    const kx = cx + vx * r * 0.58, ky = cy + vy * r * 0.58;
+    const w = Math.max(16, st.key.length * 8 + 8);
+    out.push(`<rect x="${kx - w / 2}" y="${ky - 9}" width="${w}" height="16" rx="3" fill="#0e0d10" fill-opacity="0.82" stroke="#6a5a4c" stroke-opacity="0.7" stroke-width="1"/>`);
+    out.push(`<text x="${kx}" y="${ky + 4}" text-anchor="middle" font-family="BDOB" font-size="11.5" fill="#efe7d8">${st.key}</text>`);
+  }
+  return out.join("");
+}
+
+// ---------------------------------------------------------------- direcional de 4 losangos
+function cluster(cx, cy, slots, active, label) {
+  const r = 40, g = 3, d = r + g, R = 2 * r + g + 9;
+  const out = [];
+  out.push(`<polygon points="${dia(cx, cy + 4, R + 4)}" fill="#000" opacity="0.5" filter="url(#shadow)"/>`);
+  out.push(`<polygon points="${dia(cx, cy, R)}" fill="#141317" fill-opacity="0.55"/>`);
+  if (active) {
+    out.push(`<polygon points="${dia(cx, cy, R + 3)}" fill="none" stroke="#e2bd62" stroke-width="5" opacity="0.55" filter="url(#glow)"/>`);
+    out.push(`<polygon points="${dia(cx, cy, R)}" fill="none" stroke="url(#gold)" stroke-width="3"/>`);
+    out.push(`<polygon points="${dia(cx, cy, R - 4.5)}" fill="none" stroke="#f3dc96" stroke-opacity="0.6" stroke-width="1"/>`);
+  } else {
+    out.push(`<polygon points="${dia(cx, cy, R + 1.6)}" fill="none" stroke="#c8c8d2" stroke-opacity="0.16" stroke-width="1.2"/>`);
+    out.push(`<polygon points="${dia(cx, cy, R)}" fill="none" stroke="#141317" stroke-width="3.2"/>`);
+    out.push(`<polygon points="${dia(cx, cy, R - 3)}" fill="none" stroke="#6a5a4c" stroke-opacity="0.6" stroke-width="1.2"/>`);
+  }
+  // cima, direita, baixo, esquerda (sentido horário, como o filete de XP)
+  const pos = [[0, -d, [0, 1]], [d, 0, [-1, 0]], [0, d, [0, -1]], [-d, 0, [1, 0]]];
+  pos.forEach(([dx, dy], i) => out.push(slot(cx + dx, cy + dy, r, slots[i], [0, 1])));
+  // gema central (aceso = grupo ativo)
+  const gem = id("gem");
+  defs.push(`<radialGradient id="${gem}" cx="0.4" cy="0.35" r="0.7"><stop offset="0" stop-color="${active ? "#fff6cf" : "#8a8278"}"/><stop offset="1" stop-color="${active ? "#b8862e" : "#2a2622"}"/></radialGradient>`);
+  out.push(`<polygon points="${dia(cx, cy, 12)}" fill="#0e0d10" stroke="${active ? "#e2bd62" : "#6a5a4c"}" stroke-width="1.5"/>`);
+  out.push(`<polygon points="${dia(cx, cy, 7)}" fill="url(#${gem})"${active ? ' filter="url(#glow)"' : ""}/>`);
+  // quinas douradas nas pontas do grupo ativo
+  if (active) {
+    for (const [vx, vy] of [[0, -1], [1, 0], [0, 1], [-1, 0]]) {
+      out.push(`<polygon points="${dia(cx + vx * (R + 1), cy + vy * (R + 1), 5)}" fill="url(#gold)" stroke="#5a4218" stroke-width="0.8"/>`);
+    }
+  }
+  if (label) out.push(`<text x="${cx}" y="${cy + R + 26}" text-anchor="middle" font-family="BDO" font-size="13" fill="#bdb3a3" opacity="0.8">${label}</text>`);
+  return out.join("");
+}
+
+// ---------------------------------------------------------------- asa de losangos pequenos
+// 6 losangos em zigue-zague (3 em cima, 3 embaixo), encaixados como no TnL
+function wing(xLeft, cy, startIcon, keys, states = {}) {
+  // 6 losangos em zigue-zague encaixados aresta com aresta: cima, baixo, cima...
+  const r = 30, g = 3, d = r + g, out = [];
+  for (let i = 0; i < 6; i++) {
+    const up = i % 2 === 0;
+    const cx = xLeft + i * d, y = cy + (up ? -d / 2 : d / 2);
+    out.push(slot(cx, y, r, Object.assign({ icon: startIcon + i, key: keys[i] }, states[i] || {}), [0, 1]));
+  }
+  return out.join("");
+}
+
+// ---------------------------------------------------------------- composição
+const cy = 300;
+const R = 2 * 40 + 3 + 9;
+const gapC = 46;
+const cxs = [W / 2 - (2 * R + gapC), W / 2, W / 2 + (2 * R + gapC)];
+// filete dourado de base ligando os grupos (eco do filete de XP do losango)
+P.push(`<rect x="${cxs[0] - R - 330}" y="${cy + R + 10}" width="${cxs[2] - cxs[0] + 2 * R + 660}" height="1.6" fill="url(#goldLine)"/>`);
+P.push(`<polygon points="${dia(W / 2, cy + R + 11, 5)}" fill="url(#gold)"/>`);
+P.push(cluster(cxs[0], cy, [
+  { icon: 0, key: "1" }, { icon: 1, key: "2", cd: "9s" }, { icon: 2, key: "3" }, { icon: 3, key: "4" },
+], false, "barra 1 · 1–4"));
+P.push(cluster(cxs[1], cy, [
+  { icon: 4, key: "5", proc: true }, { icon: 5, key: "6" }, { icon: 6, key: "7", cd: "3s" }, { icon: 7, key: "8" },
+], true, "barra 1 · 5–8"));
+P.push(cluster(cxs[2], cy, [
+  { icon: 8, key: "9" }, { icon: 9, key: "0", oor: true }, { icon: 10, key: "-", cd: "18s" }, { icon: 11, key: "=" },
+], false, "barra 1 · 9–="));
+P.push(wing(cxs[0] - R - 60 - 5 * (30 + 3), cy, 12, ["Q", "E", "R", "F", "Z", "X"], { 3: { empty: true, icon: 0 } }));
+P.push(wing(cxs[2] + R + 60, cy, 2, ["C", "V", "T", "G", "B", "N"], { 1: { cd: "1m" } }));
+P.push(`<text x="${cxs[0] - R - 60 - 2.5 * 33}" y="${cy + R + 26}" text-anchor="middle" font-family="BDO" font-size="13" fill="#bdb3a3" opacity="0.8">barra 2 · 1–6</text>`);
+P.push(`<text x="${cxs[2] + R + 60 + 2.5 * 33}" y="${cy + R + 26}" text-anchor="middle" font-family="BDO" font-size="13" fill="#bdb3a3" opacity="0.8">barra 2 · 7–12</text>`);
+// legenda
+P.push(`<text x="40" y="44" font-family="BDOB" font-size="22" fill="#efe7d8">Barra de ação — conceito BDO × Throne and Liberty</text>`);
+P.push(`<text x="40" y="70" font-family="BDO" font-size="14" fill="#bdb3a3">Direcionais de 4 losangos (barra 1) e asas em zigue-zague (barra 2), com a arte do losango de nível: borda escura, filete quente, dourado da XP.</text>`);
+P.push(`<text x="40" y="92" font-family="BDO" font-size="14" fill="#bdb3a3">Estados: grupo ativo dourado (5–8) · recarga roxa com segundos · proc com aro dourado (5) · fora de alcance em vermelho (0) · espaço vazio (F).</text>`);
+
+const svg = `<svg id="stage" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">
+<defs>${defs.join("")}</defs>${P.join("")}${TOP.join("")}</svg>`;
+document.getElementById("host").innerHTML = svg;
+
+// ---------------------------------------------------------------- exportar PNG (fontes embutidas)
+async function b64(url) {
+  const buf = await (await fetch(url)).arrayBuffer();
+  let s = ""; const b = new Uint8Array(buf);
+  for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000));
+  return btoa(s);
+}
+window.exportPNG = async function (scale = 1, name = "concept.png") {
+  const [m, sb] = await Promise.all([b64("NotoSans-Medium.ttf"), b64("NotoSans-SemiBold.ttf")]);
+  const style = `<style>@font-face{font-family:BDO;src:url(data:font/ttf;base64,${m})}@font-face{font-family:BDOB;src:url(data:font/ttf;base64,${sb})}</style>`;
+  const src = svg.replace("<defs>", `<defs>${style}`);
+  const img = new Image();
+  img.src = URL.createObjectURL(new Blob([src], { type: "image/svg+xml" }));
+  await img.decode();
+  await new Promise((r) => setTimeout(r, 300));
+  const c = document.createElement("canvas");
+  c.width = W * scale; c.height = H * scale;
+  c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+  const res = await fetch(`/save?name=${name}`, { method: "POST", body: c.toDataURL("image/png") });
+  document.getElementById("status").textContent = "salvo: " + name;
+  return res.status;
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!doctype html><html><head><meta charset="utf-8">
+<style>
+/* Mesma fonte do jogo (Media/Fonts/IMFell-Italic.ttf) */
+@font-face { font-family: "NWFell"; src: url("../../AzaathUI/Media/Fonts/IMFell-Italic.ttf"); }
+* { margin: 0; padding: 0 } body { background: #000; width: 1200px; height: 128px; overflow: hidden }
+canvas { display: block }
+</style></head><body>
+<canvas id="c" width="1200" height="128"></canvas>
+<script>
+// Frase do pé da página direita curvada sobre a folha (texto branco em fundo preto:
+// gen-hint.js transforma o brilho em alfa e pinta com a cor da tinta).
+// Coordenadas da arte: caixa x 735..1035, y 553..585 (300 x 32), desenhada em 4x.
+const TEXT = "Arraste a runa do livro para a Mesa de Runas abaixo";
+const S = 4, BX = 735, BY = 553, WIDTH = 290;
+const base = (x) => { const d = x - 850; return 569.5 - 0.01015 * d + 0.0002608 * d * d; };
+const slope = (x) => { const d = x - 850; return -0.01015 + 2 * 0.0002608 * d; };
+document.fonts.load("40px NWFell").then(() => {
+  const g = document.getElementById("c").getContext("2d");
+  let size = 15;
+  g.font = `${size * S}px NWFell`;
+  const w0 = g.measureText(TEXT).width / S;
+  size = size * WIDTH / w0;                      // mesma largura da frase da arte
+  g.font = `${size * S}px NWFell`;
+  const total = g.measureText(TEXT).width / S;
+  const x0 = 884.5 - total / 2;
+  g.fillStyle = "#fff"; g.strokeStyle = "#fff"; g.lineWidth = 0.45; g.textBaseline = "alphabetic";
+  const chars = Array.from(TEXT);
+  for (let i = 0; i < chars.length; i++) {
+    const c = chars[i];
+    if (c === " ") continue;
+    const before = g.measureText(chars.slice(0, i).join("")).width / S;   // mantém o kerning
+    const wc = g.measureText(c).width / S;
+    const cx = x0 + before + wc / 2;
+    const y = base(cx);
+    g.save();
+    g.translate((cx - BX) * S, (y - BY) * S);
+    g.rotate(Math.atan(slope(cx)));
+    g.fillText(c, -wc / 2 * S, 0);
+    g.strokeText(c, -wc / 2 * S, 0);             // traço leve: tinta mais encorpada, como na arte
+    g.restore();
+  }
+  document.title = "pronto";
+});
+</script></body></html>

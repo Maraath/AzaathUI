@@ -1,0 +1,743 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Conceito 1 — Disposição Atual Polida</title><style>
+@font-face{font-family:Cinzel;src:url(file:///D:/ProjectAzaath/AzaathUI/Media/Fonts/Cinzel-Regular.ttf)}
+@font-face{font-family:CinzelB;src:url(file:///D:/ProjectAzaath/AzaathUI/Media/Fonts/Cinzel-Bold.ttf)}
+@font-face{font-family:PTS;src:url(file:///D:/ProjectAzaath/AzaathUI/Media/Fonts/PTSans-Regular.ttf)}
+@font-face{font-family:PTSB;src:url(file:///D:/ProjectAzaath/AzaathUI/Media/Fonts/PTSans-Bold.ttf)}
+@font-face{font-family:Segoe;src:url(file:///D:/ProjectAzaath/AzaathUI/Media/Fonts/SegoeUI-Regular.ttf)}
+@font-face{font-family:SegoeB;src:url(file:///D:/ProjectAzaath/AzaathUI/Media/Fonts/SegoeUI-Semibold.ttf)}
+
+:root{--gold:#c9a463;--gold2:#8a6d3a;--cy:#5fe3e6;--txt:#e6e0d2;--mut:#8c9ba8}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:#020508;overflow:hidden;width:1920px;height:1080px}
+.stage{position:relative;width:1920px;height:1080px;overflow:hidden;font-family:PTS,sans-serif;color:var(--txt);background:#04080d}
+.abs{position:absolute}
+.cz{font-family:Cinzel,serif}
+.czb{font-family:CinzelB,serif}
+
+/* Painel vidro obsidiana Azaath 2026 */
+.az-panel{background:linear-gradient(180deg,rgba(10,17,26,0.90) 0%,rgba(6,10,16,0.95) 100%);
+  border:1px solid rgba(138,109,58,0.56);
+  box-shadow:0 0 0 1px #020508,inset 0 1px 0 rgba(95,227,230,0.14),inset 0 0 34px rgba(0,0,0,0.84),0 20px 56px rgba(0,0,0,0.88)}
+.az-panel:before{content:"";position:absolute;inset:4px;border:1px solid rgba(201,164,99,0.14);pointer-events:none}
+.c-dia{position:absolute;width:8px;height:8px;transform:rotate(45deg);background:#122530;border:1px solid var(--gold);box-shadow:0 0 6px rgba(95,227,230,0.45);z-index:6}
+.c-dia.tl{left:-4px;top:-4px}.c-dia.tr{right:-4px;top:-4px}.c-dia.bl{left:-4px;bottom:-4px}.c-dia.br{right:-4px;bottom:-4px}
+
+/* Slots */
+.islot{position:relative;width:48px;height:48px;background:radial-gradient(circle at 50% 35%,#1a2732,#091016 80%);
+  border:1px solid #35444e;box-shadow:inset 0 0 0 1px #000,inset 0 0 10px #000}
+.islot:before,.islot:after{content:"";position:absolute;width:6px;height:6px;border:1px solid rgba(201,164,99,0.55);pointer-events:none;z-index:3}
+.islot:before{left:-1px;top:-1px;border-right:0;border-bottom:0}
+.islot:after{right:-1px;bottom:-1px;border-left:0;border-top:0}
+.islot .ic-wrap{position:absolute;inset:3px;overflow:hidden;background:#070c11}
+.ic-img{width:100%;height:100%;background-repeat:no-repeat}
+.islot.q2{border-color:#2e9a46;box-shadow:inset 0 0 9px rgba(63,207,90,0.35),0 0 6px rgba(63,207,90,0.22)}
+.islot.q3{border-color:#2f78de;box-shadow:inset 0 0 9px rgba(61,148,255,0.42),0 0 8px rgba(61,148,255,0.30)}
+.islot.q4{border-color:#9e46eb;box-shadow:inset 0 0 11px rgba(194,77,255,0.48),0 0 10px rgba(194,77,255,0.36)}
+.islot.hov{border-color:#d8ffff;box-shadow:0 0 0 2px #5fe3e6,0 0 18px rgba(95,227,230,0.88),inset 0 0 12px rgba(61,148,255,0.65);z-index:5}
+.islot.empty .sil{position:absolute;inset:9px;border:1.5px solid rgba(155,180,196,0.18);border-radius:4px}
+.islot .ilvl{position:absolute;left:3.5px;top:2px;font-family:CinzelB,serif;font-size:10px;color:#f5efe0;text-shadow:0 1px 3px #000,0 0 4px #000;z-index:4}
+.islot .cnt{position:absolute;right:3.5px;bottom:1.5px;font-family:CinzelB,serif;font-size:11.5px;color:#fff;text-shadow:0 1px 2px #000,0 0 4px #000;z-index:4}
+.islot .dur{position:absolute;left:4px;right:4px;bottom:3px;height:2.5px;background:#0a0f14;z-index:4}
+.islot .dur i{display:block;height:100%;background:#4be894}
+.islot .dur.mid i{background:#f0a830}
+.islot .qbadge{position:absolute;right:-4px;top:-4px;width:16px;height:16px;background:url('file:///D:/ProjectAzaath/tools/bag-concept/assets/inv_badge.png') center/contain no-repeat;z-index:5}
+
+.islot.round{border-radius:50%;border:0;background:none;box-shadow:none}
+.islot.round:before,.islot.round:after{display:none}
+.islot.round .ic-wrap{inset:4px;border-radius:50%}
+.islot.round .rframe{position:absolute;inset:-3px;background:url('file:///D:/ProjectAzaath/tools/bag-concept/assets/sh_roundframe.png') center/contain no-repeat;pointer-events:none;z-index:3}
+.islot.round .cnt{right:2px;bottom:0px;font-size:11px;background:rgba(5,10,16,0.8);padding:0 3px;border-radius:3px}
+.islot.free{background:rgba(8,14,20,0.62);border:1px dashed #334550;display:flex;align-items:center;justify-content:center}
+.islot.free span{font-family:CinzelB,serif;font-size:15px;color:#788894}
+
+/* Botões Azaath */
+.sbtn{position:relative;height:30px;padding:0 14px;background:linear-gradient(180deg,rgba(22,34,48,0.92),rgba(10,16,24,0.96));
+  border:1px solid rgba(138,109,58,0.65);font-family:Cinzel,serif;font-size:10.5px;letter-spacing:1.4px;color:#efe6cf;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.sbtn.on{border-color:#5fe3e6;box-shadow:0 0 10px rgba(95,227,230,0.28)}
+.sbtn:after{content:"";position:absolute;left:10px;right:10px;bottom:-1px;height:2px;background:linear-gradient(90deg,transparent,#5fe3e6,transparent);box-shadow:0 0 8px #5fe3e6}
+.sbtn.gold:after{background:linear-gradient(90deg,transparent,#e6b450,transparent);box-shadow:0 0 8px #e6b450}
+
+.coin{display:inline-block;width:12px;height:12px;border-radius:50%;margin-left:3.5px;vertical-align:-1px;box-shadow:0 1px 2px #000}
+.coin.g{background:radial-gradient(circle at 35% 30%,#fff6bd,#e5b53e 50%,#855810)}
+.coin.s{background:radial-gradient(circle at 35% 30%,#ffffff,#c2cbd1 50%,#5b646b)}
+.coin.c{background:radial-gradient(circle at 35% 30%,#ffd8b0,#c86f32 50%,#662f0f)}
+
+/* Novo ItemCard */
+.icard{position:relative;background:#131314;border:1px solid #050506;box-shadow:inset 0 0 0 1px #404247,0 22px 54px rgba(0,0,0,0.92)}
+.eq-tab{position:relative;display:inline-flex;align-items:center;justify-content:center;height:21px;padding:0 12px;background:#131314;
+  border:1px solid #050506;border-bottom:0;box-shadow:inset 1px 1px 0 #404247,inset -1px 0 0 #404247;margin-bottom:-1px;z-index:2}
+.eq-tab span{font-family:SegoeB,sans-serif;font-size:11.5px;color:#ffd140;border-bottom:1px solid rgba(255,209,64,0.72);padding-bottom:1px}
+.ic-head{position:relative;overflow:hidden;border-bottom:1px solid rgba(255,255,255,0.45)}
+.ic-paper{position:absolute;inset:0;background:url('file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_grunge.png') center/100% 100% no-repeat;filter:brightness(1.05)}
+.ic-tint{position:absolute;inset:0;mix-blend-mode:multiply}
+.ic-smoke1{position:absolute;inset:-20px 0 0 0;background:url('file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_smoke1.png') 0 20%/115% auto repeat;mix-blend-mode:screen;opacity:0.52}
+.ic-smoke2{position:absolute;inset:-20px 0 0 0;background:url('file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_smoke2.png') 40% 50%/85% auto repeat;mix-blend-mode:screen;opacity:0.38}
+.ic-flare{position:absolute;left:0;right:0;bottom:0;height:68px;background:url('file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_flare.png') center bottom/100% 100% no-repeat;mix-blend-mode:screen;opacity:0.68}
+.ic-fx{position:absolute;inset:0;pointer-events:none}
+.ic-head-content{position:relative;z-index:3;height:100%;display:flex;align-items:center;padding:0 11px;gap:10px}
+.ic-icon-box{position:relative;flex:none;padding:3px;box-shadow:0 4px 12px rgba(0,0,0,0.7)}
+.ic-icon-inner{width:100%;height:100%;overflow:hidden;background:#08080a}
+.ic-hmeta{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:space-between;padding:1px 0}
+.ic-name{font-family:SegoeB,sans-serif;line-height:1.15;text-shadow:1px 1px 2px #000}
+.ic-rar{font-family:SegoeB,sans-serif;font-size:11.5px;text-shadow:1px 1px 2px #000;margin-top:2px}
+.ic-botrow{display:flex;justify-content:space-between;font-family:SegoeB,sans-serif;font-size:11.5px;color:#fff;text-shadow:1px 1px 2px #000}
+
+.icard.rare .ic-head{border-bottom-color:rgba(76,184,255,0.65)}
+.icard.rare .ic-tint{background:linear-gradient(180deg,#0f4875 0%,#29a8f5 100%)}
+.icard.rare .ic-smoke1,.icard.rare .ic-smoke2{filter:sepia(1) hue-rotate(175deg) saturate(4.5)}
+.icard.rare .ic-flare{filter:sepia(1) hue-rotate(175deg) saturate(4.5)}
+.icard.rare .ic-icon-box{background:linear-gradient(180deg,#125c94,#08080a);border:1px solid #59bcff}
+.icard.rare .ic-name,.icard.rare .ic-rar{color:#66c2ff}
+
+.icard.uncommon .ic-head{border-bottom-color:rgba(97,242,76,0.55)}
+.icard.uncommon .ic-tint{background:linear-gradient(180deg,#165919 0%,#36bf36 100%)}
+.icard.uncommon .ic-smoke1,.icard.uncommon .ic-smoke2{filter:sepia(1) hue-rotate(75deg) saturate(4)}
+.icard.uncommon .ic-flare{filter:sepia(1) hue-rotate(75deg) saturate(4)}
+.icard.uncommon .ic-icon-box{background:linear-gradient(180deg,#1d6e20,#08080a);border:1px solid #5fe84d}
+.icard.uncommon .ic-name,.icard.uncommon .ic-rar{color:#61f24c}
+
+.ic-body{padding:9px 14px 11px;font-family:Segoe,sans-serif;font-size:12.5px;color:#dcdcdc}
+.ilvl-row{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.ilvl-hex{width:28px;height:28px;background:url('file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_ilvl.png') center/contain no-repeat}
+.ilvl-val{font-family:SegoeB,sans-serif;font-size:30px;line-height:1;color:#fff;text-shadow:1px 1px 2px #000}
+.stat-ln{line-height:1.36;color:#dcdcdc}
+.stat-ln b{font-family:SegoeB,sans-serif;color:#fff;font-weight:400}
+.div-dia{position:relative;height:11px;margin:5px 0;display:flex;align-items:center}
+.div-dia:before,.div-dia:after{content:"";flex:1;height:1px;background:rgba(82,83,86,0.9)}
+.div-dia i{width:10px;height:10px;margin:0 4px;background:url('file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_diamond.png') center/contain no-repeat;opacity:0.78}
+.perk-row{display:flex;align-items:flex-start;gap:8px;margin:4px 0}
+.perk-ic{position:relative;width:25px;height:25px;flex:none;margin-top:1px}
+.perk-ic .in{position:absolute;inset:2px;border-radius:50%;overflow:hidden}
+.perk-ic .ring{position:absolute;inset:-1px;background:url('file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_perkring.png') center/contain no-repeat;opacity:0.92}
+.perk-txt{font-family:SegoeB,sans-serif;font-size:12px;line-height:1.3;color:#6ba8ff}
+.perk-txt .pre{color:#9ecbff}
+.flavor{font-size:12px;line-height:1.32;color:#c8c8c8;font-style:italic}
+.bind-ln{font-family:SegoeB,sans-serif;color:#3dcc6b;margin-bottom:2px}
+.sell-ln{display:flex;align-items:center;gap:6px;margin-top:4px}
+.sell-ln .val{font-family:SegoeB,sans-serif;color:#fff;display:flex;align-items:center;gap:5px}
+.delta-ln{font-size:11.5px;line-height:1.3;color:#45e074}
+
+  /* Fundo de Vale Gris sem nenhum fantasma da UI antiga: floresta/torre nítida à esquerda + névoa noturna atrás dos painéis */
+  .world-bg{position:absolute;inset:0;background:
+    radial-gradient(60% 70% at 46% 52%, rgba(16,32,42,0.45), rgba(4,9,14,0.94) 75%),
+    linear-gradient(180deg,#050b12,#03070c)}
+  .forest-left{position:absolute;left:0;top:0;width:362px;height:1080px;
+    background:url('file:///D:/ProjectAzaath/tools/bag-concept/assets/ss_current.jpg') left top/1920px 1080px no-repeat;
+    -webkit-mask-image:linear-gradient(90deg, #000 50%, rgba(0,0,0,0.45) 78%, transparent 99%);
+    opacity:0.92}
+  .hero-center{position:absolute;left:700px;top:210px;width:380px;height:680px;
+    background:url('file:///D:/ProjectAzaath/tools/drops-concept/warrior_pedestal.jpg') center top/118% auto no-repeat;
+    -webkit-mask-image:radial-gradient(45% 49% at 50% 47%, #000 46%, rgba(0,0,0,0.45) 70%, transparent 93%),
+                       linear-gradient(180deg, transparent 0%, #000 10%, #000 82%, transparent 98%);
+    -webkit-mask-composite:source-in;opacity:0.95}
+
+  /* Painel de Atributos (Esquerda do boneco) */
+  .attr-panel{position:absolute;left:368px;top:96px;width:222px;padding:14px 15px}
+  .attr-top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .attr-gs{font-family:CinzelB,serif;font-size:32px;line-height:1;color:#f5efe0;text-shadow:0 0 12px rgba(95,227,230,0.5)}
+  .attr-sec{display:flex;align-items:center;gap:6px;margin:9px 0 4px;font-family:Cinzel,serif;font-size:10px;letter-spacing:2px;color:#c9bfa8}
+  .attr-sec i{flex:1;height:1px;background:linear-gradient(90deg,rgba(201,164,99,0.55),transparent)}
+  .arow{display:flex;align-items:baseline;font-size:12px;line-height:19px}
+  .arow .k{flex:1;color:#d6d0c2}.arow .b{font-size:10px;color:#728492;margin-right:6px}.arow .v{color:#f5efe0;font-weight:700}
+  .abar{height:2px;background:#0a131a;margin-bottom:2px}.abar i{display:block;height:100%;background:linear-gradient(90deg,#1a8896,#5fe3e6)}
+
+  /* Barra vertical de durabilidade */
+  .vdur-wrap{position:absolute;left:674px;top:96px;display:flex;flex-direction:column;align-items:center}
+  .vdur-bar{width:6px;height:445px;background:rgba(5,10,16,0.9);border:1px solid #2b3c46;position:relative;margin-top:6px}
+  .vdur-bar i{position:absolute;left:0;right:0;bottom:0;height:55%;background:linear-gradient(180deg,#5fe3e6,#2fb872);box-shadow:0 0 8px rgba(95,227,230,0.55)}
+
+  /* Barras vitais embaixo do personagem */
+  .vitals-dock{position:absolute;left:734px;top:912px;width:320px;display:flex;flex-direction:column;gap:5px;align-items:center}
+  .vbar{position:relative;width:100%;height:14px;background:rgba(6,11,16,0.92);border:1px solid rgba(138,109,58,0.5);box-shadow:inset 0 0 6px #000}
+  .vbar i{position:absolute;left:1px;top:1px;bottom:1px}
+  .vbar span{position:relative;z-index:2;display:block;text-align:center;font-size:10.5px;line-height:12px;color:#fff;text-shadow:0 1px 2px #000}
+
+  /* Painel do Inventário (Direita — 2 colunas x 4 slots) */
+  .inv-panel{position:absolute;left:1296px;top:86px;width:584px;height:868px}
+  .inv-hdr{padding:16px 20px 0}
+  .inv-top{display:flex;align-items:center;justify-content:space-between}
+  .inv-top h1{margin:0;font-family:Cinzel,serif;font-size:21px;font-weight:400;letter-spacing:3.5px;color:#f3ebd6}
+  .view-tabs{display:flex;gap:18px;align-items:center}
+  .vtab{position:relative;font-family:Cinzel,serif;font-size:11.5px;letter-spacing:2px;color:#7c8c98;padding-bottom:4px}
+  .vtab.on{color:#ebfbff;text-shadow:0 0 10px rgba(95,227,230,0.8)}
+  .vtab.on:after{content:"";position:absolute;left:-20px;right:-20px;bottom:-8px;height:13px;background:url('file:///D:/ProjectAzaath/tools/bag-concept/assets/sh_navflare.png') center/100% 100% no-repeat;mix-blend-mode:screen}
+
+  .inv-ctrl{display:flex;align-items:center;gap:8px;margin-top:10px;padding-bottom:10px;border-bottom:1px solid rgba(201,164,99,0.24)}
+  .search-box{flex:1;height:26px;background:rgba(4,9,14,0.92);border:1px solid #2b3c46;display:flex;align-items:center;padding:0 8px;gap:6px;color:#788894;font-size:12px}
+  .qmark{margin-left:auto;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle,#f3d184,#9c7026);color:#140d02;font-weight:700;font-size:10px;display:flex;align-items:center;justify-content:center}
+  .ico-btn{width:24px;height:24px;background:rgba(10,18,26,0.9);border:1px solid #30414c;display:flex;align-items:center;justify-content:center}
+  .ico-btn img{width:14px;height:14px;opacity:0.82}
+  .ico-btn.on{border-color:#5fe3e6;box-shadow:0 0 8px rgba(95,227,230,0.4)}
+
+  .inv-body{padding:12px 20px 0;display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .sec-hdr{display:flex;align-items:center;gap:6px;margin:0 0 6px}
+  .sec-hdr .t{font-family:Cinzel,serif;font-size:11.5px;letter-spacing:2px;color:#dfd4b8}
+  .sec-hdr .ln{flex:1;height:1px;background:linear-gradient(90deg,rgba(201,164,99,0.5),transparent)}
+  .sec-hdr .n{font-family:CinzelB,serif;font-size:12px;color:#e6dec8}
+  .sec-hdr .ar{width:13px;height:13px;border:1px solid #594726;background:#0a131a;position:relative}
+  .sec-hdr .ar:after{content:"";position:absolute;left:2px;top:4px;border-top:4.5px solid #c9a463;border-left:3.5px solid transparent;border-right:3.5px solid transparent}
+  .grid4{display:grid;grid-template-columns:repeat(4,54px);gap:8px;margin-bottom:14px}
+  .grid4 .islot{width:54px;height:54px}
+
+  .inv-foot{position:absolute;left:20px;right:20px;bottom:12px;height:42px;border-top:1px solid rgba(201,164,99,0.24);display:flex;align-items:center;justify-content:space-between;padding-top:6px}
+  .money{display:flex;align-items:center;gap:12px;font-family:CinzelB,serif;font-size:16px;color:#f4ecda}
+
+  /* Mini Radial (G) posicionado limpo sem esmagar os anéis */
+  .rad-wrap{position:absolute;left:1148px;top:636px;width:134px;height:134px;border-radius:50%;
+    background:radial-gradient(circle,rgba(12,26,36,0.94),rgba(5,10,16,0.97) 72%);
+    border:1px solid rgba(201,164,99,0.65);box-shadow:0 0 22px rgba(95,227,230,0.22),inset 0 0 18px #000}
+  .rad-ring{position:absolute;inset:12px;border-radius:50%;border:1px dashed rgba(95,227,230,0.3)}
+  .rad-key{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:CinzelB,serif;font-size:14px;color:var(--gold)}
+  .rad-slot{position:absolute;width:28px;height:28px;border-radius:50%;transform:translate(-50%,-50%);background:#0a131b;border:1px solid #7d6232;box-shadow:0 0 6px #000}
+  .rad-slot .in{position:absolute;inset:2px;border-radius:50%;overflow:hidden}
+  .rad-slot .cnt{position:absolute;right:-3px;bottom:-3px;font-family:CinzelB,serif;font-size:9px;color:#fff;text-shadow:0 1px 2px #000}
+  .rad-slot.empty{border-color:#2c3a44;color:#5d6c78;display:flex;align-items:center;justify-content:center;font-size:11px}
+  </style></head><body>
+<div class="stage">
+  <div class="world-bg"></div>
+  <div class="forest-left"></div>
+  <div class="hero-center"></div>
+
+  <!-- Painel de Atributos (mesma posição à esquerda) -->
+  <aside class="az-panel attr-panel">
+    <i class="c-dia tl"></i><i class="c-dia tr"></i><i class="c-dia bl"></i><i class="c-dia br"></i>
+    <div class="attr-top">
+      <img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_ilvl.png" style="width:26px;height:26px">
+      <div class="attr-gs">28</div>
+      <div class="cz" style="font-size:10px;letter-spacing:1.4px;color:#9eb0be;line-height:1.2">NÍVEL<br>DE ITEM</div>
+    </div>
+    <div class="attr-sec">ATRIBUTOS<i></i></div>
+    <div class="arow"><span class="k">Força</span><span class="b">(60+68)</span><span class="v">128</span></div><div class="abar"><i style="width:82%"></i></div>
+    <div class="arow"><span class="k">Agilidade</span><span class="b">(50+25)</span><span class="v">75</span></div><div class="abar"><i style="width:50%"></i></div>
+    <div class="arow"><span class="k">Vigor</span><span class="b">(57+45)</span><span class="v">102</span></div><div class="abar"><i style="width:68%"></i></div>
+    <div class="arow"><span class="k">Intelecto</span><span class="b">(34+4)</span><span class="v">38</span></div><div class="abar"><i style="width:28%"></i></div>
+    <div class="arow"><span class="k">Espírito</span><span class="b">(30+9)</span><span class="v">39</span></div><div class="abar"><i style="width:30%"></i></div>
+    <div class="attr-sec">ATAQUE<i></i></div>
+    <div class="arow"><span class="k">Poder de ataque</span><span class="b"></span><span class="v">375</span></div>
+    <div class="arow"><span class="k">Crítico</span><span class="b"></span><span class="v">11.95%</span></div>
+    <div class="arow"><span class="k">Acerto</span><span class="b"></span><span class="v">0.00%</span></div>
+    <div class="arow"><span class="k">Aceleração</span><span class="b"></span><span class="v">0.00%</span></div>
+    <div class="attr-sec">MAGIA<i></i></div>
+    <div class="arow"><span class="k">Poder mágico</span><span class="b"></span><span class="v">0</span></div>
+    <div class="arow"><span class="k">Crítico mágico</span><span class="b"></span><span class="v">0.00%</span></div>
+    <div class="arow"><span class="k">Aceleração mágica</span><span class="b"></span><span class="v">0.00%</span></div>
+    <div class="arow"><span class="k">Regeneração</span><span class="b"></span><span class="v">0.0 / s</span></div>
+    <div class="attr-sec">DEFESA<i></i></div>
+    <div class="arow"><span class="k">Armadura</span><span class="b"></span><span class="v">1.357</span></div>
+    <div class="arow"><span class="k">Esquiva</span><span class="b"></span><span class="v">7.79%</span></div>
+    <div class="arow"><span class="k">Aparar</span><span class="b"></span><span class="v">4.72%</span></div>
+    <div class="arow"><span class="k">Bloqueio</span><span class="b"></span><span class="v">4.72%</span></div>
+  </aside>
+
+  <!-- Coluna esquerda de armaduras + Durabilidade + Bolsas 2x2 -->
+  <div class="abs" style="left:610px;top:92px"><div class="islot q2">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzE5M2IyNiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzA2MTAwYSIvPjwvcmFkaWFsR3JhZGllbnQ+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImhkIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2ZmZTdhNiIvPjxzdG9wIG9mZnNldD0iNTUlIiBzdG9wLWNvbG9yPSIjYjU4MzM1Ii8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjNTIzNTBlIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+CiAgICA8cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0idXJsKCNiZykiLz4KICAgIDxwYXRoIGQ9Ik0yNCA2MiBRMjIgMjIgNTAgMTggUTc4IDIyIDc2IDYyIEw3MCA4MiBMNTYgODIgTDU2IDU0IEw0NCA1NCBMNDQgODIgTDMwIDgyIFoiIGZpbGw9InVybCgjaGQpIiBzdHJva2U9IiNmZmYwYmQiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgICA8cGF0aCBkPSJNMzYgNDQgTDQ2IDQ4IE02NCA0NCBMNTQgNDgiIHN0cm9rZT0iIzVmZTNlNiIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center"></div></div>
+    
+    <span class="ilvl">32</span>
+    
+    
+    
+  </div></div><div class="abs" style="left:610px;top:148px"><div class="islot q2">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzE5M2EyNiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzA2MTAwYSIvPjwvcmFkaWFsR3JhZGllbnQ+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9InN0IiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2UyZWFlZiIvPjxzdG9wIG9mZnNldD0iNTUlIiBzdG9wLWNvbG9yPSIjNmU3Yzg1Ii8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMjczMDM2Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+CiAgICA8cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0idXJsKCNiZykiLz4KICAgIDxwYXRoIGQ9Ik0xNCA1NCBRMjIgMjIgNDYgMjggTDQ0IDY4IFEyMiA3MiAxNCA1NCBaIiBmaWxsPSJ1cmwoI3N0KSIgc3Ryb2tlPSIjYzlhNDYzIiBzdHJva2Utd2lkdGg9IjIiLz4KICAgIDxwYXRoIGQ9Ik04NiA1NCBRNzggMjIgNTQgMjggTDU2IDY4IFE3OCA3MiA4NiA1NCBaIiBmaWxsPSJ1cmwoI3N0KSIgc3Ryb2tlPSIjYzlhNDYzIiBzdHJva2Utd2lkdGg9IjIiLz4KICAgIDxjaXJjbGUgY3g9IjMwIiBjeT0iNDYiIHI9IjQiIGZpbGw9IiM0Y2U2N2EiLz48Y2lyY2xlIGN4PSI3MCIgY3k9IjQ2IiByPSI0IiBmaWxsPSIjNGNlNjdhIi8+CiAgPC9zdmc+');background-size:cover;background-position:center"></div></div>
+    
+    <span class="ilvl">32</span>
+    
+    
+    
+  </div></div><div class="abs" style="left:610px;top:204px"><div class="islot q4">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzI5MTc0MiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzA5MDYxMiIvPjwvcmFkaWFsR3JhZGllbnQ+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImNrIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzYxMzM4ZiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzIyMGYzOCIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8cGF0aCBkPSJNMzQgMTggUTUwIDI0IDY2IDE4IEw4MCA4MiBRNTAgOTAgMjAgODIgWiIgZmlsbD0idXJsKCNjaykiIHN0cm9rZT0iI2M5YTQ2MyIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgICA8Y2lyY2xlIGN4PSIzNCIgY3k9IjE5IiByPSI0IiBmaWxsPSIjYzlhNDYzIi8+PGNpcmNsZSBjeD0iNjYiIGN5PSIxOSIgcj0iNCIgZmlsbD0iI2M5YTQ2MyIvPgogIDwvc3ZnPg==');background-size:cover;background-position:center"></div></div>
+    
+    <span class="ilvl">32</span>
+    
+    
+    
+  </div></div><div class="abs" style="left:610px;top:260px"><div class="islot q2">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzE5M2IyNiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzA2MTAwYSIvPjwvcmFkaWFsR3JhZGllbnQ+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9InN0ZWVsIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2RjZTZlYyIvPjxzdG9wIG9mZnNldD0iNTAlIiBzdG9wLWNvbG9yPSIjNmU3Yzg1Ii8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMmIzMzM4Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+CiAgICA8cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0idXJsKCNiZykiLz4KICAgIDxwYXRoIGQ9Ik0yMiAyMCBMMzYgMTYgUTUwIDI4IDY0IDE2IEw3OCAyMCBMODIgNDIgTDcwIDQ2IEw2OCA4MCBRNTAgODggMzIgODAgTDMwIDQ2IEwxOCA0MiBaIiBmaWxsPSJ1cmwoI3N0ZWVsKSIgc3Ryb2tlPSIjYzlhNDYzIiBzdHJva2Utd2lkdGg9IjIuNSIvPgogICAgPHBhdGggZD0iTTUwIDI4IEw1MCA4MCBNMzQgNDggTDY2IDQ4IiBzdHJva2U9IiNjOWE0NjMiIHN0cm9rZS13aWR0aD0iMS44IiBvcGFjaXR5PSIwLjg1Ii8+CiAgPC9zdmc+');background-size:cover;background-position:center"></div></div>
+    
+    <span class="ilvl">29</span>
+    
+    
+    
+  </div></div><div class="abs" style="left:610px;top:316px"><div class="islot q2">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzE5M2IyNiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzA2MTAwYSIvPjwvcmFkaWFsR3JhZGllbnQ+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9InN0IiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2NlZDhkZSIvPjxzdG9wIG9mZnNldD0iNTUlIiBzdG9wLWNvbG9yPSIjNWI2NjZlIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMjMyOTJlIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+CiAgICA8cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0idXJsKCNiZykiLz4KICAgIDxwYXRoIGQ9Ik0zMiAyMiBRNTAgMTYgNjggMjIgTDcyIDc4IFE1MCA4NCAyOCA3OCBaIiBmaWxsPSJ1cmwoI3N0KSIgc3Ryb2tlPSIjYzlhNDYzIiBzdHJva2Utd2lkdGg9IjIuNCIvPgogICAgPHBhdGggZD0iTTMxIDM4IFE1MCAzNCA2OSAzOCBNMzAgNjIgUTUwIDU4IDcwIDYyIiBzdHJva2U9IiNjOWE0NjMiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSIvPgogIDwvc3ZnPg==');background-size:cover;background-position:center"></div></div>
+    
+    <span class="ilvl">25</span>
+    
+    
+    
+  </div></div><div class="abs" style="left:610px;top:372px"><div class="islot q2">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzE5M2IyNiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzA2MTAwYSIvPjwvcmFkaWFsR3JhZGllbnQ+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9InN0IiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2Q1ZGVlNCIvPjxzdG9wIG9mZnNldD0iNTAlIiBzdG9wLWNvbG9yPSIjNjA2Yzc1Ii8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMjMyOTJlIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+CiAgICA8cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0idXJsKCNiZykiLz4KICAgIDxwYXRoIGQ9Ik0zNSAyMCBMNDIgMjAgTDQyIDQyIEw0NSA0MiBMNDUgMTYgTDUyIDE2IEw1MiA0MiBMNTUgNDIgTDU1IDE4IEw2MiAxOCBMNjIgNDQgTDY2IDQ0IEw2NiAyOCBMNzIgMjggTDcyIDU2IFE3MiA2OCA2MiA3MiBMNjIgODYgTDM2IDg2IEwzNiA3MiBRMjggNjYgMjggNTIgTDI4IDM2IEwzNSAzNiBaIiBmaWxsPSJ1cmwoI3N0KSIgc3Ryb2tlPSIjYzlhNDYzIiBzdHJva2Utd2lkdGg9IjIiLz4KICAgIDxyZWN0IHg9IjM0IiB5PSI2OCIgd2lkdGg9IjMwIiBoZWlnaHQ9IjUiIGZpbGw9IiNjOWE0NjMiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center"></div></div>
+    
+    <span class="ilvl">30</span>
+    
+    
+    
+  </div></div><div class="abs" style="left:610px;top:428px"><div class="islot q2">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzE5M2IyNiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzA2MTAwYSIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8cGF0aCBkPSJNMTQgNDIgUTUwIDUyIDg2IDQyIEw4NiA2MCBRNTAgNzAgMTQgNjAgWiIgZmlsbD0iIzVlM2QyMCIgc3Ryb2tlPSIjYzlhNDYzIiBzdHJva2Utd2lkdGg9IjIiLz4KICAgIDxyZWN0IHg9IjM4IiB5PSIzOCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI4IiByeD0iNCIgZmlsbD0iI2M5YTQ2MyIgc3Ryb2tlPSIjZmZmMmMyIiBzdHJva2Utd2lkdGg9IjEuNSIvPgogICAgPGNpcmNsZSBjeD0iNTAiIGN5PSI1MiIgcj0iNiIgZmlsbD0iIzRjZTY3YSIvPgogIDwvc3ZnPg==');background-size:cover;background-position:center"></div></div>
+    
+    <span class="ilvl">32</span>
+    
+    
+    
+  </div></div><div class="abs" style="left:610px;top:484px"><div class="islot q2">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzE5M2IyNiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzA2MTAwYSIvPjwvcmFkaWFsR3JhZGllbnQ+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9InN0IiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2NlZDhkZSIvPjxzdG9wIG9mZnNldD0iNTUlIiBzdG9wLWNvbG9yPSIjNWI2NjZlIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMjMyOTJlIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+CiAgICA8cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0idXJsKCNiZykiLz4KICAgIDxwYXRoIGQ9Ik0yNiAxNiBMNzQgMTYgTDc4IDMyIEw3MCA4NCBMNTQgODQgTDUwIDQ4IEw0NiA4NCBMMzAgODQgTDIyIDMyIFoiIGZpbGw9InVybCgjc3QpIiBzdHJva2U9IiNjOWE0NjMiIHN0cm9rZS13aWR0aD0iMi4yIi8+CiAgICA8cmVjdCB4PSIyNiIgeT0iMTYiIHdpZHRoPSI0OCIgaGVpZ2h0PSI5IiBmaWxsPSIjNmI0ZTI0IiBzdHJva2U9IiNlOWQyOWEiIHN0cm9rZS13aWR0aD0iMSIvPgogIDwvc3ZnPg==');background-size:cover;background-position:center"></div></div>
+    
+    <span class="ilvl">24</span>
+    
+    
+    
+  </div></div><div class="abs" style="left:610px;top:540px"><div class="islot q2">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzE5M2IyNiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzA2MTAwYSIvPjwvcmFkaWFsR3JhZGllbnQ+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9InN0IiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2NlZDhkZSIvPjxzdG9wIG9mZnNldD0iNTUlIiBzdG9wLWNvbG9yPSIjNWI2NjZlIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMjMyOTJlIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+CiAgICA8cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0idXJsKCNiZykiLz4KICAgIDxwYXRoIGQ9Ik0zMiAxOCBMNTYgMTggTDU2IDU4IEw3OCA2OCBMNzggODIgTDI4IDgyIEwyOCA2MCBaIiBmaWxsPSJ1cmwoI3N0KSIgc3Ryb2tlPSIjYzlhNDYzIiBzdHJva2Utd2lkdGg9IjIuMiIvPgogICAgPHJlY3QgeD0iMzAiIHk9IjIyIiB3aWR0aD0iMjgiIGhlaWdodD0iNyIgZmlsbD0iI2M5YTQ2MyIvPgogIDwvc3ZnPg==');background-size:cover;background-position:center"></div></div>
+    
+    <span class="ilvl">26</span>
+    
+    
+    
+  </div></div>
+  <div class="vdur-wrap">
+    <div class="czb" style="font-size:13px;color:#62ee9a;text-shadow:0 1px 3px #000">55%</div>
+    <div class="cz" style="font-size:8px;letter-spacing:1.2px;color:#9eb0be">DURABILIDADE</div>
+    <div class="vdur-bar"><i></i></div>
+  </div>
+  <div class="abs" style="left:604px;top:640px"><div class="islot">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzM2MTQxNCIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzEwMDYwNiIvPjwvcmFkaWFsR3JhZGllbnQ+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9InJkIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2NmNDAzNiIvPjxzdG9wIG9mZnNldD0iNjUlIiBzdG9wLWNvbG9yPSIjN2ExYjE0Ii8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjM2IwYjA4Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+CiAgICA8cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0idXJsKCNiZykiLz4KICAgIDxwYXRoIGQ9Ik0zOCAxOCBMNjIgMTggTDU2IDMwIEw0NCAzMCBaIiBmaWxsPSIjOGYyNDFjIiBzdHJva2U9IiNjOWE0NjMiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgICA8cGF0aCBkPSJNNDAgMzAgUTIwIDQ2IDI0IDc0IFEyOCA4NiA1MCA4NiBRNzIgODYgNzYgNzQgUTgwIDQ2IDYwIDMwIFoiIGZpbGw9InVybCgjcmQpIiBzdHJva2U9IiNjOWE0NjMiIHN0cm9rZS13aWR0aD0iMiIvPgogICAgPHJlY3QgeD0iMzkiIHk9IjI4IiB3aWR0aD0iMjIiIGhlaWdodD0iNSIgcng9IjIiIGZpbGw9IiNlMGI4NmIiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center"></div></div>
+    
+    
+    <span class="cnt">12</span>
+    
+    
+  </div></div><div class="abs" style="left:658px;top:640px"><div class="islot">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzM2MTQxNCIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzEwMDYwNiIvPjwvcmFkaWFsR3JhZGllbnQ+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9InJkIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2NmNDAzNiIvPjxzdG9wIG9mZnNldD0iNjUlIiBzdG9wLWNvbG9yPSIjN2ExYjE0Ii8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjM2IwYjA4Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+CiAgICA8cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0idXJsKCNiZykiLz4KICAgIDxwYXRoIGQ9Ik0zOCAxOCBMNjIgMTggTDU2IDMwIEw0NCAzMCBaIiBmaWxsPSIjOGYyNDFjIiBzdHJva2U9IiNjOWE0NjMiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgICA8cGF0aCBkPSJNNDAgMzAgUTIwIDQ2IDI0IDc0IFEyOCA4NiA1MCA4NiBRNzIgODYgNzYgNzQgUTgwIDQ2IDYwIDMwIFoiIGZpbGw9InVybCgjcmQpIiBzdHJva2U9IiNjOWE0NjMiIHN0cm9rZS13aWR0aD0iMiIvPgogICAgPHJlY3QgeD0iMzkiIHk9IjI4IiB3aWR0aD0iMjIiIGhlaWdodD0iNSIgcng9IjIiIGZpbGw9IiNlMGI4NmIiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center"></div></div>
+    
+    
+    <span class="cnt">12</span>
+    
+    
+  </div></div><div class="abs" style="left:604px;top:694px"><div class="islot">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzM2MTQxNCIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzEwMDYwNiIvPjwvcmFkaWFsR3JhZGllbnQ+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9InJkIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2NmNDAzNiIvPjxzdG9wIG9mZnNldD0iNjUlIiBzdG9wLWNvbG9yPSIjN2ExYjE0Ii8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjM2IwYjA4Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+CiAgICA8cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0idXJsKCNiZykiLz4KICAgIDxwYXRoIGQ9Ik0zOCAxOCBMNjIgMTggTDU2IDMwIEw0NCAzMCBaIiBmaWxsPSIjOGYyNDFjIiBzdHJva2U9IiNjOWE0NjMiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgICA8cGF0aCBkPSJNNDAgMzAgUTIwIDQ2IDI0IDc0IFEyOCA4NiA1MCA4NiBRNzIgODYgNzYgNzQgUTgwIDQ2IDYwIDMwIFoiIGZpbGw9InVybCgjcmQpIiBzdHJva2U9IiNjOWE0NjMiIHN0cm9rZS13aWR0aD0iMiIvPgogICAgPHJlY3QgeD0iMzkiIHk9IjI4IiB3aWR0aD0iMjIiIGhlaWdodD0iNSIgcng9IjIiIGZpbGw9IiNlMGI4NmIiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center"></div></div>
+    
+    
+    <span class="cnt">12</span>
+    
+    
+  </div></div><div class="abs" style="left:658px;top:694px"><div class="islot">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzJiMjExOCIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzBjMDkwNyIvPjwvcmFkaWFsR3JhZGllbnQ+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImxlYSIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNhODc2NDgiLz48c3RvcCBvZmZzZXQ9IjYwJSIgc3RvcC1jb2xvcj0iIzVjM2ExZSIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzJlMWIwZCIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8cGF0aCBkPSJNMjQgMzQgUTI0IDI0IDUwIDI0IFE3NiAyNCA3NiAzNCBMODAgNzYgUTgwIDg2IDUwIDg2IFEyMCA4NiAyMCA3NiBaIiBmaWxsPSJ1cmwoI2xlYSkiIHN0cm9rZT0iI2M5YTQ2MyIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgICA8cGF0aCBkPSJNMjMgMzggUTUwIDU2IDc3IDM4IEw3NiA0OCBRNTAgNjYgMjQgNDggWiIgZmlsbD0iIzNhMjMxMSIgc3Ryb2tlPSIjYzlhNDYzIiBzdHJva2Utd2lkdGg9IjEuMiIvPgogICAgPHJlY3QgeD0iNDQiIHk9IjQ3IiB3aWR0aD0iMTIiIGhlaWdodD0iMTQiIHJ4PSIyIiBmaWxsPSIjZTBiODZiIiBzdHJva2U9IiM1YTNiMTQiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgPC9zdmc+');background-size:cover;background-position:center"></div></div>
+    
+    
+    <span class="cnt">10</span>
+    
+    
+  </div></div>
+
+  <!-- Coluna direita de armas, berloques e acessórios 2x3 -->
+  <div class="abs" style="left:1126px;top:92px"><div class="islot q3">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzE0M2E2NiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzA1MGQxYSIvPjwvcmFkaWFsR3JhZGllbnQ+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImJsIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2U4ZjhmZiIvPjxzdG9wIG9mZnNldD0iNTAlIiBzdG9wLWNvbG9yPSIjNmRhNmQ5Ii8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMWQzODU3Ii8+PC9saW5lYXJHcmFkaWVudD4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmZmU3YTYiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM4YTYwMWUiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz4KICAgIDxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSJ1cmwoI2JnKSIvPgogICAgPGNpcmNsZSBjeD0iNTIiIGN5PSI0OCIgcj0iMzQiIGZpbGw9IiMzZDk0ZmYiIG9wYWNpdHk9IjAuMjIiLz4KICAgIDxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDUwIDUwKSByb3RhdGUoNDIpIHRyYW5zbGF0ZSgtNTAgLTUwKSI+CiAgICAgIDxwYXRoIGQ9Ik01MCA5IEw1NyAyMyBMNTUgNjQgTDQ1IDY0IEw0MyAyMyBaIiBmaWxsPSJ1cmwoI2JsKSIgc3Ryb2tlPSIjZDZmMGZmIiBzdHJva2Utd2lkdGg9IjEuMSIvPgogICAgICA8cGF0aCBkPSJNNTAgMTYgTDUwIDU4IiBzdHJva2U9IiM1ZmUzZTYiIHN0cm9rZS13aWR0aD0iMi4yIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICAgICAgPHBhdGggZD0iTTI5IDYzIFE1MCA1NyA3MSA2MyBMNjggNjkgUTUwIDY1IDMyIDY5IFoiIGZpbGw9InVybCgjZykiIHN0cm9rZT0iI2ZmZjJjMiIgc3Ryb2tlLXdpZHRoPSIwLjkiLz4KICAgICAgPHJlY3QgeD0iNDYuNSIgeT0iNjgiIHdpZHRoPSI3IiBoZWlnaHQ9IjE3IiByeD0iMiIgZmlsbD0iIzFlMmQ0MCIgc3Ryb2tlPSJ1cmwoI2cpIiBzdHJva2Utd2lkdGg9IjEiLz4KICAgICAgPGNpcmNsZSBjeD0iNTAiIGN5PSI4OSIgcj0iNS41IiBmaWxsPSJ1cmwoI2cpIiBzdHJva2U9IiNmZmYyYzIiIHN0cm9rZS13aWR0aD0iMC45Ii8+CiAgICAgIDxjaXJjbGUgY3g9IjUwIiBjeT0iNjUiIHI9IjMuOCIgZmlsbD0iIzVmZTNlNiIvPgogICAgPC9nPjwvc3ZnPg==');background-size:cover;background-position:center"></div></div>
+    
+    <span class="ilvl">31</span>
+    
+    
+    
+  </div></div><div class="abs" style="left:1126px;top:148px"><div class="islot q2">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzE4M2QyNyIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzA2MTAwYSIvPjwvcmFkaWFsR3JhZGllbnQ+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImJsIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2YyZjdmNCIvPjxzdG9wIG9mZnNldD0iNTAlIiBzdG9wLWNvbG9yPSIjOGNhMTk2Ii8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMzM0MDM5Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+CiAgICA8cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0idXJsKCNiZykiLz4KICAgIDxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDUwIDUwKSByb3RhdGUoNDIpIHRyYW5zbGF0ZSgtNTAgLTUwKSI+CiAgICAgIDxwYXRoIGQ9Ik01MCAxMSBMNTcgMjQgTDU2IDY0IEw0NCA2NCBMNDMgMjQgWiIgZmlsbD0idXJsKCNibCkiIHN0cm9rZT0iI2RjZWVlNCIgc3Ryb2tlLXdpZHRoPSIxLjEiLz4KICAgICAgPHBhdGggZD0iTTMxIDYzIEw2OSA2MyBMNjcgNjkgTDMzIDY5IFoiIGZpbGw9IiNjOWE0NjMiIHN0cm9rZT0iI2Y1ZGZhMiIgc3Ryb2tlLXdpZHRoPSIwLjgiLz4KICAgICAgPHJlY3QgeD0iNDYuNSIgeT0iNjkiIHdpZHRoPSI3IiBoZWlnaHQ9IjE2IiByeD0iMiIgZmlsbD0iIzJiMjExNCIgc3Ryb2tlPSIjYzlhNDYzIiBzdHJva2Utd2lkdGg9IjAuOSIvPgogICAgICA8Y2lyY2xlIGN4PSI1MCIgY3k9Ijg5IiByPSI1IiBmaWxsPSIjYzlhNDYzIi8+PGNpcmNsZSBjeD0iNTAiIGN5PSI2NiIgcj0iMy40IiBmaWxsPSIjNGNlNjdhIi8+CiAgICA8L2c+PC9zdmc+');background-size:cover;background-position:center"></div></div>
+    
+    <span class="ilvl">27</span>
+    
+    
+    
+  </div></div><div class="abs" style="left:1126px;top:204px"><div class="islot q2">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzJiMjQxYyIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzBhMDgwNiIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1MCA1MCkgcm90YXRlKC0zMikgdHJhbnNsYXRlKC01MCAtNTApIj4KICAgICAgPHJlY3QgeD0iMjYiIHk9IjQyIiB3aWR0aD0iNTQiIGhlaWdodD0iOCIgcng9IjIiIGZpbGw9IiM5OGE0YWQiIHN0cm9rZT0iI2UwZThlZCIgc3Ryb2tlLXdpZHRoPSIxIi8+CiAgICAgIDxwYXRoIGQ9Ik0xNiA1OCBMMzYgNDggTDQ4IDU0IEwyNiA3MCBRMTggNjggMTYgNTggWiIgZmlsbD0iIzcwNDcyNCIgc3Ryb2tlPSIjYzlhNDYzIiBzdHJva2Utd2lkdGg9IjEiLz4KICAgIDwvZz48L3N2Zz4=');background-size:cover;background-position:center"></div></div>
+    
+    <span class="ilvl">21</span>
+    
+    
+    
+  </div></div>
+  <div class="abs" style="left:1126px;top:308px"><div class="islot q2">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzFjMmIzOCIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzA3MGMxMiIvPjwvcmFkaWFsR3JhZGllbnQ+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9Im9iIiBjeD0iMzglIiBjeT0iMzUlIiByPSI2MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmZmZmZmYiLz48c3RvcCBvZmZzZXQ9IjU1JSIgc3RvcC1jb2xvcj0iI2I4YzRjYyIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzRlNTk2MiIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSIyOCIgZmlsbD0idXJsKCNvYikiIHN0cm9rZT0iIzI0MzAzOCIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgPC9zdmc+');background-size:cover;background-position:center"></div></div>
+    
+    <span class="ilvl">30</span>
+    
+    
+    
+  </div></div><div class="abs" style="left:1126px;top:364px"><div class="islot empty">
+    <div class="ic-wrap"><div class="sil"></div></div>
+    
+    
+    
+    
+    
+  </div></div>
+  <div class="abs" style="left:1098px;top:474px"><div class="islot q2">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzE2MzgyNiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzA3MTAwYyIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8cGF0aCBkPSJNMjQgMTQgUTUwIDU0IDc2IDE0IiBmaWxsPSJub25lIiBzdHJva2U9IiNjOWE0NjMiIHN0cm9rZS13aWR0aD0iMy41IiBzdHJva2UtZGFzaGFycmF5PSI0IDIiLz4KICAgIDxwb2x5Z29uIHBvaW50cz0iNTAsMzYgNjgsNTggNTAsODQgMzIsNTgiIGZpbGw9IiMyYmQ5NjUiIHN0cm9rZT0iI2ZmZTdhNiIgc3Ryb2tlLXdpZHRoPSIzIi8+CiAgPC9zdmc+');background-size:cover;background-position:center"></div></div>
+    
+    <span class="ilvl">24</span>
+    
+    
+    
+  </div></div><div class="abs" style="left:1152px;top:474px"><div class="islot q3">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzEzMzM1MiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzA1MGIxNCIvPjwvcmFkaWFsR3JhZGllbnQ+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmZlYWE4Ii8+PHN0b3Agb2Zmc2V0PSI1MCUiIHN0b3AtY29sb3I9IiNjNDk1NDUiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM1ZTQyMTQiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz4KICAgIDxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSJ1cmwoI2JnKSIvPgogICAgPGVsbGlwc2UgY3g9IjUwIiBjeT0iNTgiIHJ4PSIyNCIgcnk9IjIyIiBmaWxsPSJub25lIiBzdHJva2U9InVybCgjZykiIHN0cm9rZS13aWR0aD0iOSIvPgogICAgPHBvbHlnb24gcG9pbnRzPSI1MCwyMCA2MiwzMiA1MCw0NCAzOCwzMiIgZmlsbD0iIzQ2YjZmZiIgc3Ryb2tlPSIjZmZlYWE4IiBzdHJva2Utd2lkdGg9IjIuMiIvPgogIDwvc3ZnPg==');background-size:cover;background-position:center"></div></div>
+    
+    <span class="ilvl">33</span>
+    
+    
+    
+  </div></div><div class="abs" style="left:1098px;top:528px"><div class="islot q2">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzE5M2IyNiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzA2MTAwYSIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8ZWxsaXBzZSBjeD0iNTAiIGN5PSI1NiIgcng9IjI0IiByeT0iMjIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2NmZDhkZSIgc3Ryb2tlLXdpZHRoPSI4Ii8+CiAgICA8Y2lyY2xlIGN4PSI1MCIgY3k9IjMwIiByPSI4IiBmaWxsPSIjNGNlNjdhIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgPC9zdmc+');background-size:cover;background-position:center"></div></div>
+    
+    <span class="ilvl">26</span>
+    
+    
+    
+  </div></div><div class="abs" style="left:1152px;top:528px"><div class="islot empty">
+    <div class="ic-wrap"><div class="sil"></div></div>
+    
+    
+    
+    
+    
+  </div></div><div class="abs" style="left:1098px;top:582px"><div class="islot empty">
+    <div class="ic-wrap"><div class="sil"></div></div>
+    
+    
+    
+    
+    
+  </div></div><div class="abs" style="left:1152px;top:582px"><div class="islot empty">
+    <div class="ic-wrap"><div class="sil"></div></div>
+    
+    
+    
+    
+    
+  </div></div>
+
+  <!-- Mini Radial (G) -->
+  <div class="rad-wrap"><div class="rad-ring"></div><span class="rad-key">G</span><div class="rad-slot" style="left:67.0px;top:21.0px"><div class="in"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzNkMTUxZCIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzBlMDYwOCIvPjwvcmFkaWFsR3JhZGllbnQ+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImxpcSIgY3g9IjQyJSIgY3k9IjQwJSIgcj0iNjAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmY4NTk0Ii8+PHN0b3Agb2Zmc2V0PSI1NSUiIHN0b3AtY29sb3I9IiNjOTE4MzIiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM1OTA4MTQiLz48L3JhZGlhbEdyYWRpZW50PjwvZGVmcz4KICAgIDxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSJ1cmwoI2JnKSIvPgogICAgPHJlY3QgeD0iNDMiIHk9IjE0IiB3aWR0aD0iMTQiIGhlaWdodD0iMTAiIHJ4PSIyIiBmaWxsPSIjOGY2MzM4Ii8+CiAgICA8cmVjdCB4PSI0MSIgeT0iMjIiIHdpZHRoPSIxOCIgaGVpZ2h0PSIxMiIgZmlsbD0iIzdkYTBiMCIgb3BhY2l0eT0iMC41NSIgc3Ryb2tlPSIjZDhlZWY4IiBzdHJva2Utd2lkdGg9IjEiLz4KICAgIDxwYXRoIGQ9Ik00MSAzNCBMMzAgNDggUTIyIDYwIDI4IDc0IFEzNCA4NiA1MCA4NiBRNjYgODYgNzIgNzQgUTc4IDYwIDcwIDQ4IEw1OSAzNCBaIiBmaWxsPSJ1cmwoI2xpcSkiIHN0cm9rZT0iI2U0ZjRmZiIgc3Ryb2tlLXdpZHRoPSIxLjgiLz4KICAgIDxlbGxpcHNlIGN4PSIzOSIgY3k9IjU2IiByeD0iNSIgcnk9IjExIiB0cmFuc2Zvcm09InJvdGF0ZSgtMTggMzkgNTYpIiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjQiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center"></div></div><span class="cnt">5</span></div><div class="rad-slot" style="left:99.5px;top:34.5px"><div class="in"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzJlMjExNCIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzBjMDgwNSIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8ZWxsaXBzZSBjeD0iNTAiIGN5PSI1NCIgcng9IjMwIiByeT0iMjAiIGZpbGw9IiNkOTlhNDUiIHN0cm9rZT0iIzVlM2ExMiIgc3Ryb2tlLXdpZHRoPSIyLjUiLz4KICAgIDxwYXRoIGQ9Ik0zMCA0NiBRMzggNTYgMzIgNjIgTTUwIDQyIFE1OCA1NCA1MiA2NCBNNjggNDYgUTc0IDU2IDY4IDYyIiBzdHJva2U9IiNmNWNiNzgiIHN0cm9rZS13aWR0aD0iMi41IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center"></div></div><span class="cnt">14</span></div><div class="rad-slot" style="left:113.0px;top:67.0px"><div class="in"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzJiMjQxMiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzBiMDkwNSIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8cG9seWdvbiBwb2ludHM9IjIwLDY2IDUwLDI0IDg0LDU0IDg0LDc0IDIwLDc0IiBmaWxsPSIjZjBjMzQ4IiBzdHJva2U9IiM3ZDU5MTAiIHN0cm9rZS13aWR0aD0iMiIvPgogICAgPGNpcmNsZSBjeD0iNDYiIGN5PSI1NiIgcj0iNSIgZmlsbD0iI2I4ODQxOCIvPjxjaXJjbGUgY3g9IjY0IiBjeT0iNjIiIHI9IjQiIGZpbGw9IiNiODg0MTgiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center"></div></div><span class="cnt">4</span></div><div class="rad-slot" style="left:99.5px;top:99.5px"><div class="in"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzEyMzY0YSIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzA1MGMxMiIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8cGF0aCBkPSJNMjQgMzYgTDc2IDM2IEw2OCA3OCBRNTAgODYgMzIgNzggWiIgZmlsbD0iIzJjY2NlNiIgc3Ryb2tlPSIjZGZmOWZmIiBzdHJva2Utd2lkdGg9IjIiLz4KICAgIDxlbGxpcHNlIGN4PSI1MCIgY3k9IjM2IiByeD0iMjYiIHJ5PSI3IiBmaWxsPSIjYThmOWZmIi8+CiAgPC9zdmc+');background-size:cover;background-position:center"></div></div><span class="cnt">1</span></div><div class="rad-slot empty" style="left:67.0px;top:113.0px">+</div><div class="rad-slot empty" style="left:34.5px;top:99.5px">+</div><div class="rad-slot empty" style="left:21.0px;top:67.0px">+</div><div class="rad-slot empty" style="left:34.5px;top:34.5px">+</div></div>
+
+  <!-- Barras vitais e botões embaixo do personagem -->
+  <div class="vitals-dock">
+    <div class="vbar"><i style="width:12%;background:linear-gradient(90deg,#9c3518,#e37524)"></i><span>0</span></div>
+    <div class="vbar"><i style="width:9%;background:linear-gradient(90deg,#3d2680,#63b8ff)"></i><span>2.500 / 28.400 · 9%</span></div>
+    <div class="vbar"><i style="width:100%;background:linear-gradient(90deg,#167048,#38d984)"></i><span>1.241</span></div>
+    <div style="display:flex;gap:10px;width:100%;margin-top:4px">
+      <div class="sbtn gold" style="flex:1">REPARAR TUDO</div>
+      <div class="sbtn" style="flex:1">FICHA COMPLETA</div>
+    </div>
+  </div>
+
+  <!-- Novo ItemCard (à esquerda da ficha para não cobrir o personagem nem os slots!) -->
+  
+  <div class="abs" style="left:32px;top:102px;z-index:20">
+    <div class="icard rare" style="width:318px">
+      <div class="ic-head" style="height:82px">
+        <div class="ic-paper"></div><div class="ic-tint"></div><div class="ic-smoke1"></div><div class="ic-smoke2"></div><div class="ic-flare"></div>
+        <div class="ic-fx"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_spark.png" style="position:absolute;left:305px;top:45px;width:9px;height:9px;opacity:0.56;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #5cb8ff)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_spark.png" style="position:absolute;left:268px;top:55px;width:11px;height:11px;opacity:0.62;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #5cb8ff)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_spark.png" style="position:absolute;left:277px;top:36px;width:12px;height:12px;opacity:0.54;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #5cb8ff)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_spark.png" style="position:absolute;left:159px;top:19px;width:12px;height:12px;opacity:0.45;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #5cb8ff)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_ember.png" style="position:absolute;left:42px;top:65px;width:4px;height:14px;opacity:0.82;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #5cb8ff)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_ember.png" style="position:absolute;left:186px;top:68px;width:7px;height:23px;opacity:0.50;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #5cb8ff)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_spark.png" style="position:absolute;left:65px;top:32px;width:12px;height:12px;opacity:0.66;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #5cb8ff)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_ember.png" style="position:absolute;left:194px;top:74px;width:5px;height:15px;opacity:0.80;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #5cb8ff)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_ember.png" style="position:absolute;left:59px;top:40px;width:7px;height:22px;opacity:0.62;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #5cb8ff)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_ember.png" style="position:absolute;left:48px;top:28px;width:7px;height:21px;opacity:0.69;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #5cb8ff)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_spark.png" style="position:absolute;left:116px;top:26px;width:5px;height:5px;opacity:0.61;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #5cb8ff)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_ember.png" style="position:absolute;left:239px;top:18px;width:6px;height:20px;opacity:0.96;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #5cb8ff)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_ember.png" style="position:absolute;left:137px;top:74px;width:6px;height:19px;opacity:0.58;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #5cb8ff)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_spark.png" style="position:absolute;left:151px;top:51px;width:7px;height:7px;opacity:0.85;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #5cb8ff)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_spark.png" style="position:absolute;left:119px;top:70px;width:10px;height:10px;opacity:0.46;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #5cb8ff)"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/ic_spark.png" style="position:absolute;left:40px;top:51px;width:10px;height:10px;opacity:0.92;mix-blend-mode:screen;filter:drop-shadow(0 0 4px #5cb8ff)"></div>
+        <div class="ic-head-content">
+          <div class="ic-icon-box" style="width:62px;height:62px"><div class="ic-icon-inner"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzE0M2E2NiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzA1MGQxYSIvPjwvcmFkaWFsR3JhZGllbnQ+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImJsIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2U4ZjhmZiIvPjxzdG9wIG9mZnNldD0iNTAlIiBzdG9wLWNvbG9yPSIjNmRhNmQ5Ii8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMWQzODU3Ii8+PC9saW5lYXJHcmFkaWVudD4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmZmU3YTYiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM4YTYwMWUiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz4KICAgIDxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSJ1cmwoI2JnKSIvPgogICAgPGNpcmNsZSBjeD0iNTIiIGN5PSI0OCIgcj0iMzQiIGZpbGw9IiMzZDk0ZmYiIG9wYWNpdHk9IjAuMjIiLz4KICAgIDxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDUwIDUwKSByb3RhdGUoNDIpIHRyYW5zbGF0ZSgtNTAgLTUwKSI+CiAgICAgIDxwYXRoIGQ9Ik01MCA5IEw1NyAyMyBMNTUgNjQgTDQ1IDY0IEw0MyAyMyBaIiBmaWxsPSJ1cmwoI2JsKSIgc3Ryb2tlPSIjZDZmMGZmIiBzdHJva2Utd2lkdGg9IjEuMSIvPgogICAgICA8cGF0aCBkPSJNNTAgMTYgTDUwIDU4IiBzdHJva2U9IiM1ZmUzZTYiIHN0cm9rZS13aWR0aD0iMi4yIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICAgICAgPHBhdGggZD0iTTI5IDYzIFE1MCA1NyA3MSA2MyBMNjggNjkgUTUwIDY1IDMyIDY5IFoiIGZpbGw9InVybCgjZykiIHN0cm9rZT0iI2ZmZjJjMiIgc3Ryb2tlLXdpZHRoPSIwLjkiLz4KICAgICAgPHJlY3QgeD0iNDYuNSIgeT0iNjgiIHdpZHRoPSI3IiBoZWlnaHQ9IjE3IiByeD0iMiIgZmlsbD0iIzFlMmQ0MCIgc3Ryb2tlPSJ1cmwoI2cpIiBzdHJva2Utd2lkdGg9IjEiLz4KICAgICAgPGNpcmNsZSBjeD0iNTAiIGN5PSI4OSIgcj0iNS41IiBmaWxsPSJ1cmwoI2cpIiBzdHJva2U9IiNmZmYyYzIiIHN0cm9rZS13aWR0aD0iMC45Ii8+CiAgICAgIDxjaXJjbGUgY3g9IjUwIiBjeT0iNjUiIHI9IjMuOCIgZmlsbD0iIzVmZTNlNiIvPgogICAgPC9nPjwvc3ZnPg==');background-size:cover;background-position:center"></div></div></div>
+          <div class="ic-hmeta" style="height:62px">
+            <div><div class="ic-name" style="font-size:15.5px">Lâmina Rúnica de Vale Gris</div><div class="ic-rar">Raro &nbsp;•&nbsp; Único</div></div>
+            <div class="ic-botrow"><span>Espada</span><span>Uma Mão</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="ic-body">
+        <div class="ilvl-row"><div class="ilvl-hex"></div><div class="ilvl-val">30</div></div>
+        <div class="stat-ln"><b>62 - 104</b> Dano &nbsp;·&nbsp; <b>2.50</b> Velocidade</div>
+        <div class="stat-ln"><b>33.2</b> Dano por Segundo</div>
+        <div class="div-dia"><i></i></div>
+        <div class="stat-ln"><b>+12</b> Força &nbsp;·&nbsp; <b>+10</b> Vigor</div>
+        <div class="stat-ln"><b>+6</b> Taxa de Crítico</div>
+        <div class="div-dia"><i></i></div>
+        <div class="perk-row">
+          <div class="perk-ic"><div class="in"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI1MCUiIHI9IjU1JSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzYxMjgxNiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzE4MDgwNCIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8cGF0aCBkPSJNNTAgMTQgTDU3IDMwIEw1NSA2MiBMNDUgNjIgTDQzIDMwIFoiIGZpbGw9IiNmNWQxN2EiIHN0cm9rZT0iI2ZmZjdkNiIgc3Ryb2tlLXdpZHRoPSIxIi8+CiAgICA8cGF0aCBkPSJNMzIgNjIgTDY4IDYyIEw2NiA2OCBMMzQgNjggWiIgZmlsbD0iI2M5YTQ2MyIvPgogICAgPHJlY3QgeD0iNDciIHk9IjY4IiB3aWR0aD0iNiIgaGVpZ2h0PSIxNCIgZmlsbD0iIzVhM2QxNCIvPgogIDwvc3ZnPg==');background-size:cover;background-position:center"></div></div><div class="ring"></div></div>
+          <div class="perk-txt"><span class="pre">Equipar:</span> Aumenta o Poder de Ataque em 24.</div>
+        </div>
+        <div class="perk-row">
+          <div class="perk-ic"><div class="in"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI1MCUiIHI9IjU1JSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzFjNGY3OCIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzA3MTMyNCIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8cG9seWdvbiBwb2ludHM9IjU2LDE0IDI4LDU0IDQ4LDU0IDQyLDg2IDcyLDQ0IDUyLDQ0IiBmaWxsPSIjOGVmN2ZmIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIvPgogIDwvc3ZnPg==');background-size:cover;background-position:center"></div></div><div class="ring"></div></div>
+          <div class="perk-txt"><span class="pre">Chance ao acertar:</span> Dispara um raio de Azoth causando 40 de dano extra.</div>
+        </div>
+        <div class="div-dia"><i></i></div>
+        <div class="flavor">Temperada sob as copas antigas de Vale Gris.</div>
+        <div class="div-dia"><i></i></div>
+        <div class="bind-ln">Vinculado ao equipar</div>
+        <div class="stat-ln"><b>85 / 85</b> Durabilidade &nbsp;·&nbsp; Requer Nível 24</div>
+        <div class="sell-ln"><span class="lbl">Preço de venda:</span><span class="val"><span>2<i class="coin g"></i></span><span>45<i class="coin s"></i></span><span>10<i class="coin c"></i></span></span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Painel do Inventário (mesma posição à direita, 2x4 slots) -->
+  <main class="az-panel inv-panel">
+    <i class="c-dia tl"></i><i class="c-dia tr"></i><i class="c-dia bl"></i><i class="c-dia br"></i>
+    <div class="inv-hdr">
+      <div class="inv-top">
+        <h1>INVENTÁRIO</h1>
+        <div class="view-tabs"><span class="vtab on">CATEGORIAS</span><span class="vtab">BOLSAS</span></div>
+      </div>
+      <div class="inv-ctrl">
+        <div class="search-box"><span>Buscar...</span><span class="qmark">?</span></div>
+        <span style="font-size:11.5px;color:#8c9ba8;margin-left:4px">Ordenar</span>
+        <div class="ico-btn on"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/inv_clock.png"></div>
+        <div class="ico-btn"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/inv_star.png"></div>
+        <div class="ico-btn"><img src="file:///D:/ProjectAzaath/tools/bag-concept/assets/inv_tier.png"></div>
+      </div>
+    </div>
+    <div class="inv-body"><div><div><div class="sec-hdr"><span class="t">ARMAS</span><span class="ln"></span><span class="n">4</span><span class="ar"></span></div><div class="grid4"><div class="islot q3 hov">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzE0M2E2NiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzA1MGQxYSIvPjwvcmFkaWFsR3JhZGllbnQ+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImJsIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2U4ZjhmZiIvPjxzdG9wIG9mZnNldD0iNTAlIiBzdG9wLWNvbG9yPSIjNmRhNmQ5Ii8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMWQzODU3Ii8+PC9saW5lYXJHcmFkaWVudD4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmZmU3YTYiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM4YTYwMWUiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz4KICAgIDxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSJ1cmwoI2JnKSIvPgogICAgPGNpcmNsZSBjeD0iNTIiIGN5PSI0OCIgcj0iMzQiIGZpbGw9IiMzZDk0ZmYiIG9wYWNpdHk9IjAuMjIiLz4KICAgIDxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDUwIDUwKSByb3RhdGUoNDIpIHRyYW5zbGF0ZSgtNTAgLTUwKSI+CiAgICAgIDxwYXRoIGQ9Ik01MCA5IEw1NyAyMyBMNTUgNjQgTDQ1IDY0IEw0MyAyMyBaIiBmaWxsPSJ1cmwoI2JsKSIgc3Ryb2tlPSIjZDZmMGZmIiBzdHJva2Utd2lkdGg9IjEuMSIvPgogICAgICA8cGF0aCBkPSJNNTAgMTYgTDUwIDU4IiBzdHJva2U9IiM1ZmUzZTYiIHN0cm9rZS13aWR0aD0iMi4yIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICAgICAgPHBhdGggZD0iTTI5IDYzIFE1MCA1NyA3MSA2MyBMNjggNjkgUTUwIDY1IDMyIDY5IFoiIGZpbGw9InVybCgjZykiIHN0cm9rZT0iI2ZmZjJjMiIgc3Ryb2tlLXdpZHRoPSIwLjkiLz4KICAgICAgPHJlY3QgeD0iNDYuNSIgeT0iNjgiIHdpZHRoPSI3IiBoZWlnaHQ9IjE3IiByeD0iMiIgZmlsbD0iIzFlMmQ0MCIgc3Ryb2tlPSJ1cmwoI2cpIiBzdHJva2Utd2lkdGg9IjEiLz4KICAgICAgPGNpcmNsZSBjeD0iNTAiIGN5PSI4OSIgcj0iNS41IiBmaWxsPSJ1cmwoI2cpIiBzdHJva2U9IiNmZmYyYzIiIHN0cm9rZS13aWR0aD0iMC45Ii8+CiAgICAgIDxjaXJjbGUgY3g9IjUwIiBjeT0iNjUiIHI9IjMuOCIgZmlsbD0iIzVmZTNlNiIvPgogICAgPC9nPjwvc3ZnPg==');background-size:cover;background-position:center"></div></div>
+    
+    <span class="ilvl">30</span>
+    
+    <div class="dur "><i style="width:100%"></i></div>
+    
+  </div><div class="islot">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzI2MmUzNiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzA5MGMxMCIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1MCA1MCkgcm90YXRlKDM1KSB0cmFuc2xhdGUoLTUwIC01MCkiPgogICAgICA8cmVjdCB4PSI0NyIgeT0iMTYiIHdpZHRoPSI2IiBoZWlnaHQ9IjcyIiByeD0iMiIgZmlsbD0iIzZiNDYyOCIgc3Ryb2tlPSIjYTg4NDRjIiBzdHJva2Utd2lkdGg9IjAuOCIvPgogICAgICA8cGF0aCBkPSJNNTIgMjIgUTcyIDE4IDgyIDEyIFE4OCAzMiA4MCA1MCBRNjggNDIgNTIgNDQgWiIgZmlsbD0iI2I4YzRjYyIgc3Ryb2tlPSIjZWVmNWY4IiBzdHJva2Utd2lkdGg9IjEuMiIvPgogICAgPC9nPjwvc3ZnPg==');background-size:cover;background-position:center"></div></div>
+    
+    
+    <span class="cnt">4</span>
+    <div class="dur "><i style="width:92%"></i></div>
+    
+  </div><div class="islot">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzJiMjQxYyIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzBhMDgwNiIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1MCA1MCkgcm90YXRlKC0zMikgdHJhbnNsYXRlKC01MCAtNTApIj4KICAgICAgPHJlY3QgeD0iMjYiIHk9IjQyIiB3aWR0aD0iNTQiIGhlaWdodD0iOCIgcng9IjIiIGZpbGw9IiM5OGE0YWQiIHN0cm9rZT0iI2UwZThlZCIgc3Ryb2tlLXdpZHRoPSIxIi8+CiAgICAgIDxwYXRoIGQ9Ik0xNiA1OCBMMzYgNDggTDQ4IDU0IEwyNiA3MCBRMTggNjggMTYgNTggWiIgZmlsbD0iIzcwNDcyNCIgc3Ryb2tlPSIjYzlhNDYzIiBzdHJva2Utd2lkdGg9IjEiLz4KICAgIDwvZz48L3N2Zz4=');background-size:cover;background-position:center"></div></div>
+    
+    
+    <span class="cnt">10</span>
+    <div class="dur "><i style="width:100%"></i></div>
+    
+  </div><div class="islot">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzI2MmQzNCIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzA5MGIwZiIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1MCA1MCkgcm90YXRlKDM4KSB0cmFuc2xhdGUoLTUwIC01MCkiPgogICAgICA8cmVjdCB4PSI0NyIgeT0iMzQiIHdpZHRoPSI2IiBoZWlnaHQ9IjU0IiByeD0iMiIgZmlsbD0iIzVjM2QyMiIvPgogICAgICA8Y2lyY2xlIGN4PSI1MCIgY3k9IjMwIiByPSIxNSIgZmlsbD0iIzhmOWNhNiIgc3Ryb2tlPSIjZTRlY2YyIiBzdHJva2Utd2lkdGg9IjEuNCIvPgogICAgICA8cG9seWdvbiBwb2ludHM9IjUwLDggNTQsMTcgNDYsMTciIGZpbGw9IiNlNGVjZjIiLz48cG9seWdvbiBwb2ludHM9IjcxLDMwIDYyLDM0IDYyLDI2IiBmaWxsPSIjZTRlY2YyIi8+PHBvbHlnb24gcG9pbnRzPSIyOSwzMCAzOCwzNCAzOCwyNiIgZmlsbD0iI2U0ZWNmMiIvPgogICAgPC9nPjwvc3ZnPg==');background-size:cover;background-position:center"></div></div>
+    
+    
+    
+    <div class="dur "><i style="width:100%"></i></div>
+    
+  </div></div></div><div><div class="sec-hdr"><span class="t">CONSUMÍVEIS</span><span class="ln"></span><span class="n">26</span><span class="ar"></span></div><div class="grid4"><div class="islot">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzJlMWIxMiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzBjMDgwNiIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1MCA1MCkgcm90YXRlKC0zMCkgdHJhbnNsYXRlKC01MCAtNTApIj4KICAgICAgPHJlY3QgeD0iNDYiIHk9IjU0IiB3aWR0aD0iOCIgaGVpZ2h0PSIyOCIgcng9IjMiIGZpbGw9IiNlZWU1ZDAiLz4KICAgICAgPGVsbGlwc2UgY3g9IjUwIiBjeT0iNDAiIHJ4PSIyNCIgcnk9IjI2IiBmaWxsPSIjOWMzYzFlIiBzdHJva2U9IiMzODEzMDgiIHN0cm9rZS13aWR0aD0iMiIvPgogICAgICA8ZWxsaXBzZSBjeD0iNDQiIGN5PSIzMyIgcng9IjgiIHJ5PSI1IiBmaWxsPSIjZmZiZTk5IiBvcGFjaXR5PSIwLjQ1Ii8+CiAgICA8L2c+PC9zdmc+');background-size:cover;background-position:center"></div></div>
+    
+    
+    <span class="cnt">20</span>
+    
+    
+  </div><div class="islot">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzJlMjUxOCIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzBjMDkwNyIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1MCA1MCkgcm90YXRlKC0yMikgdHJhbnNsYXRlKC01MCAtNTApIj4KICAgICAgPHJlY3QgeD0iMjYiIHk9IjIyIiB3aWR0aD0iNDgiIGhlaWdodD0iNTYiIHJ4PSI0IiBmaWxsPSIjZDljMDkwIiBzdHJva2U9IiM1YzQyMjAiIHN0cm9rZS13aWR0aD0iMS44Ii8+CiAgICAgIDxyZWN0IHg9IjIyIiB5PSIxOCIgd2lkdGg9IjU2IiBoZWlnaHQ9IjkiIHJ4PSI0IiBmaWxsPSIjYTg4NDRjIi8+PHJlY3QgeD0iMjIiIHk9IjczIiB3aWR0aD0iNTYiIGhlaWdodD0iOSIgcng9IjQiIGZpbGw9IiNhODg0NGMiLz4KICAgICAgPGNpcmNsZSBjeD0iNjIiIGN5PSI2MCIgcj0iOCIgZmlsbD0iI2E4MWMxYyIgc3Ryb2tlPSIjZjBiNjVhIiBzdHJva2Utd2lkdGg9IjEuNCIvPgogICAgPC9nPjwvc3ZnPg==');background-size:cover;background-position:center"></div></div>
+    
+    
+    <span class="cnt">1</span>
+    
+    
+  </div><div class="islot">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzJiMjQxMiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzBiMDkwNSIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8cG9seWdvbiBwb2ludHM9IjIwLDY2IDUwLDI0IDg0LDU0IDg0LDc0IDIwLDc0IiBmaWxsPSIjZjBjMzQ4IiBzdHJva2U9IiM3ZDU5MTAiIHN0cm9rZS13aWR0aD0iMiIvPgogICAgPGNpcmNsZSBjeD0iNDYiIGN5PSI1NiIgcj0iNSIgZmlsbD0iI2I4ODQxOCIvPjxjaXJjbGUgY3g9IjY0IiBjeT0iNjIiIHI9IjQiIGZpbGw9IiNiODg0MTgiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center"></div></div>
+    
+    
+    <span class="cnt">7</span>
+    
+    
+  </div><div class="islot">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzJlMjExNCIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzBjMDgwNSIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8ZWxsaXBzZSBjeD0iNTAiIGN5PSI1NCIgcng9IjMwIiByeT0iMjAiIGZpbGw9IiNkOTlhNDUiIHN0cm9rZT0iIzVlM2ExMiIgc3Ryb2tlLXdpZHRoPSIyLjUiLz4KICAgIDxwYXRoIGQ9Ik0zMCA0NiBRMzggNTYgMzIgNjIgTTUwIDQyIFE1OCA1NCA1MiA2NCBNNjggNDYgUTc0IDU2IDY4IDYyIiBzdHJva2U9IiNmNWNiNzgiIHN0cm9rZS13aWR0aD0iMi41IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center"></div></div>
+    
+    
+    <span class="cnt">5</span>
+    
+    
+  </div><div class="islot">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzJlMjExNCIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzBjMDgwNSIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8ZWxsaXBzZSBjeD0iNTAiIGN5PSI1NCIgcng9IjMwIiByeT0iMjAiIGZpbGw9IiNkOTlhNDUiIHN0cm9rZT0iIzVlM2ExMiIgc3Ryb2tlLXdpZHRoPSIyLjUiLz4KICAgIDxwYXRoIGQ9Ik0zMCA0NiBRMzggNTYgMzIgNjIgTTUwIDQyIFE1OCA1NCA1MiA2NCBNNjggNDYgUTc0IDU2IDY4IDYyIiBzdHJva2U9IiNmNWNiNzgiIHN0cm9rZS13aWR0aD0iMi41IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center"></div></div>
+    
+    
+    <span class="cnt">13</span>
+    
+    
+  </div><div class="islot">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzJlMjExNCIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzBjMDgwNSIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8ZWxsaXBzZSBjeD0iNTAiIGN5PSI1NCIgcng9IjMwIiByeT0iMjAiIGZpbGw9IiNkOTlhNDUiIHN0cm9rZT0iIzVlM2ExMiIgc3Ryb2tlLXdpZHRoPSIyLjUiLz4KICAgIDxwYXRoIGQ9Ik0zMCA0NiBRMzggNTYgMzIgNjIgTTUwIDQyIFE1OCA1NCA1MiA2NCBNNjggNDYgUTc0IDU2IDY4IDYyIiBzdHJva2U9IiNmNWNiNzgiIHN0cm9rZS13aWR0aD0iMi41IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center"></div></div>
+    
+    
+    <span class="cnt">14</span>
+    
+    
+  </div><div class="islot">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzJiMjQxMiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzBiMDkwNSIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8cG9seWdvbiBwb2ludHM9IjIwLDY2IDUwLDI0IDg0LDU0IDg0LDc0IDIwLDc0IiBmaWxsPSIjZjBjMzQ4IiBzdHJva2U9IiM3ZDU5MTAiIHN0cm9rZS13aWR0aD0iMiIvPgogICAgPGNpcmNsZSBjeD0iNDYiIGN5PSI1NiIgcj0iNSIgZmlsbD0iI2I4ODQxOCIvPjxjaXJjbGUgY3g9IjY0IiBjeT0iNjIiIHI9IjQiIGZpbGw9IiNiODg0MTgiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center"></div></div>
+    
+    
+    <span class="cnt">4</span>
+    
+    
+  </div><div class="islot">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzJlMWIxMiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzBjMDgwNiIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1MCA1MCkgcm90YXRlKC0zMCkgdHJhbnNsYXRlKC01MCAtNTApIj4KICAgICAgPHJlY3QgeD0iNDYiIHk9IjU0IiB3aWR0aD0iOCIgaGVpZ2h0PSIyOCIgcng9IjMiIGZpbGw9IiNlZWU1ZDAiLz4KICAgICAgPGVsbGlwc2UgY3g9IjUwIiBjeT0iNDAiIHJ4PSIyNCIgcnk9IjI2IiBmaWxsPSIjOWMzYzFlIiBzdHJva2U9IiMzODEzMDgiIHN0cm9rZS13aWR0aD0iMiIvPgogICAgICA8ZWxsaXBzZSBjeD0iNDQiIGN5PSIzMyIgcng9IjgiIHJ5PSI1IiBmaWxsPSIjZmZiZTk5IiBvcGFjaXR5PSIwLjQ1Ii8+CiAgICA8L2c+PC9zdmc+');background-size:cover;background-position:center"></div></div>
+    
+    
+    <span class="cnt">2</span>
+    
+    
+  </div><div class="islot">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzNkMTUxZCIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzBlMDYwOCIvPjwvcmFkaWFsR3JhZGllbnQ+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImxpcSIgY3g9IjQyJSIgY3k9IjQwJSIgcj0iNjAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmY4NTk0Ii8+PHN0b3Agb2Zmc2V0PSI1NSUiIHN0b3AtY29sb3I9IiNjOTE4MzIiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM1OTA4MTQiLz48L3JhZGlhbEdyYWRpZW50PjwvZGVmcz4KICAgIDxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSJ1cmwoI2JnKSIvPgogICAgPHJlY3QgeD0iNDMiIHk9IjE0IiB3aWR0aD0iMTQiIGhlaWdodD0iMTAiIHJ4PSIyIiBmaWxsPSIjOGY2MzM4Ii8+CiAgICA8cmVjdCB4PSI0MSIgeT0iMjIiIHdpZHRoPSIxOCIgaGVpZ2h0PSIxMiIgZmlsbD0iIzdkYTBiMCIgb3BhY2l0eT0iMC41NSIgc3Ryb2tlPSIjZDhlZWY4IiBzdHJva2Utd2lkdGg9IjEiLz4KICAgIDxwYXRoIGQ9Ik00MSAzNCBMMzAgNDggUTIyIDYwIDI4IDc0IFEzNCA4NiA1MCA4NiBRNjYgODYgNzIgNzQgUTc4IDYwIDcwIDQ4IEw1OSAzNCBaIiBmaWxsPSJ1cmwoI2xpcSkiIHN0cm9rZT0iI2U0ZjRmZiIgc3Ryb2tlLXdpZHRoPSIxLjgiLz4KICAgIDxlbGxpcHNlIGN4PSIzOSIgY3k9IjU2IiByeD0iNSIgcnk9IjExIiB0cmFuc2Zvcm09InJvdGF0ZSgtMTggMzkgNTYpIiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjQiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center"></div></div>
+    
+    
+    <span class="cnt">5</span>
+    
+    
+  </div><div class="islot">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzNkMTUxZCIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzBlMDYwOCIvPjwvcmFkaWFsR3JhZGllbnQ+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImxpcSIgY3g9IjQyJSIgY3k9IjQwJSIgcj0iNjAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmY4NTk0Ii8+PHN0b3Agb2Zmc2V0PSI1NSUiIHN0b3AtY29sb3I9IiNjOTE4MzIiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM1OTA4MTQiLz48L3JhZGlhbEdyYWRpZW50PjwvZGVmcz4KICAgIDxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSJ1cmwoI2JnKSIvPgogICAgPHJlY3QgeD0iNDMiIHk9IjE0IiB3aWR0aD0iMTQiIGhlaWdodD0iMTAiIHJ4PSIyIiBmaWxsPSIjOGY2MzM4Ii8+CiAgICA8cmVjdCB4PSI0MSIgeT0iMjIiIHdpZHRoPSIxOCIgaGVpZ2h0PSIxMiIgZmlsbD0iIzdkYTBiMCIgb3BhY2l0eT0iMC41NSIgc3Ryb2tlPSIjZDhlZWY4IiBzdHJva2Utd2lkdGg9IjEiLz4KICAgIDxwYXRoIGQ9Ik00MSAzNCBMMzAgNDggUTIyIDYwIDI4IDc0IFEzNCA4NiA1MCA4NiBRNjYgODYgNzIgNzQgUTc4IDYwIDcwIDQ4IEw1OSAzNCBaIiBmaWxsPSJ1cmwoI2xpcSkiIHN0cm9rZT0iI2U0ZjRmZiIgc3Ryb2tlLXdpZHRoPSIxLjgiLz4KICAgIDxlbGxpcHNlIGN4PSIzOSIgY3k9IjU2IiByeD0iNSIgcnk9IjExIiB0cmFuc2Zvcm09InJvdGF0ZSgtMTggMzkgNTYpIiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjQiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center"></div></div>
+    
+    
+    <span class="cnt">5</span>
+    
+    
+  </div><div class="islot">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzNkMTUxZCIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzBlMDYwOCIvPjwvcmFkaWFsR3JhZGllbnQ+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImxpcSIgY3g9IjQyJSIgY3k9IjQwJSIgcj0iNjAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmY4NTk0Ii8+PHN0b3Agb2Zmc2V0PSI1NSUiIHN0b3AtY29sb3I9IiNjOTE4MzIiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM1OTA4MTQiLz48L3JhZGlhbEdyYWRpZW50PjwvZGVmcz4KICAgIDxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSJ1cmwoI2JnKSIvPgogICAgPHJlY3QgeD0iNDMiIHk9IjE0IiB3aWR0aD0iMTQiIGhlaWdodD0iMTAiIHJ4PSIyIiBmaWxsPSIjOGY2MzM4Ii8+CiAgICA8cmVjdCB4PSI0MSIgeT0iMjIiIHdpZHRoPSIxOCIgaGVpZ2h0PSIxMiIgZmlsbD0iIzdkYTBiMCIgb3BhY2l0eT0iMC41NSIgc3Ryb2tlPSIjZDhlZWY4IiBzdHJva2Utd2lkdGg9IjEiLz4KICAgIDxwYXRoIGQ9Ik00MSAzNCBMMzAgNDggUTIyIDYwIDI4IDc0IFEzNCA4NiA1MCA4NiBRNjYgODYgNzIgNzQgUTc4IDYwIDcwIDQ4IEw1OSAzNCBaIiBmaWxsPSJ1cmwoI2xpcSkiIHN0cm9rZT0iI2U0ZjRmZiIgc3Ryb2tlLXdpZHRoPSIxLjgiLz4KICAgIDxlbGxpcHNlIGN4PSIzOSIgY3k9IjU2IiByeD0iNSIgcnk9IjExIiB0cmFuc2Zvcm09InJvdGF0ZSgtMTggMzkgNTYpIiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjQiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center"></div></div>
+    
+    
+    <span class="cnt">5</span>
+    
+    
+  </div><div class="islot">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzNkMTUxZCIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzBlMDYwOCIvPjwvcmFkaWFsR3JhZGllbnQ+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImxpcSIgY3g9IjQyJSIgY3k9IjQwJSIgcj0iNjAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmY4NTk0Ii8+PHN0b3Agb2Zmc2V0PSI1NSUiIHN0b3AtY29sb3I9IiNjOTE4MzIiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM1OTA4MTQiLz48L3JhZGlhbEdyYWRpZW50PjwvZGVmcz4KICAgIDxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSJ1cmwoI2JnKSIvPgogICAgPHJlY3QgeD0iNDMiIHk9IjE0IiB3aWR0aD0iMTQiIGhlaWdodD0iMTAiIHJ4PSIyIiBmaWxsPSIjOGY2MzM4Ii8+CiAgICA8cmVjdCB4PSI0MSIgeT0iMjIiIHdpZHRoPSIxOCIgaGVpZ2h0PSIxMiIgZmlsbD0iIzdkYTBiMCIgb3BhY2l0eT0iMC41NSIgc3Ryb2tlPSIjZDhlZWY4IiBzdHJva2Utd2lkdGg9IjEiLz4KICAgIDxwYXRoIGQ9Ik00MSAzNCBMMzAgNDggUTIyIDYwIDI4IDc0IFEzNCA4NiA1MCA4NiBRNjYgODYgNzIgNzQgUTc4IDYwIDcwIDQ4IEw1OSAzNCBaIiBmaWxsPSJ1cmwoI2xpcSkiIHN0cm9rZT0iI2U0ZjRmZiIgc3Ryb2tlLXdpZHRoPSIxLjgiLz4KICAgIDxlbGxpcHNlIGN4PSIzOSIgY3k9IjU2IiByeD0iNSIgcnk9IjExIiB0cmFuc2Zvcm09InJvdGF0ZSgtMTggMzkgNTYpIiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjQiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center"></div></div>
+    
+    
+    <span class="cnt">5</span>
+    
+    
+  </div><div class="islot">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzNkMTUxZCIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzBlMDYwOCIvPjwvcmFkaWFsR3JhZGllbnQ+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImxpcSIgY3g9IjQyJSIgY3k9IjQwJSIgcj0iNjAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmY4NTk0Ii8+PHN0b3Agb2Zmc2V0PSI1NSUiIHN0b3AtY29sb3I9IiNjOTE4MzIiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM1OTA4MTQiLz48L3JhZGlhbEdyYWRpZW50PjwvZGVmcz4KICAgIDxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSJ1cmwoI2JnKSIvPgogICAgPHJlY3QgeD0iNDMiIHk9IjE0IiB3aWR0aD0iMTQiIGhlaWdodD0iMTAiIHJ4PSIyIiBmaWxsPSIjOGY2MzM4Ii8+CiAgICA8cmVjdCB4PSI0MSIgeT0iMjIiIHdpZHRoPSIxOCIgaGVpZ2h0PSIxMiIgZmlsbD0iIzdkYTBiMCIgb3BhY2l0eT0iMC41NSIgc3Ryb2tlPSIjZDhlZWY4IiBzdHJva2Utd2lkdGg9IjEiLz4KICAgIDxwYXRoIGQ9Ik00MSAzNCBMMzAgNDggUTIyIDYwIDI4IDc0IFEzNCA4NiA1MCA4NiBRNjYgODYgNzIgNzQgUTc4IDYwIDcwIDQ4IEw1OSAzNCBaIiBmaWxsPSJ1cmwoI2xpcSkiIHN0cm9rZT0iI2U0ZjRmZiIgc3Ryb2tlLXdpZHRoPSIxLjgiLz4KICAgIDxlbGxpcHNlIGN4PSIzOSIgY3k9IjU2IiByeD0iNSIgcnk9IjExIiB0cmFuc2Zvcm09InJvdGF0ZSgtMTggMzkgNTYpIiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjQiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center"></div></div>
+    
+    
+    <span class="cnt">5</span>
+    
+    
+  </div><div class="islot">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzNkMTUxZCIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzBlMDYwOCIvPjwvcmFkaWFsR3JhZGllbnQ+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImxpcSIgY3g9IjQyJSIgY3k9IjQwJSIgcj0iNjAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmY4NTk0Ii8+PHN0b3Agb2Zmc2V0PSI1NSUiIHN0b3AtY29sb3I9IiNjOTE4MzIiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM1OTA4MTQiLz48L3JhZGlhbEdyYWRpZW50PjwvZGVmcz4KICAgIDxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSJ1cmwoI2JnKSIvPgogICAgPHJlY3QgeD0iNDMiIHk9IjE0IiB3aWR0aD0iMTQiIGhlaWdodD0iMTAiIHJ4PSIyIiBmaWxsPSIjOGY2MzM4Ii8+CiAgICA8cmVjdCB4PSI0MSIgeT0iMjIiIHdpZHRoPSIxOCIgaGVpZ2h0PSIxMiIgZmlsbD0iIzdkYTBiMCIgb3BhY2l0eT0iMC41NSIgc3Ryb2tlPSIjZDhlZWY4IiBzdHJva2Utd2lkdGg9IjEiLz4KICAgIDxwYXRoIGQ9Ik00MSAzNCBMMzAgNDggUTIyIDYwIDI4IDc0IFEzNCA4NiA1MCA4NiBRNjYgODYgNzIgNzQgUTc4IDYwIDcwIDQ4IEw1OSAzNCBaIiBmaWxsPSJ1cmwoI2xpcSkiIHN0cm9rZT0iI2U0ZjRmZiIgc3Ryb2tlLXdpZHRoPSIxLjgiLz4KICAgIDxlbGxpcHNlIGN4PSIzOSIgY3k9IjU2IiByeD0iNSIgcnk9IjExIiB0cmFuc2Zvcm09InJvdGF0ZSgtMTggMzkgNTYpIiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjQiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center"></div></div>
+    
+    
+    <span class="cnt">5</span>
+    
+    
+  </div><div class="islot">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzNkMTUxZCIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzBlMDYwOCIvPjwvcmFkaWFsR3JhZGllbnQ+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImxpcSIgY3g9IjQyJSIgY3k9IjQwJSIgcj0iNjAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmY4NTk0Ii8+PHN0b3Agb2Zmc2V0PSI1NSUiIHN0b3AtY29sb3I9IiNjOTE4MzIiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM1OTA4MTQiLz48L3JhZGlhbEdyYWRpZW50PjwvZGVmcz4KICAgIDxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSJ1cmwoI2JnKSIvPgogICAgPHJlY3QgeD0iNDMiIHk9IjE0IiB3aWR0aD0iMTQiIGhlaWdodD0iMTAiIHJ4PSIyIiBmaWxsPSIjOGY2MzM4Ii8+CiAgICA8cmVjdCB4PSI0MSIgeT0iMjIiIHdpZHRoPSIxOCIgaGVpZ2h0PSIxMiIgZmlsbD0iIzdkYTBiMCIgb3BhY2l0eT0iMC41NSIgc3Ryb2tlPSIjZDhlZWY4IiBzdHJva2Utd2lkdGg9IjEiLz4KICAgIDxwYXRoIGQ9Ik00MSAzNCBMMzAgNDggUTIyIDYwIDI4IDc0IFEzNCA4NiA1MCA4NiBRNjYgODYgNzIgNzQgUTc4IDYwIDcwIDQ4IEw1OSAzNCBaIiBmaWxsPSJ1cmwoI2xpcSkiIHN0cm9rZT0iI2U0ZjRmZiIgc3Ryb2tlLXdpZHRoPSIxLjgiLz4KICAgIDxlbGxpcHNlIGN4PSIzOSIgY3k9IjU2IiByeD0iNSIgcnk9IjExIiB0cmFuc2Zvcm09InJvdGF0ZSgtMTggMzkgNTYpIiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjQiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center"></div></div>
+    
+    
+    <span class="cnt">5</span>
+    
+    
+  </div><div class="islot">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzNkMTUxZCIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzBlMDYwOCIvPjwvcmFkaWFsR3JhZGllbnQ+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImxpcSIgY3g9IjQyJSIgY3k9IjQwJSIgcj0iNjAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmY4NTk0Ii8+PHN0b3Agb2Zmc2V0PSI1NSUiIHN0b3AtY29sb3I9IiNjOTE4MzIiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM1OTA4MTQiLz48L3JhZGlhbEdyYWRpZW50PjwvZGVmcz4KICAgIDxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSJ1cmwoI2JnKSIvPgogICAgPHJlY3QgeD0iNDMiIHk9IjE0IiB3aWR0aD0iMTQiIGhlaWdodD0iMTAiIHJ4PSIyIiBmaWxsPSIjOGY2MzM4Ii8+CiAgICA8cmVjdCB4PSI0MSIgeT0iMjIiIHdpZHRoPSIxOCIgaGVpZ2h0PSIxMiIgZmlsbD0iIzdkYTBiMCIgb3BhY2l0eT0iMC41NSIgc3Ryb2tlPSIjZDhlZWY4IiBzdHJva2Utd2lkdGg9IjEiLz4KICAgIDxwYXRoIGQ9Ik00MSAzNCBMMzAgNDggUTIyIDYwIDI4IDc0IFEzNCA4NiA1MCA4NiBRNjYgODYgNzIgNzQgUTc4IDYwIDcwIDQ4IEw1OSAzNCBaIiBmaWxsPSJ1cmwoI2xpcSkiIHN0cm9rZT0iI2U0ZjRmZiIgc3Ryb2tlLXdpZHRoPSIxLjgiLz4KICAgIDxlbGxpcHNlIGN4PSIzOSIgY3k9IjU2IiByeD0iNSIgcnk9IjExIiB0cmFuc2Zvcm09InJvdGF0ZSgtMTggMzkgNTYpIiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjQiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center"></div></div>
+    
+    
+    <span class="cnt">5</span>
+    
+    
+  </div><div class="islot">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzM2MTQxYSIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzBkMDUwNyIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8cmVjdCB4PSI0NCIgeT0iMTQiIHdpZHRoPSIxMiIgaGVpZ2h0PSI5IiByeD0iMiIgZmlsbD0iIzhmNjMzOCIvPgogICAgPHJlY3QgeD0iMzUiIHk9IjI0IiB3aWR0aD0iMzAiIGhlaWdodD0iNjAiIHJ4PSIxNCIgZmlsbD0iI2Q5MjYzZSIgc3Ryb2tlPSIjZTRmNGZmIiBzdHJva2Utd2lkdGg9IjEuOCIvPgogICAgPGxpbmUgeDE9IjQyIiB5MT0iMzQiIHgyPSI0MiIgeTI9IjcyIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBvcGFjaXR5PSIwLjQiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center"></div></div>
+    
+    
+    <span class="cnt">5</span>
+    
+    
+  </div><div class="islot">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzM2MTQxYSIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzBkMDUwNyIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8cmVjdCB4PSI0NCIgeT0iMTQiIHdpZHRoPSIxMiIgaGVpZ2h0PSI5IiByeD0iMiIgZmlsbD0iIzhmNjMzOCIvPgogICAgPHJlY3QgeD0iMzUiIHk9IjI0IiB3aWR0aD0iMzAiIGhlaWdodD0iNjAiIHJ4PSIxNCIgZmlsbD0iI2Q5MjYzZSIgc3Ryb2tlPSIjZTRmNGZmIiBzdHJva2Utd2lkdGg9IjEuOCIvPgogICAgPGxpbmUgeDE9IjQyIiB5MT0iMzQiIHgyPSI0MiIgeTI9IjcyIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBvcGFjaXR5PSIwLjQiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center"></div></div>
+    
+    
+    <span class="cnt">2</span>
+    
+    
+  </div><div class="islot">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzJlMWIxMiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzBjMDgwNiIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1MCA1MCkgcm90YXRlKC0zMCkgdHJhbnNsYXRlKC01MCAtNTApIj4KICAgICAgPHJlY3QgeD0iNDYiIHk9IjU0IiB3aWR0aD0iOCIgaGVpZ2h0PSIyOCIgcng9IjMiIGZpbGw9IiNlZWU1ZDAiLz4KICAgICAgPGVsbGlwc2UgY3g9IjUwIiBjeT0iNDAiIHJ4PSIyNCIgcnk9IjI2IiBmaWxsPSIjOWMzYzFlIiBzdHJva2U9IiMzODEzMDgiIHN0cm9rZS13aWR0aD0iMiIvPgogICAgICA8ZWxsaXBzZSBjeD0iNDQiIGN5PSIzMyIgcng9IjgiIHJ5PSI1IiBmaWxsPSIjZmZiZTk5IiBvcGFjaXR5PSIwLjQ1Ii8+CiAgICA8L2c+PC9zdmc+');background-size:cover;background-position:center"></div></div>
+    
+    
+    <span class="cnt">2</span>
+    
+    
+  </div><div class="islot">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzEyMzY0YSIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzA1MGMxMiIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8cGF0aCBkPSJNMjQgMzYgTDc2IDM2IEw2OCA3OCBRNTAgODYgMzIgNzggWiIgZmlsbD0iIzJjY2NlNiIgc3Ryb2tlPSIjZGZmOWZmIiBzdHJva2Utd2lkdGg9IjIiLz4KICAgIDxlbGxpcHNlIGN4PSI1MCIgY3k9IjM2IiByeD0iMjYiIHJ5PSI3IiBmaWxsPSIjYThmOWZmIi8+CiAgPC9zdmc+');background-size:cover;background-position:center"></div></div>
+    
+    
+    <span class="cnt">1</span>
+    
+    
+  </div><div class="islot">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzFjMmIzOCIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzA3MGMxMiIvPjwvcmFkaWFsR3JhZGllbnQ+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9Im9iIiBjeD0iMzglIiBjeT0iMzUlIiByPSI2MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmZmZmZmYiLz48c3RvcCBvZmZzZXQ9IjU1JSIgc3RvcC1jb2xvcj0iI2I4YzRjYyIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzRlNTk2MiIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSIyOCIgZmlsbD0idXJsKCNvYikiIHN0cm9rZT0iIzI0MzAzOCIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgPC9zdmc+');background-size:cover;background-position:center"></div></div>
+    
+    
+    <span class="cnt">6</span>
+    
+    
+  </div><div class="islot">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzNkMTUxZCIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzBlMDYwOCIvPjwvcmFkaWFsR3JhZGllbnQ+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImxpcSIgY3g9IjQyJSIgY3k9IjQwJSIgcj0iNjAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmY4NTk0Ii8+PHN0b3Agb2Zmc2V0PSI1NSUiIHN0b3AtY29sb3I9IiNjOTE4MzIiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM1OTA4MTQiLz48L3JhZGlhbEdyYWRpZW50PjwvZGVmcz4KICAgIDxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSJ1cmwoI2JnKSIvPgogICAgPHJlY3QgeD0iNDMiIHk9IjE0IiB3aWR0aD0iMTQiIGhlaWdodD0iMTAiIHJ4PSIyIiBmaWxsPSIjOGY2MzM4Ii8+CiAgICA8cmVjdCB4PSI0MSIgeT0iMjIiIHdpZHRoPSIxOCIgaGVpZ2h0PSIxMiIgZmlsbD0iIzdkYTBiMCIgb3BhY2l0eT0iMC41NSIgc3Ryb2tlPSIjZDhlZWY4IiBzdHJva2Utd2lkdGg9IjEiLz4KICAgIDxwYXRoIGQ9Ik00MSAzNCBMMzAgNDggUTIyIDYwIDI4IDc0IFEzNCA4NiA1MCA4NiBRNjYgODYgNzIgNzQgUTc4IDYwIDcwIDQ4IEw1OSAzNCBaIiBmaWxsPSJ1cmwoI2xpcSkiIHN0cm9rZT0iI2U0ZjRmZiIgc3Ryb2tlLXdpZHRoPSIxLjgiLz4KICAgIDxlbGxpcHNlIGN4PSIzOSIgY3k9IjU2IiByeD0iNSIgcnk9IjExIiB0cmFuc2Zvcm09InJvdGF0ZSgtMTggMzkgNTYpIiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjQiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center"></div></div>
+    
+    
+    <span class="cnt">3</span>
+    
+    
+  </div></div></div><div><div class="sec-hdr"><span class="t">ESPAÇO LIVRE</span><span class="ln"></span><span class="n">32</span><span class="ar"></span></div><div class="grid4"><div class="islot free"><span>32</span></div></div></div></div><div><div><div class="sec-hdr"><span class="t">EQUIPAMENTO</span><span class="ln"></span><span class="n">1</span><span class="ar"></span></div><div class="grid4"><div class="islot q2">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzEzMzM1MiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzA1MGIxNCIvPjwvcmFkaWFsR3JhZGllbnQ+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmZlYWE4Ii8+PHN0b3Agb2Zmc2V0PSI1MCUiIHN0b3AtY29sb3I9IiNjNDk1NDUiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM1ZTQyMTQiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz4KICAgIDxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSJ1cmwoI2JnKSIvPgogICAgPGVsbGlwc2UgY3g9IjUwIiBjeT0iNTgiIHJ4PSIyNCIgcnk9IjIyIiBmaWxsPSJub25lIiBzdHJva2U9InVybCgjZykiIHN0cm9rZS13aWR0aD0iOSIvPgogICAgPHBvbHlnb24gcG9pbnRzPSI1MCwyMCA2MiwzMiA1MCw0NCAzOCwzMiIgZmlsbD0iIzQ2YjZmZiIgc3Ryb2tlPSIjZmZlYWE4IiBzdHJva2Utd2lkdGg9IjIuMiIvPgogIDwvc3ZnPg==');background-size:cover;background-position:center"></div></div>
+    
+    <span class="ilvl">24</span>
+    
+    <div class="dur "><i style="width:100%"></i></div>
+    
+  </div></div></div><div><div class="sec-hdr"><span class="t">MATERIAIS</span><span class="ln"></span><span class="n">1</span><span class="ar"></span></div><div class="grid4"><div class="islot round">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzMwMTgzNiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzBkMDcxMCIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8cGF0aCBkPSJNMjIgMzAgUTUwIDE4IDc4IDMwIEw3NCA3NCBRNTAgODYgMjYgNzQgWiIgZmlsbD0iI2M3NzVkOSIgc3Ryb2tlPSIjZjBjMmZhIiBzdHJva2Utd2lkdGg9IjIiLz4KICAgIDxwYXRoIGQ9Ik0yNCA0NiBRNTAgMzggNzYgNDYiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZTdmZiIgc3Ryb2tlLXdpZHRoPSIyIiBvcGFjaXR5PSIwLjYiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center"></div></div>
+    <div class="rframe"></div>
+    
+    <span class="cnt">4</span>
+    
+    
+  </div></div></div><div><div class="sec-hdr"><span class="t">MISSÃO</span><span class="ln"></span><span class="n">5</span><span class="ar"></span></div><div class="grid4"><div class="islot">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzJlMjUxOCIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzBjMDkwNyIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1MCA1MCkgcm90YXRlKC0yMikgdHJhbnNsYXRlKC01MCAtNTApIj4KICAgICAgPHJlY3QgeD0iMjYiIHk9IjIyIiB3aWR0aD0iNDgiIGhlaWdodD0iNTYiIHJ4PSI0IiBmaWxsPSIjZDljMDkwIiBzdHJva2U9IiM1YzQyMjAiIHN0cm9rZS13aWR0aD0iMS44Ii8+CiAgICAgIDxyZWN0IHg9IjIyIiB5PSIxOCIgd2lkdGg9IjU2IiBoZWlnaHQ9IjkiIHJ4PSI0IiBmaWxsPSIjYTg4NDRjIi8+PHJlY3QgeD0iMjIiIHk9IjczIiB3aWR0aD0iNTYiIGhlaWdodD0iOSIgcng9IjQiIGZpbGw9IiNhODg0NGMiLz4KICAgICAgPGNpcmNsZSBjeD0iNjIiIGN5PSI2MCIgcj0iOCIgZmlsbD0iI2E4MWMxYyIgc3Ryb2tlPSIjZjBiNjVhIiBzdHJva2Utd2lkdGg9IjEuNCIvPgogICAgPC9nPjwvc3ZnPg==');background-size:cover;background-position:center"></div></div>
+    
+    
+    
+    
+    <div class="qbadge"></div>
+  </div><div class="islot">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('file:///D:/ProjectAzaath/tools/craft-altar-concept/concept.jpg');background-size:1612.90% 1612.90%;background-position:50.00% 11.09%"></div></div>
+    
+    
+    
+    
+    <div class="qbadge"></div>
+  </div><div class="islot">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzI2MWIxMiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzBhMDgwNiIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8cmVjdCB4PSIyNCIgeT0iMTYiIHdpZHRoPSI1NCIgaGVpZ2h0PSI2OCIgcng9IjQiIGZpbGw9IiM1ZTQxMjQiIHN0cm9rZT0iI2M5YTQ2MyIgc3Ryb2tlLXdpZHRoPSIyLjUiLz4KICAgIDxyZWN0IHg9IjI0IiB5PSIxNiIgd2lkdGg9IjkiIGhlaWdodD0iNjgiIGZpbGw9IiMzNjI0MTIiIHN0cm9rZT0iI2M5YTQ2MyIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KICAgIDxwb2x5Z29uIHBvaW50cz0iNTMsMzggNjMsNTAgNTMsNjIgNDMsNTAiIGZpbGw9IiNlOWQyOWEiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center"></div></div>
+    
+    
+    
+    
+    <div class="qbadge"></div>
+  </div><div class="islot">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzFjMmIzOCIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzA3MGMxMiIvPjwvcmFkaWFsR3JhZGllbnQ+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9Im9iIiBjeD0iMzglIiBjeT0iMzUlIiByPSI2MCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmZmZmZmYiLz48c3RvcCBvZmZzZXQ9IjU1JSIgc3RvcC1jb2xvcj0iI2I4YzRjYyIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzRlNTk2MiIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSIyOCIgZmlsbD0idXJsKCNvYikiIHN0cm9rZT0iIzI0MzAzOCIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgPC9zdmc+');background-size:cover;background-position:center"></div></div>
+    
+    
+    
+    
+    <div class="qbadge"></div>
+  </div><div class="islot">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('file:///D:/ProjectAzaath/tools/craft-altar-concept/concept.jpg');background-size:1612.90% 1612.90%;background-position:11.09% 50.00%"></div></div>
+    
+    
+    
+    
+    <div class="qbadge"></div>
+  </div></div></div><div><div class="sec-hdr"><span class="t">DIVERSOS</span><span class="ln"></span><span class="n">2</span><span class="ar"></span></div><div class="grid4"><div class="islot q2">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzE2MzAzZCIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzA2MGMxMiIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8ZWxsaXBzZSBjeD0iNTAiIGN5PSI1MiIgcng9IjI4IiByeT0iMzQiIGZpbGw9IiM3YzhhOTYiIHN0cm9rZT0iIzFiMjIyOCIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgICA8cGF0aCBkPSJNNTAgMzIgQzYyIDMyIDY2IDQ0IDYwIDUyIEM1NCA2MCA0NCA1OCA0MiA1MCBDNDAgNDIgNDYgMzggNTIgNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzVmZTNlNiIgc3Ryb2tlLXdpZHRoPSI0IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center"></div></div>
+    
+    
+    
+    
+    
+  </div><div class="islot">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzM2MjIxMCIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzBkMDgwNCIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1MCA1MCkgcm90YXRlKDM1KSB0cmFuc2xhdGUoLTUwIC01MCkiPgogICAgICA8cmVjdCB4PSI0NiIgeT0iNDIiIHdpZHRoPSI4IiBoZWlnaHQ9IjQ2IiByeD0iMiIgZmlsbD0iIzZiNDQyMCIgc3Ryb2tlPSIjYzlhNDYzIiBzdHJva2Utd2lkdGg9IjEiLz4KICAgICAgPHBhdGggZD0iTTM2IDQyIFE1MCAxMCA2NCA0MiBRNTAgNTAgMzYgNDIgWiIgZmlsbD0iI2ZmOTYyZSIgc3Ryb2tlPSIjZmZmMDk5IiBzdHJva2Utd2lkdGg9IjEuNSIvPgogICAgPC9nPjwvc3ZnPg==');background-size:cover;background-position:center"></div></div>
+    
+    
+    
+    
+    
+  </div></div></div><div><div class="sec-hdr"><span class="t">LIXO</span><span class="ln"></span><span class="n">1</span><span class="ar"></span></div><div class="grid4"><div class="islot">
+    <div class="ic-wrap"><div class="ic-img" style="background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICAgIDxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0iYmciIGN4PSI1MCUiIGN5PSI0NSUiIHI9IjYwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzI2MWIxMiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzBhMDgwNiIvPjwvcmFkaWFsR3JhZGllbnQ+PC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjYmcpIi8+CiAgICA8cmVjdCB4PSIyNCIgeT0iMTYiIHdpZHRoPSI1NCIgaGVpZ2h0PSI2OCIgcng9IjQiIGZpbGw9IiM1ZTQxMjQiIHN0cm9rZT0iI2M5YTQ2MyIgc3Ryb2tlLXdpZHRoPSIyLjUiLz4KICAgIDxyZWN0IHg9IjI0IiB5PSIxNiIgd2lkdGg9IjkiIGhlaWdodD0iNjgiIGZpbGw9IiMzNjI0MTIiIHN0cm9rZT0iI2M5YTQ2MyIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KICAgIDxwb2x5Z29uIHBvaW50cz0iNTMsMzggNjMsNTAgNTMsNjIgNDMsNTAiIGZpbGw9IiNlOWQyOWEiLz4KICA8L3N2Zz4=');background-size:cover;background-position:center"></div></div>
+    
+    
+    
+    
+    
+  </div></div></div></div></div>
+    <div class="inv-foot">
+      <div class="money"><span>12<i class="coin g"></i></span><span>75<i class="coin s"></i></span><span>20<i class="coin c"></i></span></div>
+      <div class="sbtn on">RADIAL (G)</div>
+    </div>
+  </main>
+</div></body></html>

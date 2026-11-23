@@ -1,0 +1,37 @@
+DungeonQuests.lua: avisos de terceiros
+======================================
+
+O arquivo DungeonQuests.lua (missões de cada masmorra/raide da aba Masmorras do Santuário)
+é gerado por tools/map-extract/dungeonquests.js a partir dos dados do addon:
+
+  Dungeon Master (MalkDev), versão 2.0.0
+  Licença: GNU General Public License v3.0
+  Arquivos usados: Data.lua e Curated.lua (copiados em tools/map-extract/thirdparty/dungeonmaster,
+  junto com o LICENSE e o README originais).
+
+O próprio Dungeon Master credita como origem dos dados:
+  - CMaNGOS classic-db (https://github.com/cmangos/classic-db), GPL-3.0: missões, quem as dá,
+    coordenadas, pré-requisitos, recompensas e objetivos do conteúdo clássico.
+  - QuestieDB (https://github.com/Questie/QuestieDB), GPLv3: parte das correções do conteúdo novo
+    do WoW Forever (Curated.lua), conferidas com foreverchanges.pro.
+
+Textos em português (colunas pt-BR), na ordem de prioridade:
+  - O cache do próprio cliente ptBR instalado (Cache/WDB/ptBR: questcache, creaturecache,
+    gameobjectcache), lido por tools/map-extract/wdb-cache.js: os textos que o jogo mostra hoje,
+    do que já foi visto/carregado. A atualização diária roda o gerador de novo e pega o que for novo.
+  - QuestieDB l10n/Forever (lookupQuests e traces/lookup*, GPL-3.0): títulos, objetivos e nomes
+    do Forever registrados dentro do jogo.
+  - Wowhead, seção WoW Forever em português (nether.wowhead.com/forever/pt/tooltip), só para o que
+    nenhuma fonte acima tem: nome e objetivo (textos do jogo). Respostas guardadas em
+    tools/.cache/wowhead-forever-ptBR.json por tools/map-extract/wowhead-pt.js.
+  - Itens que iniciam missões: nome pt do cliente (ItemSparse ptBR via wago.tools).
+  - Títulos e objetivos: ForeverLoremaster (João Massa, GPL-3.0-or-later), Data/QuestNames_ptBR.lua
+    e Data/QuestText_ptBR.lua, que vêm do QuestieDB (GPL-3.0).
+  - Nomes de NPCs: textos do cliente via Polestar_ptBR (ver LICENSE-DATA.txt de lá) e QuestieDB l10n
+    (GPL-3.0); quem recebe a missão é identificado pelo endId do Data/Quests/QuestDB.lua.
+  - Dicas: tradução própria das dicas escritas à mão no Curated.lua do Dungeon Master.
+
+O código do Azaath que usa esses dados (Modules/SheetDungeons.lua e Modules/LootRolls.lua) foi
+escrito do zero; nenhum código do Dungeon Master foi copiado.
+
+World of Warcraft e seus nomes, textos e IDs pertencem à Blizzard Entertainment.

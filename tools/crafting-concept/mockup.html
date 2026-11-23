@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><title>Mesa do Artesão</title>
+<style>
+:root{--gold:#d8b46a;--gold2:#8a6d36;--teal:#5fd6d0;--teal2:#1f6d70;--ink:#0b1219;--panel:#0f1a24cc;--txt:#e8e2d2;--mut:#8e9aa3;
+--or:#ff8a3d;--ye:#f2d64b;--gr:#6ad06a;--gy:#9aa0a6}
+*{box-sizing:border-box}
+body{margin:0;background:#05080c;font-family:"Cinzel","Trajan Pro",Georgia,serif;color:var(--txt)}
+.stage{width:1920px;height:1080px;position:relative;overflow:hidden;transform-origin:0 0;
+background:radial-gradient(ellipse at 70% 60%,#17313a 0%,#0b161e 45%,#05080c 100%)}
+.stage:before{content:"";position:absolute;inset:0;background:
+radial-gradient(circle at 1500px 620px,#3fc4c022 0,transparent 380px),
+radial-gradient(circle at 300px 900px,#c8822a14 0,transparent 400px)}
+.sans{font-family:"Segoe UI",system-ui,sans-serif}
+/* header */
+.hdr{position:absolute;left:0;right:0;top:0;height:80px}
+.avatar{position:absolute;left:26px;top:14px;width:72px;height:72px;border-radius:50%;border:2px solid var(--gold2);background:#2a3640}
+.pname{position:absolute;left:110px;top:24px;font-size:24px;letter-spacing:1px}
+.psub{position:absolute;left:110px;top:56px;font-size:11px;color:#c9c2b0;letter-spacing:1px}
+.nav{position:absolute;left:652px;top:33px;display:flex;gap:27px;font-size:13px;letter-spacing:1px;color:#b9b3a3}
+.nav .on{color:#fff;text-shadow:0 0 10px #8ff}
+.ip{position:absolute;right:38px;top:26px;width:54px;height:54px;border-radius:50%;border:2px solid var(--gold2);display:flex;align-items:center;justify-content:center;font-size:22px}
+/* left spine of professions */
+.spine{position:absolute;left:30px;top:120px;width:120px;bottom:40px;display:flex;flex-direction:column;align-items:center;gap:26px}
+.spine:before{content:"";position:absolute;left:59px;top:30px;bottom:60px;width:2px;background:linear-gradient(#d8b46a00,#d8b46a66,#d8b46a00)}
+.med{position:relative;width:76px;height:76px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+background:conic-gradient(var(--teal) var(--p),#ffffff14 0);z-index:1}
+.med i{width:64px;height:64px;border-radius:50%;background:radial-gradient(#3a4a56,#141d25);border:2px solid var(--gold2);display:block}
+.med.on{width:100px;height:100px;box-shadow:0 0 30px #5fd6d055}
+.med.on i{width:86px;height:86px;background:radial-gradient(#ff9a3c,#7a2d0a 70%)}
+.mlab{font-size:12px;text-align:center;margin-top:-18px;color:#c9c2b0}
+.mlab b{display:block;color:var(--teal);font-size:11px;font-weight:400}
+.med.on + .mlab{color:#fff;font-size:14px}
+/* main */
+.main{position:absolute;left:180px;top:104px;width:1090px;bottom:30px}
+.title{display:flex;align-items:baseline;gap:18px}
+.title h1{margin:0;font-size:34px;font-weight:400;letter-spacing:2px}
+.title .rank{font-size:14px;color:var(--mut)}
+.skbar{height:6px;width:420px;background:#ffffff12;margin:8px 0 0;position:relative}
+.skbar i{position:absolute;left:0;top:0;bottom:0;width:45%;background:linear-gradient(90deg,var(--teal2),var(--teal))}
+.skbar em{position:absolute;left:45%;top:-4px;width:2px;height:14px;background:#fff;box-shadow:0 0 8px #fff}
+/* smart lanes */
+.lanes{display:flex;gap:14px;margin-top:22px}
+.lane{flex:1;height:86px;border:1px solid #d8b46a44;background:linear-gradient(120deg,#16242ecc,#0d151ccc);position:relative;padding:14px 18px;clip-path:polygon(14px 0,100% 0,calc(100% - 14px) 100%,0 100%)}
+.lane .n{font-size:30px;color:var(--gold);position:absolute;right:26px;top:18px}
+.lane .t{font-size:15px;letter-spacing:1px}
+.lane .d{font-size:12px;color:var(--mut);margin-top:6px}
+.lane.on{border-color:var(--teal);background:linear-gradient(120deg,#1c4247ee,#0f1f26ee)}
+.lane.on .n{color:var(--teal)}
+.search{display:flex;gap:10px;align-items:center;margin-top:16px}
+.search input{flex:1;height:36px;background:#0a1219cc;border:none;border-bottom:1px solid #d8b46a55;color:var(--txt);padding:0 14px;font-size:13px}
+.legend{display:flex;gap:14px;font-size:11px;color:var(--mut)}
+.legend span:before{content:"";display:inline-block;width:10px;height:10px;transform:rotate(45deg);margin-right:6px;background:var(--c)}
+/* category decks */
+.decks{margin-top:18px;display:flex;flex-direction:column;gap:18px}
+.deck{display:flex;gap:14px;align-items:stretch}
+.plaque{width:130px;flex:none;border-left:2px solid var(--gold2);padding:10px 0 0 14px;position:relative}
+.plaque .cn{font-size:15px;letter-spacing:1px;line-height:1.25}
+.plaque .cc{font-size:11px;color:var(--mut);margin-top:6px}
+.plaque .ci{width:36px;height:36px;border-radius:50%;border:1px solid var(--gold2);margin-bottom:8px;background:radial-gradient(var(--h),#111 75%)}
+.cards{display:flex;gap:12px;flex-wrap:nowrap}
+.card{width:150px;height:176px;position:relative;background:linear-gradient(#152430f0,#0b141bf0);border:1px solid #ffffff1a;padding:12px 10px 10px;text-align:center}
+.card:before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--c)}
+.card .gem{position:absolute;left:8px;top:10px;width:10px;height:10px;transform:rotate(45deg);background:var(--c);box-shadow:0 0 8px var(--c)}
+.card .ic{width:62px;height:62px;border-radius:50%;margin:4px auto 0;border:2px solid var(--gold2);background:radial-gradient(var(--h),#1a0f08 72%)}
+.card .nm{font-size:13px;margin-top:10px;line-height:1.2;height:32px}
+.card .rg{display:flex;justify-content:center;gap:5px;margin-top:10px}
+.card .rg i{width:18px;height:18px;border-radius:50%;border:1px solid #6ad06a;background:#2a3a30}
+.card .rg i.no{border-color:#c0504a;background:#3a2222;opacity:.7}
+.card .qty{position:absolute;right:8px;top:8px;font-size:12px;color:#0b1219;background:var(--teal);padding:1px 6px;font-family:"Segoe UI",sans-serif;font-weight:600}
+.card .star{position:absolute;right:10px;bottom:8px;color:var(--gold);font-size:13px}
+.card.dim{opacity:.55}
+.card.sel{border:1px solid var(--teal);box-shadow:0 0 0 1px var(--teal),0 0 26px #5fd6d066;transform:translateY(-6px)}
+.more{width:60px;display:flex;align-items:center;justify-content:center;color:var(--mut);font-size:12px;border:1px dashed #ffffff22}
+/* altar */
+.altar{position:absolute;right:30px;top:104px;width:600px;bottom:30px;border-left:1px solid #d8b46a33;padding-left:30px}
+.altar h2{margin:6px 0 0;font-size:30px;font-weight:400;letter-spacing:1px}
+.altar .sub{font-size:13px;color:var(--mut);margin-top:6px}
+.altar .tags{display:flex;gap:8px;margin-top:12px}
+.tag{font-size:11px;padding:3px 10px;border:1px solid #ffffff22;color:#c9c2b0}
+.tag.g{border-color:#6ad06a88;color:var(--gr)}
+.ring{position:relative;width:520px;height:520px;margin:26px auto 0}
+.ring .c1,.ring .c2,.ring .c3{position:absolute;border-radius:50%;border:1px solid #5fd6d055}
+.c1{inset:0}.c2{inset:40px;border-style:dashed!important;border-color:#d8b46a44!important}.c3{inset:150px;border:2px solid #5fd6d0aa!important;box-shadow:0 0 50px #5fd6d044,inset 0 0 40px #5fd6d033}
+.ring svg{position:absolute;inset:0}
+.core{position:absolute;left:50%;top:50%;width:150px;height:150px;margin:-75px 0 0 -75px;border-radius:50%;border:3px solid var(--gold);background:radial-gradient(circle at 40% 40%,#ffe0d0,#c96a5a 60%,#3a1410)}
+.core b{position:absolute;bottom:-34px;left:0;right:0;text-align:center;font-size:12px;color:var(--teal);font-weight:400}
+.reag{position:absolute;width:118px;text-align:center}
+.reag i{display:block;width:70px;height:70px;margin:0 auto;border-radius:50%;border:2px solid var(--gold2);background:radial-gradient(var(--h),#120c06 72%)}
+.reag .rn{font-size:12px;margin-top:6px}
+.reag .rc{font-size:14px;color:#e0605a;font-family:"Segoe UI",sans-serif}
+.reag.ok .rc{color:var(--gr)}
+.reag .src{font-size:10px;color:var(--mut);font-family:"Segoe UI",sans-serif}
+.act{position:absolute;left:30px;right:0;bottom:0;display:flex;gap:10px;align-items:center}
+.step{display:flex;align-items:center;border:1px solid #d8b46a55;height:46px}
+.step span{width:42px;text-align:center;font-size:18px}
+.step b{width:46px;text-align:center;font-weight:400;border-left:1px solid #ffffff1a;border-right:1px solid #ffffff1a;line-height:46px}
+.btn{height:46px;padding:0 18px;border:1px solid #d8b46a55;display:flex;align-items:center;font-size:13px;letter-spacing:1px;color:#c9c2b0}
+.craft{flex:1;justify-content:center;font-size:18px;letter-spacing:3px;color:#1a1206;background:linear-gradient(#e9c97f,#a67c34);border:1px solid #f3dca0}
+.atabs{display:flex;gap:28px;border-bottom:1px solid #d8b46a33;margin-bottom:14px}
+.atabs span{font-size:14px;letter-spacing:2px;color:var(--mut);padding:4px 0 10px;cursor:pointer;position:relative}
+.atabs span em{font-style:normal;font-size:11px;color:#c9a050;margin-left:6px;letter-spacing:0}
+.atabs span.on{color:#fff}.atabs span.on:after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--teal);box-shadow:0 0 10px var(--teal)}
+.tag.snd{border-color:#d8b46a77;color:var(--gold)}
+.ring{margin-top:6px!important}
+.prog{position:absolute;left:30px;right:0;bottom:62px}
+.ptxt{display:flex;justify-content:space-between;font-size:13px;letter-spacing:1px;margin-bottom:6px}
+.ptxt span:last-child{color:var(--teal)}
+.pbar{position:relative;height:14px;background:#0a1219;border:1px solid #d8b46a66}
+.pbar i{position:absolute;left:0;top:0;bottom:0;width:30%;background:linear-gradient(90deg,#1f6d70,#5fd6d0);box-shadow:0 0 14px #5fd6d0aa}
+.pips{position:absolute;inset:0;display:flex}.pips b{flex:1;border-right:1px solid #05080c}.pips b:last-child{border:none}
+.prog.idle{opacity:.25}
+.act{gap:8px!important}.act .btn{padding:0 12px}.act .craft{font-size:15px;letter-spacing:2px;min-width:0}
+.craft.busy{background:linear-gradient(#5a4a2a,#3a2e18);color:#c9b07a;border-color:#8a6d36}
+.stop{color:#ff9a8a;border-color:#c0504a;background:#3a1514cc}
+.stop.off{opacity:.3}
+.bags{display:flex;gap:10px}
+.bagi{text-align:center;font-size:11px;color:var(--mut)}
+.bagi i{display:block;width:52px;height:52px;border:2px solid var(--gold2);background:radial-gradient(var(--h),#120c06 75%);margin-bottom:4px}
+.bagi.on i{border-color:var(--teal);box-shadow:0 0 12px #5fd6d066}
+.chips{display:flex;gap:8px;margin:16px 0 14px}
+.chips span{font-size:12px;padding:5px 12px;border:1px solid #ffffff22;color:#c9c2b0}
+.chips span.on{border-color:var(--teal);color:#fff;background:#1c4247aa}
+.grid{display:grid;grid-template-columns:repeat(8,62px);gap:8px}
+.slot{width:62px;height:62px;border:1px solid #ffffff1c;background:#0a121acc;position:relative}
+.slot i{position:absolute;inset:6px;border-radius:4px;background:radial-gradient(var(--h),#120c06 80%)}
+.slot b{position:absolute;right:3px;bottom:1px;font:600 12px "Segoe UI",sans-serif;color:#fff;text-shadow:0 0 3px #000}
+.slot.use{border-color:var(--teal);box-shadow:inset 0 0 12px #5fd6d066}
+.slot.new:after{content:"NOVO";position:absolute;left:2px;top:2px;font:600 9px "Segoe UI",sans-serif;background:var(--gold);color:#1a1206;padding:0 3px}
+.slot.dim{opacity:.35}
+.bagfoot{display:flex;justify-content:space-between;margin-top:16px;font-size:12px;color:var(--mut)}
+.bagfoot .gold{color:#fff;font-size:14px}
+.note{position:absolute;font-family:"Segoe UI",sans-serif;font-size:13px;color:#0b1219;background:#f2d64b;padding:6px 10px;border-radius:3px;max-width:240px;z-index:9;line-height:1.35;box-shadow:0 4px 14px #0008}
+.note:before{content:attr(data-n);display:inline-block;background:#0b1219;color:#f2d64b;border-radius:50%;width:18px;height:18px;text-align:center;line-height:18px;margin-right:6px;font-weight:700;font-size:11px}
+</style></head><body>
+<div class="stage" id="s">
+ <div class="hdr">
+  <div class="avatar"></div><div class="pname">MARAATH</div><div class="psub">NÍVEL 23 ELFO NOTURNO GUERREIRO</div>
+  <div class="nav"><span>SANTUÁRIO</span><span>GRIMÓRIO</span><span>TALENTOS</span><span>REPUTAÇÃO</span><span>PERÍCIAS</span><span class="on">OFÍCIOS</span><span>GLADIADOR</span><span>TESOURO</span><span>CRÔNICAS</span></div>
+  <div class="ip">15</div>
+ </div>
+
+ <div class="spine">
+  <div class="med" style="--p:59%"><i style="background:radial-gradient(#9b8ad8,#2a2050 70%)"></i></div><div class="mlab">Mineração<b>89 / 150</b></div>
+  <div class="med on" style="--p:45%"><i></i></div><div class="mlab">Culinária<b>68 / 150</b></div>
+  <div class="med" style="--p:25%"><i style="background:radial-gradient(#b86ad0,#2a1040 70%)"></i></div><div class="mlab">Pesca<b>19 / 75</b></div>
+  <div class="med" style="--p:61%"><i style="background:radial-gradient(#e05040,#3a0a08 70%)"></i></div><div class="mlab">Primeiros<br>Socorros<b>92 / 150</b></div>
+ </div>
+
+ <div class="main">
+  <div class="title"><h1>CULINÁRIA</h1><span class="rank sans">Artesão · 68 / 150 · faltam 7 para Especialista</span></div>
+  <div class="skbar"><i></i><em></em></div>
+
+  <div class="lanes">
+   <div class="lane on"><div class="t">PRONTAS PARA CRIAR</div><div class="d sans">Você tem todos os materiais</div><div class="n">3</div></div>
+   <div class="lane"><div class="t">SOBEM SUA PERÍCIA</div><div class="d sans">Laranja e amarelas</div><div class="n">5</div></div>
+   <div class="lane"><div class="t">FALTA POUCO</div><div class="d sans">Falta 1 material</div><div class="n">2</div></div>
+   <div class="lane"><div class="t">FAVORITAS</div><div class="d sans">Fixadas por você</div><div class="n">2</div></div>
+  </div>
+
+  <div class="search"><input class="sans" placeholder="Buscar receita, item ou reagente..."><div class="legend sans"><span style="--c:var(--or)">Sempre sobe</span><span style="--c:var(--ye)">Provável</span><span style="--c:var(--gr)">Raro</span><span style="--c:var(--gy)">Não sobe</span></div></div>
+
+  <div class="decks">
+   <div class="deck">
+    <div class="plaque"><div class="ci" style="--h:#d08a3a"></div><div class="cn">Refeições do<br>Dia-a-dia</div><div class="cc sans">3 receitas</div></div>
+    <div class="cards">
+     <div class="card" style="--c:var(--or);--h:#e07a50"><div class="gem"></div><div class="qty">×2</div><div class="ic"></div><div class="nm">Mariscos Fervidos</div><div class="rg"><i></i><i></i></div></div>
+     <div class="card" style="--c:var(--ye);--h:#a06030"><div class="gem"></div><div class="ic"></div><div class="nm">Kebab Kaldorei de Aranha</div><div class="rg"><i></i><i class="no"></i></div><div class="star">★</div></div>
+     <div class="card dim" style="--c:var(--gr);--h:#904030"><div class="gem"></div><div class="ic"></div><div class="nm">Carne Tostada de Lobo</div><div class="rg"><i class="no"></i><i class="no"></i></div></div>
+    </div>
+   </div>
+   <div class="deck">
+    <div class="plaque"><div class="ci" style="--h:#5fd6d0"></div><div class="cn">Comidas de<br>Vigor</div><div class="cc sans">1 receita</div></div>
+    <div class="cards">
+     <div class="card sel" style="--c:var(--gr);--h:#f0c0b0"><div class="gem"></div><div class="ic"></div><div class="nm">Ovo Assado com Ervas</div><div class="rg"><i class="no"></i><i class="no"></i></div></div>
+    </div>
+    <div class="plaque" style="margin-left:24px"><div class="ci" style="--h:#c04030"></div><div class="cn">Comidas de<br>Força</div><div class="cc sans">2 receitas</div></div>
+    <div class="cards">
+     <div class="card" style="--c:var(--or);--h:#a04a30"><div class="gem"></div><div class="qty">×1</div><div class="ic"></div><div class="nm">Empadão de Fígado de Goretusco</div><div class="rg"><i></i><i></i><i></i></div></div>
+     <div class="card dim" style="--c:var(--gr);--h:#c07050"><div class="gem"></div><div class="ic"></div><div class="nm">Carne Assada de Porco</div><div class="rg"><i class="no"></i></div></div>
+    </div>
+   </div>
+   <div class="deck">
+    <div class="plaque"><div class="ci" style="--h:#6ad06a"></div><div class="cn">Comidas de<br>Agilidade</div><div class="cc sans">2 receitas</div></div>
+    <div class="cards">
+     <div class="card" style="--c:var(--or);--h:#b05030"><div class="gem"></div><div class="qty">×4</div><div class="ic"></div><div class="nm">Bife de Coiote</div><div class="rg"><i></i></div><div class="star">★</div></div>
+     <div class="card dim" style="--c:var(--ye);--h:#905040"><div class="gem"></div><div class="ic"></div><div class="nm">Carne Temperada de Lobo</div><div class="rg"><i class="no"></i><i></i></div></div>
+    </div>
+    <div class="plaque" style="margin-left:24px"><div class="ci" style="--h:#6a8ad0"></div><div class="cn">Comidas de<br>Intelecto</div><div class="cc sans">1 receita</div></div>
+    <div class="cards">
+     <div class="card dim" style="--c:var(--or);--h:#7080a0"><div class="gem"></div><div class="ic"></div><div class="nm">Ensopado de Moa</div><div class="rg"><i class="no"></i><i></i></div></div>
+    </div>
+   </div>
+  </div>
+ </div>
+
+ <div class="altar">
+  <div class="atabs"><span class="on" data-t="altar">ALTAR</span><span data-t="bag">MOCHILA <em class="sans">58 / 64</em></span></div>
+  <div class="view" id="v-altar">
+  <h2>Ovo Assado com Ervas</h2>
+  <div class="sub sans">Comidas de Vigor · Bem Alimentado: +6 Vigor por 15 min</div>
+  <div class="tags sans"><span class="tag g">Sobe perícia: raro</span><span class="tag">Gera 1</span><span class="tag">Requer fogueira</span><span class="tag snd">♪ Som: frigideira</span></div>
+  <div class="ring">
+   <div class="c1"></div><div class="c2"></div><div class="c3"></div>
+   <svg viewBox="0 0 520 520"><g stroke="#5fd6d0" stroke-width="1.5" stroke-dasharray="4 6" opacity=".7">
+    <line x1="95" y1="160" x2="200" y2="215"/><line x1="425" y1="160" x2="320" y2="215"/><line x1="260" y1="470" x2="260" y2="345"/></g></svg>
+   <div class="core"><b>× 1</b></div>
+   <div class="reag" style="left:14px;top:60px;--h:#e8e0d0"><i></i><div class="rn">Ovo Pequeno</div><div class="rc">0 / 1</div><div class="src">Saque de aves</div></div>
+   <div class="reag" style="right:14px;top:60px;--h:#d08a3a"><i></i><div class="rn">Temperos Suaves</div><div class="rc">0 / 1</div><div class="src">Vendedor de comida</div></div>
+   <div class="reag ok" style="left:201px;top:400px;--h:#ff8a3d"><i></i><div class="rn">Fogueira</div><div class="rc">Ferramenta</div></div>
+  </div>
+  </div>
+  <div class="view" id="v-bag" style="display:none">
+   <div class="bags">
+    <div class="bagi on"><i style="--h:#a07040"></i><span class="sans">16/16</span></div>
+    <div class="bagi"><i style="--h:#704030"></i><span class="sans">12/12</span></div>
+    <div class="bagi"><i style="--h:#704030"></i><span class="sans">10/12</span></div>
+    <div class="bagi"><i style="--h:#506070"></i><span class="sans">12/12</span></div>
+    <div class="bagi"><i style="--h:#606050"></i><span class="sans">8/12</span></div>
+   </div>
+   <div class="chips sans"><span class="on">Usados na receita</span><span>Materiais de ofício</span><span>Criados por você</span><span>Tudo</span></div>
+   <div class="grid" id="grid"></div>
+   <div class="bagfoot sans"><span>Clique num material para ver as receitas que o usam</span><span class="gold">12 <b style="color:#e8c25a">o</b> 47 <b style="color:#c0c0c0">p</b> 03 <b style="color:#c07a3a">c</b></span></div>
+  </div>
+  <div class="prog" id="prog">
+   <div class="ptxt"><span>CRIANDO · Ovo Assado com Ervas</span><span class="sans" id="pcount">2 de 5 · 1,4 s</span></div>
+   <div class="pbar"><i id="pfill"></i><div class="pips" id="pips"></div></div>
+  </div>
+  <div class="act">
+   <div class="step"><span>−</span><b>5</b><span>+</span></div>
+   <div class="btn">MÁX</div>
+   <div class="btn craft busy" id="craft">CRIANDO…</div>
+   <div class="btn stop" id="stop">■ PARAR</div>
+   <div class="btn">★</div><div class="btn">LINK</div>
+  </div>
+ </div>
+ <div class="note" data-n="5" style="left:960px;top:820px">Durante a criação: barra com um segmento por unidade, contagem e tempo; PARAR cancela a fila (CRIAR volta quando para)</div>
+ <div class="note" id="nbag" data-n="7" style="left:960px;top:620px;display:none">Mochila sem sair da aba: contorno turquesa = material da receita selecionada; NOVO = recém-criado; o resto esmaece no filtro</div>
+ <div class="note snd-note" data-n="6" style="left:1250px;top:540px;max-width:300px">Sons por tipo: Comidas = frigideira e fogo · Armaduras = martelo em couro/cota · Armas = bigorna e têmpera · Poções = borbulhar de frasco · Curativos = tecido rasgando. Toque final ao concluir cada unidade.</div>
+
+ <div class="note" data-n="1" style="left:30px;top:930px">Profissões viram medalhões com anel de progresso, liberando a largura toda para as receitas</div>
+ <div class="note" data-n="2" style="left:880px;top:340px">Trilhas inteligentes: um clique filtra o que importa agora</div>
+ <div class="note" data-n="3" style="left:880px;top:520px">Categorias viram baralhos de cartas: cor = chance de subir perícia, ×N = quantas dá para fazer, bolinhas = materiais</div>
+ <div class="note" data-n="4" style="left:1330px;top:400px">Altar de criação: materiais orbitam o resultado e os fios acendem quando você tem o item</div>
+</div>
+<script>
+(function(){
+var items=[["#e8e0d0",3,"use"],["#d08a3a",0,"use dim"],["#f0c0b0",2,"new"],["#e07a50",8],["#b05030",4],["#a04a30",1],["#c07050",6],["#7080a0",2],
+["#9b8ad8",14],["#606060",20],["#b08040",5],["#d0d0c0",11],["#6ad06a",3],["#c04030",1],["#5fd6d0",2],["#e8c25a",1]];
+var g=document.getElementById('grid'),h='';
+var pal=["#7a6a50","#5a6a70","#806040","#606a50","#704858","#8a8070"];for(var i=0;i<64;i++){var it=items[i]||(i<58?[pal[i%6],(i*7)%13+1,"dim"]:null);h+=it?'<div class="slot '+(it[2]||'')+'" style="--h:'+it[0]+'"><i></i>'+(it[1]>1?'<b>'+it[1]+'</b>':'')+'</div>':'<div class="slot'+(i>57?' ':'')+'"></div>';}
+g.innerHTML=h;
+document.querySelectorAll('.atabs span').forEach(function(t){t.onclick=function(){
+document.querySelectorAll('.atabs span').forEach(function(x){x.classList.toggle('on',x===t)});
+document.getElementById('v-altar').style.display=t.dataset.t==='altar'?'':'none';
+document.getElementById('v-bag').style.display=t.dataset.t==='bag'?'':'none';var b=t.dataset.t==='bag';document.querySelectorAll('.note[data-n="4"],.note[data-n="6"]').forEach(function(n){n.style.display=b?'none':''});document.getElementById('nbag').style.display=b?'':'none';}});
+var pips=document.getElementById('pips');pips.innerHTML='<b></b><b></b><b></b><b></b><b></b>';
+var total=5,done=1,t=0,run=true,fill=document.getElementById('pfill'),cnt=document.getElementById('pcount'),
+cr=document.getElementById('craft'),st=document.getElementById('stop'),pr=document.getElementById('prog');
+function ui(){fill.style.width=((done+t)/total*100)+'%';cnt.textContent=run?(done+1)+' de '+total+' · '+(2-t*2).toFixed(1).replace('.',',')+' s':'Parado';
+cr.textContent=run?'CRIANDO…':'CRIAR';cr.classList.toggle('busy',run);st.classList.toggle('off',!run);pr.classList.toggle('idle',!run);}
+setInterval(function(){if(!run)return;t+=0.025;if(t>=1){t=0;done++;if(done>=total){done=0;}}ui()},50);
+st.onclick=function(){run=false;t=0;ui()};cr.onclick=function(){if(!run){run=true;done=0;t=0;ui()}};ui();
+})();
+function fit(){var s=Math.min(innerWidth/1920,innerHeight/1080);document.getElementById('s').style.transform='scale('+s+')'}onresize=fit;fit()</script>
+</body></html>

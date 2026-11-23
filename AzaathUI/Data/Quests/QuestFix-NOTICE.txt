@@ -1,0 +1,2 @@
+QuestFix.lua usa dados do AzerothCore (https://github.com/azerothcore/azerothcore-wotlk),
+licenciado sob GPL-2.0 ou posterior: zona (QuestSortID) e nível mínimo (MinLevel) de missões.

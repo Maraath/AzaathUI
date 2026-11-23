@@ -1,0 +1,13 @@
+Data/Quests/QuestDB.lua - origem dos dados
+
+Gerado por tools/map-extract/questdb.js. As missões, os NPCs de início/fim e os pré-requisitos vêm do
+banco de missões do Polestar (Polestar_QuestDB, de origem pfQuest, licença MIT).
+
+A coluna "skill" (profissão exigida e nível mínimo, no formato SkillLine:nível) vem do QuestieDB
+(https://github.com/Questie/QuestieDB, arquivo data/Classic/classicQuestDB.lua, campo requiredSkill),
+licença GPL-3.0, autorizado pelo usuário em 2026-11-18. Créditos aos autores do Questie/QuestieDB.
+Só esse par de números por missão é usado; o arquivo do QuestieDB não é distribuído com o addon.
+
+ItemDrops (autorizado pelo usuário em 2026-11-21): classicNpcDB.lua e classicObjectDB.lua, baixados de
+data/Classic/, dão a posição de NPCs/objetos sem localização e a zona da masmorra. Ver
+Data/Quests/ItemDrops-NOTICE.txt.

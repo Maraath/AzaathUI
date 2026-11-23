@@ -1,0 +1,14 @@
+[
+ ["ATRIBUTOS & COMBATE",209,95,20.5,"tab1","C"],["ARSENAL SALVO",447.5,95.5,20.5,"tab2","C"],["TÍTULOS",623.5,95.5,20.5,"tab2","C"],
+ ["HERO VITALS",384,154.5,21,"head","C"],["ALCHEMICAL CONSTELLATION",383,289.5,21,"head","C"],["OFFENSIVE COMBAT TELEMETRY",383.5,794,21,"head","C"],["ELEMENTAL SEAL",384,1150,21,"head","C"],
+ ["VITALIDADE",110,183.5,19.5,"label","L"],["543",370,183,19.5,"white","R"],["RAIVA",397,183.5,19.5,"label","L"],["9",656,183,19.5,"white","R"],
+ ["DESCANSADO 7%  •  INTEGRIDADE 86%",384,239.5,16.5,"gray","C"],
+ ["FORÇA",425,351,19.5,"label","L"],["AGILIDADE",197,454.5,19.5,"label","R"],["VIGOR",570,454.5,19.5,"label","L"],["ESPÍRITO",289,670.5,19.5,"label","C"],["INTELECTO",478,670.5,19.5,"label","C"],
+ ["50",384,352.5,30,"dark","C"],["39",238.5,454,28,"white","C"],["54",528,454.5,28,"gold","C"],["32",289,622.5,28,"white","C"],["22",477.5,622.5,28,"white","C"],
+ ["OFENSIVA",192.5,737,18,"pillon","C"],["DEFESA & GUARDA",384,737,18,"gray","C"],["ARCANO",575,737,18,"gray","C"],
+ ["65 – 85",240.5,843.5,50,"whiteR","C"],["143",525.5,843.5,50,"whiteR","C"],["DANO PRINCIPAL",241,881.5,19.5,"gray","C"],["PODER DE ATAQUE",526.5,882,19.5,"gray","C"],
+ ["CRÍTICO FÍSICO",112,946,19.5,"label","L"],["9.11%",367,946,19.5,"cyan","R"],["VELOCIDADE",399,946,19.5,"label","L"],["2.50s",655,946,19.5,"cyan","R"],
+ ["TAXA DE ACERTO",111,1009.5,19.5,"label","L"],["0.00%",367,1009.5,19.5,"cyan","R"],["PENETRAÇÃO",400,1009.5,19.5,"label","L"],["0.00%",655,1009.5,19.5,"cyan","R"],
+ ["MAESTRIA 0",240.5,1087.5,19.5,"gray","C"],["LONGO ALCANCE 25–38",526.5,1087.5,19.5,"gray","C"],
+ ["RESISTÊNCIAS ELEMENTAIS",383.5,1184,19.5,"gray","C"]
+]
