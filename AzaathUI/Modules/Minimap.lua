@@ -29,7 +29,7 @@ local ADDON_NAME, Azaath = ...
 local M = Azaath:NewModule("Minimap")
 
 local _G = _G
-local sin, cos, max, format, date = math.sin, math.cos, math.max, string.format, date
+local sin, cos, max, abs, sqrt, format, date = math.sin, math.cos, math.max, math.abs, math.sqrt, string.format, date
 local GetPlayerFacing = GetPlayerFacing
 local API = Azaath.API
 
@@ -530,6 +530,90 @@ local function HideTimeManagerButton()
     end
 end
 
+-- Posiciona um botão ao redor do minimapa a partir de um ângulo (radianos) e raio:
+-- no modo redondo usa círculo; no quadrado projeta no perímetro reto do quadrado.
+function Azaath.MinimapButtonOffset(angleRad, radius)
+    local dx, dy = cos(angleRad), sin(angleRad)
+    if round then
+        return dx * radius, dy * radius
+    end
+    local m = max(abs(dx), abs(dy))
+    if m > 0.001 then
+        local s = radius / m
+        return dx * s, dy * s
+    end
+    return radius, 0
+end
+
+local BLIZZ_MM_BUTTONS = {
+    MinimapZoomIn = true, MinimapZoomOut = true,
+    MiniMapTracking = true, MiniMapTrackingButton = true,
+    MiniMapWorldMapButton = true, GameTimeFrame = true,
+    MiniMapBattlefieldFrame = true, MiniMapMailFrame = true,
+    QueueStatusMinimapButton = true,
+    GarrisonLandingPageMinimapButton = true,
+    ExpansionLandingPageMinimapButton = true,
+    TimeManagerClockButton = true,
+    OlhoAzaathMinimapButton = true,
+}
+
+local function LayoutAddonButtons()
+    if not (Minimap and Minimap:GetWidth()) then return end
+    local half = Minimap:GetWidth() / 2
+    if half <= 0 then return end
+    local targetR = half + 5
+
+    if Azaath.OlhoNS and Azaath.OlhoNS.PlaceMinimapButton then
+        Azaath.OlhoNS.PlaceMinimapButton()
+    end
+
+    local LDBI = _G.LibStub and _G.LibStub("LibDBIcon-1.0", true)
+    if LDBI and LDBI.GetButtonList and LDBI.Refresh then
+        for _, name in ipairs(LDBI:GetButtonList()) do
+            pcall(LDBI.Refresh, LDBI, name)
+        end
+    end
+
+    local mx, my = Minimap:GetCenter()
+    if not (mx and my) then return end
+    for _, child in ipairs({ Minimap:GetChildren() }) do
+        if child and child.IsObjectType and child:IsObjectType("Button") and child:IsShown() then
+            local name = child.GetName and child:GetName() or ""
+            if not BLIZZ_MM_BUTTONS[name] then
+                local w, h = child:GetWidth() or 0, child:GetHeight() or 0
+                if w >= 18 and w <= 46 and h >= 18 and h <= 46 then
+                    local bx, by = child:GetCenter()
+                    if bx and by then
+                        local dx, dy = bx - mx, by - my
+                        local dist = sqrt(dx * dx + dy * dy)
+                        if dist >= half * 0.45 and dist <= half * 1.65 then
+                            local isLDBI = name:sub(1, 11) == "LibDBIcon10"
+                            if not round then
+                                if max(abs(dx), abs(dy)) < targetR - 1 then
+                                    local m = max(abs(dx), abs(dy))
+                                    if m > 0.001 then
+                                        local s = targetR / m
+                                        child:ClearAllPoints()
+                                        child:SetPoint("CENTER", Minimap, "CENTER", dx * s, dy * s)
+                                        if not isLDBI then child.azaathSquareAdjusted = true end
+                                    end
+                                end
+                            elseif child.azaathSquareAdjusted then
+                                child.azaathSquareAdjusted = nil
+                                if dist > 0.001 then
+                                    local s = targetR / dist
+                                    child:ClearAllPoints()
+                                    child:SetPoint("CENTER", Minimap, "CENTER", dx * s, dy * s)
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
 --------------------------------------------------------------------------------
 -- Construção
 --------------------------------------------------------------------------------
@@ -988,6 +1072,7 @@ function M:ApplyLayout()
 
     UpdateNorth(true)
     Azaath.AnchorIndicators(_G.AzaathUIIndicators)
+    LayoutAddonButtons()
 
     local qt = Azaath:GetModule("QuestTracker")
     if qt and qt.ApplyAnchor then qt:ApplyAnchor() end
@@ -1054,15 +1139,14 @@ function M:Build()
     BuildInfo(size, db)
 
     -- Bibliotecas de botões de minimapa (ex.: LibDBIcon) consultam este global.
-    if not _G.GetMinimapShape then
-        _G.GetMinimapShape = function() return round and "ROUND" or "SQUARE" end
-    end
+    _G.GetMinimapShape = function() return round and "ROUND" or "SQUARE" end
 
     LayoutDecor(size, db)
     PlaceCluster(size, db)
 
     Azaath.AnchorIndicators(_G.AzaathUIIndicators)
     HideTimeManagerButton()
+    LayoutAddonButtons()
 
     holder.infoElapsed, holder.northElapsed = INFO_INTERVAL, 0
     holder:SetScript("OnUpdate", OnUpdate)
@@ -1083,14 +1167,22 @@ events:SetScript("OnEvent", function(_, event, arg1)
         SyncMapZone()
         UpdateZone()
         UpdateDifficulty()
+        if event == "PLAYER_ENTERING_WORLD" then
+            LayoutAddonButtons()
+            if C_Timer and C_Timer.After then
+                C_Timer.After(0.5, LayoutAddonButtons)
+                C_Timer.After(2.0, LayoutAddonButtons)
+            end
+        end
     elseif event == "ZONE_CHANGED" or event == "ZONE_CHANGED_INDOORS" then
         UpdateZone()
     elseif event == "PLAYER_DIFFICULTY_CHANGED" or event == "UPDATE_INSTANCE_INFO" then
         UpdateDifficulty()
     elseif event == "MINIMAP_UPDATE_TRACKING" then
         RefreshTrackingMenu()
-    elseif event == "ADDON_LOADED" and arg1 == "Blizzard_TimeManager" then
-        HideTimeManagerButton()
+    elseif event == "ADDON_LOADED" then
+        if arg1 == "Blizzard_TimeManager" then HideTimeManagerButton() end
+        if C_Timer and C_Timer.After then C_Timer.After(0.1, LayoutAddonButtons) end
     end
 end)
 
@@ -1099,6 +1191,10 @@ end)
 --------------------------------------------------------------------------------
 function M:OnInitialize()
     self.db = Azaath.db.minimap
+    if self.db and self.db.enabled and Azaath.db and Azaath.db.hideBlizzard and Azaath.db.hideBlizzard.minimap then
+        round = IsRound(self.db)
+        _G.GetMinimapShape = function() return round and "ROUND" or "SQUARE" end
+    end
 end
 
 function M:OnEnable()

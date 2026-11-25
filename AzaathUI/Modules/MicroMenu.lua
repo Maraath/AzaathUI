@@ -1,19 +1,11 @@
 --[[----------------------------------------------------------------------------
     AzaathUI - Modules/MicroMenu.lua
-    Barra de utilidades (Micro Menu) estilo Black Desert Online com tema Azaath:
-
-      * Visual minimalista BDO:
-        - Ícones vetoriais brancos/prateados sobre disco translúcido sutil
-        - Brilho radial em ciano Azaath no hover e quando a janela está aberta
-        - Badges numéricas circulares (talentos disponíveis, missões, amigos, guilda)
-        - Botão losango central para recolher/expandir os ícones principais
-      * Placar de Informação (estilo BDO com paleta Azaath):
-        - Painel flutuante próprio acima do ícone em foco (ou abaixo, se no topo)
-        - Título, atalho de teclado, descrição da seção, status ao vivo e FPS/MS
-      * Segurança de combate:
-        - O botão do Livro de Feitiços usa SecureHandlerClickTemplate apontando
-          para AzaathUISpellbook (permitindo abrir/fechar o grimório Azaath mesmo
-          durante o combate, sem taint).
+    Barra de utilidades (Micro Menu) com 4 estilos selecionáveis (/azaath):
+      * "bdo"      — Minimalista BDO (discos translúcidos, losango central)
+      * "azaath"   — Azaath Arcano (doca obsidiana/ouro velho, cristais ciano, anel rúnico)
+      * "numenor"  — Forja de Númenor (ardósia negra, bronze oxidado, ícones a buril, brasa)
+      * "tabletop" — Mesa de RPG / WoW Clássico (pedra cinzelada, slots retrato 3D,
+                     ícones coloridos, barra de latência e placar em pergaminho)
 ------------------------------------------------------------------------------]]
 
 local _, Azaath = ...
@@ -25,17 +17,130 @@ local InCombatLockdown = InCombatLockdown
 
 local MEDIA_DIR = Azaath.media.path .. "MicroMenu\\"
 
--- Paleta Azaath para o Micro Menu e Placares de Informação
-local AZAATH = {
-    cyan       = { 0.30, 0.85, 0.95 }, -- brilho principal Azaath
-    cyanBright = { 0.55, 0.93, 1.00 }, -- destaque / título
-    border     = { 0.22, 0.72, 0.86 }, -- borda do placar
-    bg         = { 0.04, 0.065, 0.095 }, -- fundo obsidiana Azaath
-    desc       = { 0.66, 0.76, 0.83 }, -- texto descritivo
-    hint       = { 0.45, 0.78, 0.86 }, -- dica de clique direito
-    badgeBg    = { 0.78, 0.58, 0.16 }, -- círculo dourado/âmbar estilo BDO
-    discIdle   = { 0.05, 0.08, 0.12 }, -- disco sutil em repouso
+-- Configuração visual dos 4 estilos
+local STYLES = {
+    bdo = {
+        prefix    = "",
+        accentHex = "5ce1e6",
+        plBg      = { 0.04, 0.065, 0.095, 0.94 },
+        plBorder  = { 0.22, 0.72, 0.86, 0.65 },
+        plTop     = { 0.30, 0.85, 0.95 },
+        plTitle   = { 0.92, 0.98, 1.00 },
+        plKey     = { 0.55, 0.93, 1.00 },
+        plDesc    = { 0.66, 0.76, 0.83 },
+        plHint    = { 0.45, 0.78, 0.86 },
+        badgeCol  = { 0.78, 0.58, 0.16, 0.96 },
+        badgeTxt  = { 1.00, 0.98, 0.90 },
+        iconIdle  = { 0.90, 0.92, 0.95, 0.88 },
+        iconHover = { 1.00, 1.00, 1.00, 1.00 },
+        iconOpen  = { 0.55, 0.93, 1.00, 1.00 },
+        glowCol   = { 0.30, 0.85, 0.95 },
+        discTex   = "Disc.tga",
+        toggleTex = "Diamond.tga",
+        glowTex   = "Glow.tga",
+        badgeTex  = "Badge.tga",
+    },
+    azaath = {
+        prefix    = "",
+        accentHex = "7beeff",
+        dockBg    = { 0.03, 0.045, 0.075, 0.95 },
+        dockRim   = { 0.79, 0.66, 0.42, 0.88 },
+        dockTrim  = { 0.30, 0.85, 0.95, 0.60 },
+        wingL     = "AzWingL.tga",
+        wingR     = "AzWingR.tga",
+        wingW     = 34,
+        plBg      = { 0.035, 0.055, 0.09, 0.96 },
+        plBorder  = { 0.79, 0.66, 0.42, 0.92 },
+        plTop     = { 0.30, 0.85, 0.95 },
+        plTitle   = { 0.95, 0.98, 1.00 },
+        plKey     = { 0.66, 0.97, 1.00 },
+        plDesc    = { 0.74, 0.82, 0.88 },
+        plHint    = { 0.79, 0.66, 0.42 },
+        plCorner  = "AzCorner.tga",
+        plGem     = "AzGem.tga",
+        badgeCol  = { 1, 1, 1, 1 },
+        badgeTxt  = { 1.00, 0.98, 0.92 },
+        iconIdle  = { 0.86, 0.91, 0.95, 0.94 },
+        iconHover = { 0.95, 0.99, 1.00, 1.00 },
+        iconOpen  = { 0.66, 0.97, 1.00, 1.00 },
+        glowCol   = { 1, 1, 1 },
+        discTex   = "AzSocket.tga",
+        toggleTex = "AzToggle.tga",
+        glowTex   = "AzActiveRing.tga",
+        badgeTex  = "AzBadge.tga",
+        activeGem = "AzGem.tga",
+    },
+    numenor = {
+        prefix    = "Num_",
+        accentHex = "f7c77e",
+        dockBg    = { 0.04, 0.045, 0.055, 0.96 },
+        dockRim   = { 0.62, 0.51, 0.32, 0.88 },
+        dockTrim  = { 0.62, 0.51, 0.32, 0.45 },
+        wingL     = "NumWingL.tga",
+        wingR     = "NumWingR.tga",
+        wingW     = 38,
+        plBg      = { 0.045, 0.05, 0.06, 0.97 },
+        plBorder  = { 0.62, 0.51, 0.32, 0.90 },
+        plTop     = { 0.85, 0.75, 0.57 },
+        plTitle   = { 0.95, 0.85, 0.66 },
+        plKey     = { 0.97, 0.78, 0.49 },
+        plDesc    = { 0.72, 0.75, 0.78 },
+        plHint    = { 0.55, 0.56, 0.58 },
+        plCorner  = "NumCorner.tga",
+        plCrest   = "NumCrest.tga",
+        plGem     = "NumGem.tga",
+        badgeCol  = { 1, 1, 1, 1 },
+        badgeTxt  = { 0.95, 0.85, 0.66 },
+        iconIdle  = { 1.00, 1.00, 1.00, 0.94 },
+        iconHover = { 1.00, 0.89, 0.68, 1.00 },
+        iconOpen  = { 1.00, 0.84, 0.55, 1.00 },
+        glowCol   = { 1, 1, 1 },
+        discTex   = "NumSocket.tga",
+        toggleTex = "NumToggle.tga",
+        glowTex   = "NumActiveRing.tga",
+        badgeTex  = "NumBadge.tga",
+        activeGem = "NumGem.tga",
+    },
+    tabletop = {
+        prefix    = "Wow_",
+        accentHex = "801319",
+        portrait  = true,
+        dockBg    = { 0.05, 0.04, 0.03, 0.94 },
+        dockRim   = { 0.55, 0.45, 0.30, 0.95 },
+        railTex   = "WowRail.tga",
+        wingL     = "WowCapL.tga",
+        wingR     = "WowCapR.tga",
+        wingW     = 26,
+        plBg      = { 0.16, 0.11, 0.07, 0.98 },
+        plBorder  = { 0.24, 0.17, 0.11, 1.00 },
+        plParch   = "WowParchment.tga",
+        plPlaque  = "WowPlaque.tga",
+        plTab     = "WowTab.tga",
+        plSeal    = "WowSeal.tga",
+        plMedal   = "WowMedal.tga",
+        plCorner  = "WowCorner.tga",
+        plTitle   = { 1.00, 0.82, 0.00 },
+        plKey     = { 1.00, 0.82, 0.00 },
+        plDesc    = { 0.17, 0.10, 0.04 },
+        plHint    = { 0.34, 0.21, 0.10 },
+        badgeCol  = { 1, 1, 1, 1 },
+        badgeTxt  = { 1.00, 0.96, 0.86 },
+        iconIdle  = { 1.00, 1.00, 1.00, 0.96 },
+        iconHover = { 1.00, 1.00, 1.00, 1.00 },
+        iconOpen  = { 1.00, 1.00, 1.00, 1.00 },
+        glowCol   = { 1.00, 0.82, 0.00 },
+        discTex   = "WowSlot.tga",
+        activeTex = "WowSlotActive.tga",
+        toggleTex = "WowToggle.tga",
+        glowTex   = "Glow.tga",
+        badgeTex  = "WowBadge.tga",
+    },
 }
+
+local function GetStyle()
+    local s = M.db and M.db.style
+    return STYLES[s] and s or "bdo"
+end
 
 local bar
 local placard
@@ -480,9 +585,138 @@ function M:GetButtonCount()
     return #BUTTON_DEFS
 end
 
---------------------------------------------------------------------------------
--- Placar de Informação estilo Black Desert (com paleta Azaath)
---------------------------------------------------------------------------------
+local function ResolveIconTex(def, style, cfg)
+    if def.isToggle then
+        local collapsed = M.db and M.db.collapsed
+        if style == "tabletop" then
+            return MEDIA_DIR .. "WowArrows.tga", collapsed
+        elseif style == "numenor" then
+            return MEDIA_DIR .. (collapsed and "Num_ToggleOpen.tga" or "Num_ToggleClose.tga"), false
+        end
+        return MEDIA_DIR .. (collapsed and "ToggleOpen.tga" or "ToggleClose.tga"), false
+    end
+    local name = def.icon:match("([^\\]+)$") or def.icon
+    return MEDIA_DIR .. (cfg.prefix or "") .. name, false
+end
+
+local function SetCornerFlip(tex, idx)
+    if idx == 1 then tex:SetTexCoord(0, 1, 0, 1)
+    elseif idx == 2 then tex:SetTexCoord(1, 0, 0, 1)
+    elseif idx == 3 then tex:SetTexCoord(0, 1, 1, 0)
+    else tex:SetTexCoord(1, 0, 1, 0) end
+end
+
+local function ApplyPlacardTheme(f, style, cfg)
+    if f.appliedStyle == style then return end
+    f.appliedStyle = style
+    local isTable = style == "tabletop"
+    local isBDO = style == "bdo"
+
+    if isTable then
+        f:SetBackdropColor(0, 0, 0, 0)
+    else
+        f:SetBackdropColor(cfg.plBg[1], cfg.plBg[2], cfg.plBg[3], cfg.plBg[4])
+    end
+    f:SetBackdropBorderColor(cfg.plBorder[1], cfg.plBorder[2], cfg.plBorder[3], cfg.plBorder[4])
+
+    f.parchmentBg:SetShown(isTable)
+    f.plaqueTex:SetShown(isTable)
+    f.tabFrame:SetShown(isTable)
+    f.sealTex:SetShown(isTable)
+    f.medalTex:SetShown(isTable)
+
+    f.topGlow:SetShown(not isTable)
+    f.headerBg:SetShown(not isTable)
+    if not isTable and cfg.plTop then
+        Azaath.Gradient(f.topGlow, "HORIZONTAL",
+            cfg.plTop[1], cfg.plTop[2], cfg.plTop[3], 0.95,
+            cfg.plTop[1], cfg.plTop[2], cfg.plTop[3], 0.15)
+        Azaath.Gradient(f.headerBg, "HORIZONTAL",
+            cfg.plTop[1], cfg.plTop[2], cfg.plTop[3], 0.14,
+            cfg.plTop[1], cfg.plTop[2], cfg.plTop[3], 0.02)
+    end
+
+    if cfg.plCorner then
+        local csz = isTable and 22 or 16
+        local coff = isTable and 3 or 1
+        for idx, c in ipairs(f.corners) do
+            c:SetTexture(MEDIA_DIR .. cfg.plCorner)
+            c:SetSize(csz, csz)
+            SetCornerFlip(c, idx)
+            c:ClearAllPoints()
+            if idx == 1 then c:SetPoint("TOPLEFT", f, "TOPLEFT", -coff, coff)
+            elseif idx == 2 then c:SetPoint("TOPRIGHT", f, "TOPRIGHT", coff, coff)
+            elseif idx == 3 then c:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", -coff, -coff)
+            else c:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", coff, -coff) end
+            c:Show()
+        end
+    else
+        for _, c in ipairs(f.corners) do c:Hide() end
+    end
+
+    if cfg.plCrest then
+        f.crestTex:SetTexture(MEDIA_DIR .. cfg.plCrest)
+        f.crestTex:Show()
+    else
+        f.crestTex:Hide()
+    end
+
+    if cfg.plGem then
+        f.divGem:SetTexture(MEDIA_DIR .. cfg.plGem)
+        f.divGem:Show()
+    else
+        f.divGem:Hide()
+    end
+
+    if isTable then
+        Azaath.Gradient(f.div, "HORIZONTAL", 0.35, 0.20, 0.08, 0.55, 0.35, 0.20, 0.08, 0.15)
+        f.title:ClearAllPoints()
+        f.title:SetPoint("CENTER", f.plaqueTex, "CENTER", 0, 1)
+        f.title:SetJustifyH("CENTER")
+        f.title:SetShadowColor(0, 0, 0, 0.95)
+        f.icon:ClearAllPoints()
+        f.icon:SetSize(20, 20)
+        f.icon:SetPoint("TOPLEFT", f, "TOPLEFT", 18, -42)
+        f.div:ClearAllPoints()
+        f.div:SetPoint("TOPLEFT", f, "TOPLEFT", 14, -72)
+        f.div:SetPoint("TOPRIGHT", f, "TOPRIGHT", -14, -72)
+        f.desc:ClearAllPoints()
+        f.desc:SetPoint("TOPLEFT", f, "TOPLEFT", 48, -40)
+        f.desc:SetWidth(212)
+        f.desc:SetShadowColor(0, 0, 0, 0)
+        f.extra:SetShadowColor(0, 0, 0, 0)
+    else
+        local dc = cfg.plTop or { 0.30, 0.85, 0.95 }
+        Azaath.Gradient(f.div, "HORIZONTAL", dc[1], dc[2], dc[3], 0.55, dc[1], dc[2], dc[3], 0.05)
+        f.icon:ClearAllPoints()
+        f.icon:SetSize(15, 15)
+        f.icon:SetPoint("TOPLEFT", f, "TOPLEFT", 11, -9)
+        f.title:ClearAllPoints()
+        f.title:SetPoint("LEFT", f.icon, "RIGHT", 7, 0)
+        f.title:SetPoint("RIGHT", f, "RIGHT", -58, 0)
+        f.title:SetJustifyH("LEFT")
+        f.title:SetShadowColor(0, 0, 0, 0.9)
+        f.div:ClearAllPoints()
+        f.div:SetPoint("TOPLEFT", f, "TOPLEFT", 10, -31)
+        f.div:SetPoint("TOPRIGHT", f, "TOPRIGHT", -10, -31)
+        f.desc:ClearAllPoints()
+        f.desc:SetPoint("TOPLEFT", f.div, "BOTTOMLEFT", 0, -7)
+        f.desc:SetWidth(250)
+        f.desc:SetShadowColor(0, 0, 0, 0.8)
+        f.extra:SetShadowColor(0, 0, 0, 0.8)
+    end
+
+    f.keyBox:SetShown(not isBDO and not isTable)
+    if not isBDO and not isTable then
+        f.keyBox:SetBackdropBorderColor(cfg.plBorder[1], cfg.plBorder[2], cfg.plBorder[3], 0.85)
+    end
+
+    f.title:SetTextColor(cfg.plTitle[1], cfg.plTitle[2], cfg.plTitle[3])
+    f.key:SetTextColor(cfg.plKey[1], cfg.plKey[2], cfg.plKey[3])
+    f.desc:SetTextColor(cfg.plDesc[1], cfg.plDesc[2], cfg.plDesc[3])
+    f.extra:SetTextColor(cfg.plHint[1], cfg.plHint[2], cfg.plHint[3])
+end
+
 local function EnsurePlacard()
     if placard then return placard end
 
@@ -491,8 +725,8 @@ local function EnsurePlacard()
     f:SetFrameStrata("TOOLTIP")
     f:SetFrameLevel(50)
     f:SetClampedToScreen(true)
-    f:SetWidth(272)
-    f:SetHeight(92)
+    f:SetWidth(276)
+    f:SetHeight(104)
     f:Hide()
     f:SetAlpha(0)
 
@@ -502,81 +736,112 @@ local function EnsurePlacard()
         edgeSize = 1,
         insets   = { left = 1, right = 1, top = 1, bottom = 1 },
     })
-    f:SetBackdropColor(AZAATH.bg[1], AZAATH.bg[2], AZAATH.bg[3], 0.94)
-    f:SetBackdropBorderColor(AZAATH.border[1], AZAATH.border[2], AZAATH.border[3], 0.65)
 
-    -- Barra superior brilhante em ciano Azaath
+    f.parchmentBg = f:CreateTexture(nil, "BACKGROUND", nil, 0)
+    f.parchmentBg:SetTexture(MEDIA_DIR .. "WowParchment.tga")
+    f.parchmentBg:SetPoint("TOPLEFT", f, "TOPLEFT", 2, -2)
+    f.parchmentBg:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -2, 2)
+    f.parchmentBg:Hide()
+
     local topGlow = f:CreateTexture(nil, "OVERLAY")
     topGlow:SetTexture(media.blank)
-    Azaath.Gradient(topGlow, "HORIZONTAL",
-        AZAATH.cyan[1], AZAATH.cyan[2], AZAATH.cyan[3], 0.95,
-        AZAATH.cyan[1], AZAATH.cyan[2], AZAATH.cyan[3], 0.15)
     topGlow:SetHeight(2)
     topGlow:SetPoint("TOPLEFT", f, "TOPLEFT", 1, -1)
     topGlow:SetPoint("TOPRIGHT", f, "TOPRIGHT", -1, -1)
+    f.topGlow = topGlow
 
-    -- Faixa sutil no cabeçalho
     local headerBg = f:CreateTexture(nil, "BACKGROUND", nil, 1)
     headerBg:SetTexture(media.blank)
-    Azaath.Gradient(headerBg, "HORIZONTAL",
-        AZAATH.cyan[1], AZAATH.cyan[2], AZAATH.cyan[3], 0.14,
-        AZAATH.cyan[1], AZAATH.cyan[2], AZAATH.cyan[3], 0.02)
     headerBg:SetHeight(28)
     headerBg:SetPoint("TOPLEFT", f, "TOPLEFT", 1, -3)
     headerBg:SetPoint("TOPRIGHT", f, "TOPRIGHT", -1, -3)
+    f.headerBg = headerBg
 
-    -- Ícone miniatura no cabeçalho
-    f.icon = f:CreateTexture(nil, "ARTWORK")
+    f.crestTex = f:CreateTexture(nil, "OVERLAY", nil, 2)
+    f.crestTex:SetSize(72, 16)
+    f.crestTex:SetPoint("CENTER", f, "TOP", 0, -1)
+    f.crestTex:Hide()
+
+    f.plaqueTex = f:CreateTexture(nil, "ARTWORK", nil, 2)
+    f.plaqueTex:SetTexture(MEDIA_DIR .. "WowPlaque.tga")
+    f.plaqueTex:SetSize(224, 30)
+    f.plaqueTex:SetPoint("CENTER", f, "TOP", 0, -4)
+    f.plaqueTex:Hide()
+
+    f.corners = {}
+    for i = 1, 4 do
+        f.corners[i] = f:CreateTexture(nil, "OVERLAY", nil, 3)
+        f.corners[i]:Hide()
+    end
+
+    local tf = CreateFrame("Frame", nil, f)
+    tf:SetSize(48, 24)
+    tf:SetPoint("LEFT", f, "RIGHT", -8, 0)
+    tf:SetPoint("TOP", f, "TOP", 0, -16)
+    tf:SetFrameLevel(f:GetFrameLevel() + 1)
+    local tabTex = tf:CreateTexture(nil, "ARTWORK")
+    tabTex:SetTexture(MEDIA_DIR .. "WowTab.tga")
+    tabTex:SetAllPoints(tf)
+    tf:Hide()
+    f.tabFrame = tf
+
+    f.medalTex = f:CreateTexture(nil, "ARTWORK", nil, 1)
+    f.medalTex:SetTexture(MEDIA_DIR .. "WowMedal.tga")
+    f.medalTex:SetSize(32, 32)
+    f.medalTex:Hide()
+
+    f.sealTex = f:CreateTexture(nil, "OVERLAY", nil, 2)
+    f.sealTex:SetTexture(MEDIA_DIR .. "WowSeal.tga")
+    f.sealTex:SetSize(30, 30)
+    f.sealTex:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -6, 6)
+    f.sealTex:Hide()
+
+    f.icon = f:CreateTexture(nil, "ARTWORK", nil, 3)
     f.icon:SetSize(15, 15)
     f.icon:SetPoint("TOPLEFT", f, "TOPLEFT", 11, -9)
-    f.icon:SetVertexColor(AZAATH.cyanBright[1], AZAATH.cyanBright[2], AZAATH.cyanBright[3])
+    f.medalTex:SetPoint("CENTER", f.icon, "CENTER", 0, 0)
 
-    -- Título
     f.title = f:CreateFontString(nil, "OVERLAY")
-    f.title:SetFont(media.fontTitleB or media.font, 12.5, "")
-    f.title:SetPoint("LEFT", f.icon, "RIGHT", 7, 0)
-    f.title:SetPoint("RIGHT", f, "RIGHT", -56, 0)
-    f.title:SetJustifyH("LEFT")
-    f.title:SetTextColor(0.92, 0.98, 1.0)
-    f.title:SetShadowColor(0, 0, 0, 0.9)
+    f.title:SetFont(media.fontTitleB or media.font, 12, "")
     f.title:SetShadowOffset(1, -1)
 
-    -- Atalho de teclado à direita
-    f.key = f:CreateFontString(nil, "OVERLAY")
-    f.key:SetFont(media.font, 11, "")
-    f.key:SetPoint("TOPRIGHT", f, "TOPRIGHT", -11, -10)
-    f.key:SetJustifyH("RIGHT")
-    f.key:SetTextColor(AZAATH.cyanBright[1], AZAATH.cyanBright[2], AZAATH.cyanBright[3])
+    f.keyBox = CreateFrame("Frame", nil, f)
+    f.keyBox:SetSize(42, 18)
+    f.keyBox:SetPoint("TOPRIGHT", f, "TOPRIGHT", -9, -7)
+    Azaath.SetBackdrop(f.keyBox, {
+        bgFile = media.blank, edgeFile = media.blank, edgeSize = 1,
+        insets = { left = 1, right = 1, top = 1, bottom = 1 },
+    })
+    f.keyBox:SetBackdropColor(0.04, 0.06, 0.08, 0.90)
+    f.keyBox:Hide()
 
-    -- Linha divisória em ciano Azaath
+    f.key = f:CreateFontString(nil, "OVERLAY")
+    f.key:SetFont(media.font, 10.5, "")
+    f.key:SetPoint("TOPRIGHT", f, "TOPRIGHT", -12, -10)
+    f.key:SetJustifyH("RIGHT")
+
     local div = f:CreateTexture(nil, "ARTWORK")
     div:SetTexture(media.blank)
-    Azaath.Gradient(div, "HORIZONTAL",
-        AZAATH.cyan[1], AZAATH.cyan[2], AZAATH.cyan[3], 0.50,
-        AZAATH.cyan[1], AZAATH.cyan[2], AZAATH.cyan[3], 0.05)
     div:SetHeight(1)
-    div:SetPoint("TOPLEFT", f, "TOPLEFT", 10, -31)
-    div:SetPoint("TOPRIGHT", f, "TOPRIGHT", -10, -31)
+    f.div = div
 
-    -- Descrição (estilo BDO)
+    f.divGem = f:CreateTexture(nil, "OVERLAY", nil, 2)
+    f.divGem:SetSize(9, 9)
+    f.divGem:SetPoint("CENTER", div, "CENTER", 0, 0)
+    f.divGem:Hide()
+
     f.desc = f:CreateFontString(nil, "OVERLAY")
     f.desc:SetFont(media.font, 11, "")
-    f.desc:SetPoint("TOPLEFT", div, "BOTTOMLEFT", 0, -7)
-    f.desc:SetWidth(250)
     f.desc:SetJustifyH("LEFT")
-    f.desc:SetTextColor(AZAATH.desc[1], AZAATH.desc[2], AZAATH.desc[3])
     if f.desc.SetSpacing then f.desc:SetSpacing(2) end
 
-    -- Linha extra (status ao vivo / FPS & MS / dica de clique direito)
     f.extra = f:CreateFontString(nil, "OVERLAY")
     f.extra:SetFont(media.font, 10.5, "")
     f.extra:SetPoint("TOPLEFT", f.desc, "BOTTOMLEFT", 0, -6)
-    f.extra:SetWidth(250)
+    f.extra:SetWidth(244)
     f.extra:SetJustifyH("LEFT")
-    f.extra:SetTextColor(AZAATH.hint[1], AZAATH.hint[2], AZAATH.hint[3])
     if f.extra.SetSpacing then f.extra:SetSpacing(2) end
 
-    -- Fade-in suave
     f:SetScript("OnUpdate", function(self, elapsed)
         local target = self.targetAlpha or 0
         local cur = self:GetAlpha()
@@ -599,13 +864,23 @@ end
 local function ShowPlacard(btn)
     local f = EnsurePlacard()
     local def = btn.def
+    local style = GetStyle()
+    local cfg = STYLES[style]
+    ApplyPlacardTheme(f, style, cfg)
 
     local titleText = def.label
     if def.isToggle then
         titleText = (M.db and M.db.collapsed) and "Expandir Micro Menu" or "Recolher Micro Menu"
     end
 
-    f.icon:SetTexture(def.isToggle and (M.db.collapsed and (MEDIA_DIR .. "ToggleOpen.tga") or (MEDIA_DIR .. "ToggleClose.tga")) or def.icon)
+    local texPath, rot = ResolveIconTex(def, style, cfg)
+    f.icon:SetTexture(texPath)
+    if f.icon.SetRotation then f.icon:SetRotation(rot and math.pi or 0) end
+    if style == "tabletop" or style == "numenor" then
+        f.icon:SetVertexColor(1, 1, 1, 1)
+    else
+        f.icon:SetVertexColor(cfg.plKey[1], cfg.plKey[2], cfg.plKey[3], 1)
+    end
     f.title:SetText(titleText)
 
     local key
@@ -620,24 +895,40 @@ local function ShowPlacard(btn)
     local keyText = key and Azaath.ShortKey and Azaath.ShortKey(key) or key
     if keyText and keyText ~= "" then
         f.key:SetText("[" .. keyText .. "]")
+        f.key:ClearAllPoints()
+        if style == "tabletop" then
+            f.key:SetPoint("CENTER", f.tabFrame, "CENTER", -1, 0)
+            f.tabFrame:Show()
+        elseif style ~= "bdo" then
+            f.keyBox:SetWidth(max(30, (f.key:GetStringWidth() or 20) + 12))
+            f.key:SetPoint("CENTER", f.keyBox, "CENTER", 0, 0)
+            f.keyBox:Show()
+        else
+            f.key:SetPoint("TOPRIGHT", f, "TOPRIGHT", -12, -10)
+        end
         f.key:Show()
     else
         f.key:SetText("")
         f.key:Hide()
+        f.keyBox:Hide()
+        f.tabFrame:Hide()
     end
 
     f.desc:SetText(def.desc or "")
 
+    local accent = cfg.accentHex or "5ce1e6"
     local extraLines = {}
     if def.statusFn then
         local st = def.statusFn()
-        if st and st ~= "" then extraLines[#extraLines + 1] = st end
+        if st and st ~= "" then
+            extraLines[#extraLines + 1] = st:gsub("5ce1e6", accent)
+        end
     end
     if def.isSys then
         local fps = floor((GetFramerate() or 0) + 0.5)
         local _, _, homeMS, worldMS = GetNetStats()
         local ms = worldMS or homeMS or 0
-        extraLines[#extraLines + 1] = format("FPS: |cff5ce1e6%d|r    Latência: |cff5ce1e6%d|r ms", fps, ms)
+        extraLines[#extraLines + 1] = format("FPS: |cff%s%d|r    Latência: |cff%s%d|r ms", accent, fps, accent, ms)
     end
     if def.hint then
         extraLines[#extraLines + 1] = def.hint
@@ -652,19 +943,32 @@ local function ShowPlacard(btn)
         f.extra:Hide()
     end
 
-    -- Altura dinâmica conforme conteúdo
-    local descH = f.desc:GetStringHeight() or 26
-    local extraH = hasExtra and ((f.extra:GetStringHeight() or 14) + 8) or 0
-    f:SetHeight(38 + descH + extraH + 10)
+    f.extra:ClearAllPoints()
+    if style == "tabletop" then
+        local descH = max(30, f.desc:GetStringHeight() or 30)
+        local divY = -(42 + descH + 8)
+        f.div:ClearAllPoints()
+        f.div:SetPoint("TOPLEFT", f, "TOPLEFT", 14, divY)
+        f.div:SetPoint("TOPRIGHT", f, "TOPRIGHT", -14, divY)
+        f.extra:SetPoint("TOPLEFT", f.div, "BOTTOMLEFT", 4, -8)
+        f.extra:SetWidth(214)
+        local extraH = hasExtra and ((f.extra:GetStringHeight() or 14) + 12) or 8
+        f:SetHeight(46 + descH + extraH + 14)
+    else
+        f.extra:SetPoint("TOPLEFT", f.desc, "BOTTOMLEFT", 0, -6)
+        f.extra:SetWidth(250)
+        local descH = f.desc:GetStringHeight() or 26
+        local extraH = hasExtra and ((f.extra:GetStringHeight() or 14) + 8) or 0
+        f:SetHeight(38 + descH + extraH + 10)
+    end
 
-    -- Posiciona acima do botão (ou abaixo se estiver perto do topo da tela)
     f:ClearAllPoints()
     local top = btn:GetTop() and btn:GetTop() * btn:GetEffectiveScale()
     local screenTop = UIParent:GetTop() * UIParent:GetEffectiveScale()
     if top and top > screenTop - 160 * UIParent:GetEffectiveScale() then
-        f:SetPoint("TOP", btn, "BOTTOM", 0, -10)
+        f:SetPoint("TOP", btn, "BOTTOM", 0, style == "tabletop" and -22 or -12)
     else
-        f:SetPoint("BOTTOM", btn, "TOP", 0, 10)
+        f:SetPoint("BOTTOM", btn, "TOP", 0, style == "tabletop" and 18 or 12)
     end
 
     f.targetAlpha = 1
@@ -678,52 +982,142 @@ local function HidePlacard()
 end
 
 --------------------------------------------------------------------------------
--- Visual dos Botões e Badges
+-- Visual dos Botões, Badges e Barra de Latência
 --------------------------------------------------------------------------------
+local function UpdateLatencyBar()
+    if not (bar and bar.latencyFrame) then return end
+    if GetStyle() ~= "tabletop" then
+        bar.latencyFrame:Hide()
+        return
+    end
+    bar.latencyFrame:Show()
+    local _, _, homeMS, worldMS = GetNetStats()
+    local ms = max(homeMS or 0, worldMS or 0)
+    local h = max(12, bar.latencyFrame:GetHeight() - 4)
+    local pct = max(0.18, min(1.0, 1.0 - (ms / 350)))
+    bar.latencyFill:SetHeight(floor(h * pct + 0.5))
+    if ms < 80 then
+        bar.latencyFill:SetVertexColor(0.20, 0.88, 0.25, 1)
+    elseif ms < 180 then
+        bar.latencyFill:SetVertexColor(0.95, 0.75, 0.12, 1)
+    else
+        bar.latencyFill:SetVertexColor(0.90, 0.18, 0.16, 1)
+    end
+end
+
 local function UpdateButtonVisual(b)
     local def = b.def
+    local style = GetStyle()
+    local cfg = STYLES[style]
     local open = def.isOpen and def.isOpen()
     local hovered = b.isHovered
 
+    local icoPath, rot = ResolveIconTex(def, style, cfg)
+    b.icon:SetTexture(icoPath)
+    if b.icon.SetRotation then b.icon:SetRotation(rot and math.pi or 0) end
+
     if def.isToggle then
-        local collapsed = M.db and M.db.collapsed
-        b.icon:SetTexture(collapsed and (MEDIA_DIR .. "ToggleOpen.tga") or (MEDIA_DIR .. "ToggleClose.tga"))
-        if hovered then
-            b.disc:SetVertexColor(0.10, 0.18, 0.24, 0.90)
-            b.diamondBorder:SetVertexColor(AZAATH.cyanBright[1], AZAATH.cyanBright[2], AZAATH.cyanBright[3], 0.95)
-            b.glow:SetVertexColor(AZAATH.cyan[1], AZAATH.cyan[2], AZAATH.cyan[3], 0.50)
-            b.glow:Show()
-            b.icon:SetVertexColor(AZAATH.cyanBright[1], AZAATH.cyanBright[2], AZAATH.cyanBright[3], 1)
+        b.disc:SetTexture(MEDIA_DIR .. cfg.toggleTex)
+        if style == "bdo" then
+            b.diamondBorder:Show()
+            if hovered then
+                b.disc:SetVertexColor(0.10, 0.18, 0.24, 0.90)
+                b.diamondBorder:SetVertexColor(0.55, 0.93, 1.00, 0.95)
+                b.glow:SetTexture(MEDIA_DIR .. cfg.glowTex)
+                b.glow:SetVertexColor(0.30, 0.85, 0.95, 0.50)
+                b.glow:Show()
+                b.icon:SetVertexColor(0.55, 0.93, 1.00, 1)
+            else
+                b.disc:SetVertexColor(0.06, 0.09, 0.13, 0.78)
+                b.diamondBorder:SetVertexColor(0.30, 0.85, 0.95, 0.45)
+                b.glow:Hide()
+                b.icon:SetVertexColor(0.86, 0.92, 0.96, 0.90)
+            end
         else
-            b.disc:SetVertexColor(0.06, 0.09, 0.13, 0.78)
-            b.diamondBorder:SetVertexColor(AZAATH.cyan[1], AZAATH.cyan[2], AZAATH.cyan[3], 0.45)
-            b.glow:Hide()
-            b.icon:SetVertexColor(0.86, 0.92, 0.96, 0.90)
+            b.diamondBorder:Hide()
+            b.disc:SetVertexColor(1, 1, 1, hovered and 1 or 0.92)
+            b.icon:SetVertexColor(1, 1, 1, hovered and 1 or 0.92)
+            if hovered then
+                b.glow:SetTexture(MEDIA_DIR .. cfg.glowTex)
+                b.glow:SetVertexColor(cfg.glowCol[1], cfg.glowCol[2], cfg.glowCol[3], 0.55)
+                b.glow:Show()
+            else
+                b.glow:Hide()
+            end
         end
+        if b.sysW then b.sysW:Hide() end
+        if b.activeGem then b.activeGem:Hide() end
+        b.activeDot:Hide()
         return
     end
 
-    if open then
-        b.disc:SetVertexColor(0.09, 0.17, 0.23, 0.88)
-        b.glow:SetVertexColor(AZAATH.cyan[1], AZAATH.cyan[2], AZAATH.cyan[3], 0.55)
-        b.glow:Show()
-        b.icon:SetVertexColor(AZAATH.cyanBright[1], AZAATH.cyanBright[2], AZAATH.cyanBright[3], 1)
-        b.activeDot:Show()
-    elseif hovered then
-        b.disc:SetVertexColor(0.10, 0.16, 0.22, 0.85)
-        b.glow:SetVertexColor(AZAATH.cyan[1], AZAATH.cyan[2], AZAATH.cyan[3], 0.42)
-        b.glow:Show()
+    b.diamondBorder:Hide()
+    if style == "tabletop" then
+        b.disc:SetTexture(MEDIA_DIR .. ((open or hovered) and cfg.activeTex or cfg.discTex))
+        b.disc:SetVertexColor(1, 1, 1, 1)
+        b.glow:SetTexture(MEDIA_DIR .. cfg.glowTex)
+        if open or hovered then
+            b.glow:SetVertexColor(cfg.glowCol[1], cfg.glowCol[2], cfg.glowCol[3], open and 0.42 or 0.25)
+            b.glow:Show()
+        else
+            b.glow:Hide()
+        end
         b.icon:SetVertexColor(1, 1, 1, 1)
         b.activeDot:Hide()
+        if b.activeGem then b.activeGem:Hide() end
+        if b.sysW then b.sysW:SetShown(def.key == "menu") end
     else
-        b.disc:SetVertexColor(AZAATH.discIdle[1], AZAATH.discIdle[2], AZAATH.discIdle[3], 0.52)
-        b.glow:Hide()
-        b.icon:SetVertexColor(0.90, 0.92, 0.95, 0.88)
-        b.activeDot:Hide()
+        if b.sysW then b.sysW:Hide() end
+        b.disc:SetTexture(MEDIA_DIR .. cfg.discTex)
+        b.glow:SetTexture(MEDIA_DIR .. cfg.glowTex)
+        if style == "bdo" then
+            if open then
+                b.disc:SetVertexColor(0.09, 0.17, 0.23, 0.88)
+                b.glow:SetVertexColor(cfg.glowCol[1], cfg.glowCol[2], cfg.glowCol[3], 0.55)
+                b.glow:Show()
+                b.icon:SetVertexColor(cfg.iconOpen[1], cfg.iconOpen[2], cfg.iconOpen[3], cfg.iconOpen[4])
+                b.activeDot:Show()
+            elseif hovered then
+                b.disc:SetVertexColor(0.10, 0.16, 0.22, 0.85)
+                b.glow:SetVertexColor(cfg.glowCol[1], cfg.glowCol[2], cfg.glowCol[3], 0.42)
+                b.glow:Show()
+                b.icon:SetVertexColor(cfg.iconHover[1], cfg.iconHover[2], cfg.iconHover[3], cfg.iconHover[4])
+                b.activeDot:Hide()
+            else
+                b.disc:SetVertexColor(0.05, 0.08, 0.12, 0.52)
+                b.glow:Hide()
+                b.icon:SetVertexColor(cfg.iconIdle[1], cfg.iconIdle[2], cfg.iconIdle[3], cfg.iconIdle[4])
+                b.activeDot:Hide()
+            end
+            if b.activeGem then b.activeGem:Hide() end
+        else
+            b.disc:SetVertexColor(1, 1, 1, (open or hovered) and 1 or 0.94)
+            b.activeDot:Hide()
+            if open then
+                b.glow:SetVertexColor(cfg.glowCol[1], cfg.glowCol[2], cfg.glowCol[3], 0.90)
+                b.glow:Show()
+                b.icon:SetVertexColor(cfg.iconOpen[1], cfg.iconOpen[2], cfg.iconOpen[3], cfg.iconOpen[4])
+                if b.activeGem and cfg.activeGem then
+                    b.activeGem:SetTexture(MEDIA_DIR .. cfg.activeGem)
+                    b.activeGem:Show()
+                end
+            elseif hovered then
+                b.glow:SetVertexColor(cfg.glowCol[1], cfg.glowCol[2], cfg.glowCol[3], 0.65)
+                b.glow:Show()
+                b.icon:SetVertexColor(cfg.iconHover[1], cfg.iconHover[2], cfg.iconHover[3], cfg.iconHover[4])
+                if b.activeGem then b.activeGem:Hide() end
+            else
+                b.glow:Hide()
+                b.icon:SetVertexColor(cfg.iconIdle[1], cfg.iconIdle[2], cfg.iconIdle[3], cfg.iconIdle[4])
+                if b.activeGem then b.activeGem:Hide() end
+            end
+        end
     end
 
-    -- Atualiza badge numérica
     if b.badgeFrame and def.badge then
+        b.badgeBg:SetTexture(MEDIA_DIR .. cfg.badgeTex)
+        b.badgeBg:SetVertexColor(cfg.badgeCol[1], cfg.badgeCol[2], cfg.badgeCol[3], cfg.badgeCol[4])
+        b.badgeText:SetTextColor(cfg.badgeTxt[1], cfg.badgeTxt[2], cfg.badgeTxt[3])
         local count = def.badge()
         if count and count > 0 then
             b.badgeText:SetText(count > 99 and "99+" or tostring(count))
@@ -740,6 +1134,7 @@ local function UpdateAllVisuals()
             UpdateButtonVisual(b)
         end
     end
+    UpdateLatencyBar()
 end
 
 local function Button_OnEnter(self)
@@ -849,6 +1244,7 @@ local function ApplyBlizzClick(b, spec)
 end
 
 local function CreateMicroButton(i, def, size)
+    if buttons[i] then return buttons[i] end
     local media = Azaath.media
     local name = "AzaathUIMicroButton_" .. def.key
 
@@ -865,7 +1261,7 @@ local function CreateMicroButton(i, def, size)
     b:RegisterForClicks("AnyUp")
     b.def = def
 
-    -- Brilho radial Azaath atrás do ícone (hover / ativo)
+    -- Brilho / anel ativo atrás do ícone
     b.glow = b:CreateTexture(nil, "BACKGROUND", nil, 0)
     b.glow:SetTexture(MEDIA_DIR .. "Glow.tga")
     b.glow:SetPoint("TOPLEFT", b, "TOPLEFT", -6, 6)
@@ -873,38 +1269,53 @@ local function CreateMicroButton(i, def, size)
     b.glow:SetBlendMode("ADD")
     b.glow:Hide()
 
-    if def.isToggle then
-        -- Botão losango estilo BDO
-        b.disc = b:CreateTexture(nil, "BACKGROUND", nil, 1)
-        b.disc:SetTexture(MEDIA_DIR .. "Diamond.tga")
-        b.disc:SetAllPoints(b)
+    b.disc = b:CreateTexture(nil, "BACKGROUND", nil, 1)
+    b.disc:SetAllPoints(b)
 
-        b.diamondBorder = b:CreateTexture(nil, "BORDER")
-        b.diamondBorder:SetTexture(MEDIA_DIR .. "DiamondBorder.tga")
-        b.diamondBorder:SetAllPoints(b)
-    else
-        -- Disco translúcido circular estilo BDO
-        b.disc = b:CreateTexture(nil, "BACKGROUND", nil, 1)
-        b.disc:SetTexture(MEDIA_DIR .. "Disc.tga")
-        b.disc:SetAllPoints(b)
-    end
+    b.diamondBorder = b:CreateTexture(nil, "BORDER")
+    b.diamondBorder:SetTexture(MEDIA_DIR .. "DiamondBorder.tga")
+    b.diamondBorder:SetAllPoints(b)
+    b.diamondBorder:Hide()
 
-    -- Ícone minimalista vetorial
+    -- Ícone
     b.icon = b:CreateTexture(nil, "ARTWORK")
     local pad = def.isToggle and 6 or 4
     b.icon:SetPoint("TOPLEFT", b, "TOPLEFT", pad, -pad)
     b.icon:SetPoint("BOTTOMRIGHT", b, "BOTTOMRIGHT", -pad, pad)
-    b.icon:SetTexture(def.icon)
 
-    -- Indicador ciano Azaath na base quando a janela está aberta
+    -- Indicador na base quando a janela está aberta (traço bdo / gema azaath+numenor)
     b.activeDot = b:CreateTexture(nil, "OVERLAY")
     b.activeDot:SetTexture(media.blank)
-    b.activeDot:SetVertexColor(AZAATH.cyanBright[1], AZAATH.cyanBright[2], AZAATH.cyanBright[3], 1)
+    b.activeDot:SetVertexColor(0.55, 0.93, 1.00, 1)
     b.activeDot:SetSize(10, 2)
     b.activeDot:SetPoint("BOTTOM", b, "BOTTOM", 0, -2)
     b.activeDot:Hide()
 
-    -- Badge circular numérica (estilo BDO)
+    b.activeGem = b:CreateTexture(nil, "OVERLAY", nil, 2)
+    b.activeGem:SetSize(9, 9)
+    b.activeGem:SetPoint("CENTER", b, "BOTTOM", 0, 0)
+    b.activeGem:Hide()
+
+    -- Brasão [W] no topo do botão Menu no estilo Mesa de RPG (tabletop)
+    if def.key == "menu" then
+        local wBadge = CreateFrame("Frame", nil, b)
+        wBadge:SetSize(13, 13)
+        wBadge:SetPoint("TOP", b, "TOP", 0, -3)
+        wBadge:SetFrameLevel(b:GetFrameLevel() + 2)
+        local wBg = wBadge:CreateTexture(nil, "ARTWORK")
+        wBg:SetTexture(MEDIA_DIR .. "Disc.tga")
+        wBg:SetAllPoints(wBadge)
+        wBg:SetVertexColor(0.08, 0.06, 0.04, 0.94)
+        local wTxt = wBadge:CreateFontString(nil, "OVERLAY")
+        wTxt:SetFont(media.fontTitleB or media.font, 8.5, "OUTLINE")
+        wTxt:SetPoint("CENTER", wBadge, "CENTER", 0, 0)
+        wTxt:SetText("W")
+        wTxt:SetTextColor(1, 0.82, 0)
+        wBadge:Hide()
+        b.sysW = wBadge
+    end
+
+    -- Badge circular numérica
     if def.badge then
         local bf = CreateFrame("Frame", nil, b)
         bf:SetSize(14, 14)
@@ -914,7 +1325,6 @@ local function CreateMicroButton(i, def, size)
         local bg = bf:CreateTexture(nil, "ARTWORK")
         bg:SetTexture(MEDIA_DIR .. "Badge.tga")
         bg:SetAllPoints(bf)
-        bg:SetVertexColor(AZAATH.badgeBg[1], AZAATH.badgeBg[2], AZAATH.badgeBg[3], 0.96)
 
         local txt = bf:CreateFontString(nil, "OVERLAY")
         txt:SetFont(media.font, 9, "OUTLINE")
@@ -923,6 +1333,7 @@ local function CreateMicroButton(i, def, size)
 
         bf:Hide()
         b.badgeFrame = bf
+        b.badgeBg = bg
         b.badgeText = txt
     end
 
@@ -985,10 +1396,112 @@ local function CreateMicroButton(i, def, size)
     return b
 end
 
+local function ApplyDockChrome(style, cfg, totalW, barH)
+    if not bar.chromeFrame then
+        local cf = CreateFrame("Frame", nil, bar)
+        cf:SetFrameLevel(max(1, bar:GetFrameLevel() - 1))
+        Azaath.SetBackdrop(cf, {
+            bgFile   = Azaath.media.blank,
+            edgeFile = Azaath.media.blank,
+            edgeSize = 1,
+            insets   = { left = 1, right = 1, top = 1, bottom = 1 },
+        })
+        cf.rail = cf:CreateTexture(nil, "BACKGROUND", nil, 1)
+        cf.rail:SetAllPoints(cf)
+        cf.topTrim = cf:CreateTexture(nil, "OVERLAY")
+        cf.topTrim:SetTexture(Azaath.media.blank)
+        cf.topTrim:SetHeight(1)
+        cf.botTrim = cf:CreateTexture(nil, "OVERLAY")
+        cf.botTrim:SetTexture(Azaath.media.blank)
+        cf.botTrim:SetHeight(1)
+        cf.wingL = cf:CreateTexture(nil, "ARTWORK")
+        cf.wingR = cf:CreateTexture(nil, "ARTWORK")
+
+        local lf = CreateFrame("Frame", nil, bar)
+        Azaath.SetBackdrop(lf, {
+            bgFile   = Azaath.media.blank,
+            edgeFile = Azaath.media.blank,
+            edgeSize = 1,
+            insets   = { left = 1, right = 1, top = 1, bottom = 1 },
+        })
+        lf:SetBackdropColor(0.08, 0.09, 0.11, 0.95)
+        lf:SetBackdropBorderColor(0.55, 0.45, 0.30, 0.95)
+        local fill = lf:CreateTexture(nil, "ARTWORK")
+        fill:SetTexture(Azaath.media.blank)
+        fill:SetPoint("BOTTOMLEFT", lf, "BOTTOMLEFT", 2, 2)
+        fill:SetPoint("BOTTOMRIGHT", lf, "BOTTOMRIGHT", -2, 2)
+        bar.latencyFrame = lf
+        bar.latencyFill = fill
+        bar.chromeFrame = cf
+    end
+
+    local cf = bar.chromeFrame
+    if style == "bdo" then
+        cf:Hide()
+        bar.latencyFrame:Hide()
+        return
+    end
+
+    local padX = (style == "tabletop") and 6 or 8
+    local padY = (style == "tabletop") and 4 or 4
+    cf:ClearAllPoints()
+    cf:SetPoint("TOPLEFT", bar, "TOPLEFT", -padX, padY)
+    cf:SetPoint("BOTTOMRIGHT", bar, "BOTTOMRIGHT", padX, -padY)
+    cf:SetBackdropColor(cfg.dockBg[1], cfg.dockBg[2], cfg.dockBg[3], cfg.dockBg[4])
+    cf:SetBackdropBorderColor(cfg.dockRim[1], cfg.dockRim[2], cfg.dockRim[3], cfg.dockRim[4])
+    cf:Show()
+
+    if cfg.railTex then
+        cf.rail:SetTexture(MEDIA_DIR .. cfg.railTex)
+        cf.rail:Show()
+    else
+        cf.rail:Hide()
+    end
+
+    if cfg.dockTrim then
+        cf.topTrim:SetPoint("TOPLEFT", cf, "TOPLEFT", 2, -2)
+        cf.topTrim:SetPoint("TOPRIGHT", cf, "TOPRIGHT", -2, -2)
+        cf.topTrim:SetVertexColor(cfg.dockTrim[1], cfg.dockTrim[2], cfg.dockTrim[3], cfg.dockTrim[4])
+        cf.botTrim:SetPoint("BOTTOMLEFT", cf, "BOTTOMLEFT", 2, 2)
+        cf.botTrim:SetPoint("BOTTOMRIGHT", cf, "BOTTOMRIGHT", -2, 2)
+        cf.botTrim:SetVertexColor(cfg.dockTrim[1], cfg.dockTrim[2], cfg.dockTrim[3], cfg.dockTrim[4] * 0.7)
+        cf.topTrim:Show()
+        cf.botTrim:Show()
+    else
+        cf.topTrim:Hide()
+        cf.botTrim:Hide()
+    end
+
+    local wingH = (style == "tabletop") and (barH + 10) or (barH + 8)
+    local wingW = cfg.wingW or 32
+    cf.wingL:SetTexture(MEDIA_DIR .. cfg.wingL)
+    cf.wingL:SetSize(wingW, wingH)
+    cf.wingL:ClearAllPoints()
+    cf.wingL:SetPoint("RIGHT", cf, "LEFT", style == "tabletop" and 8 or 2, 0)
+    cf.wingL:Show()
+
+    cf.wingR:SetTexture(MEDIA_DIR .. cfg.wingR)
+    cf.wingR:SetSize(wingW, wingH)
+    cf.wingR:ClearAllPoints()
+    cf.wingR:SetPoint("LEFT", cf, "RIGHT", style == "tabletop" and -8 or -2, 0)
+    cf.wingR:Show()
+
+    if style == "tabletop" then
+        bar.latencyFrame:SetSize(7, max(18, barH - 4))
+        bar.latencyFrame:ClearAllPoints()
+        bar.latencyFrame:SetPoint("RIGHT", bar, "RIGHT", 0, 0)
+        bar.latencyFrame:Show()
+    else
+        bar.latencyFrame:Hide()
+    end
+end
+
 local function PositionBarAndButtons()
     local db = M.db
+    local style = GetStyle()
+    local cfg = STYLES[style]
     local size = db.buttonSize or 26
-    local spacing = db.spacing or 5
+    local spacing = (style == "tabletop") and max(2, min(4, db.spacing or 3)) or (db.spacing or 5)
     local collapsed = db.collapsed and true or false
     local scale = (db.scale and db.scale > 0) and db.scale or 1
     local anchor = db.anchor or "BOTTOMRIGHT"
@@ -1003,39 +1516,58 @@ local function PositionBarAndButtons()
     end
     M.lastApplied = { scale = scale, x = ox, y = oy }
 
-    local visibleIndex = 0
+    local btnH = cfg.portrait and floor(size * 1.36 + 0.5) or size
+    local curX = 0
     for _, b in ipairs(buttons) do
         local show = not (collapsed and b.def.group == "main")
         if show then
-            visibleIndex = visibleIndex + 1
+            local bw = (cfg.portrait and b.def.isToggle) and max(12, floor(size * 0.62 + 0.5)) or size
             b:Show()
-            b:SetSize(size, size)
-            local pad = b.def.isToggle and max(4, floor(size * 0.23)) or max(3, floor(size * 0.16))
+            b:SetSize(bw, btnH)
+
+            local padX = b.def.isToggle and max(3, floor(bw * 0.22)) or max(3, floor(size * 0.16))
+            local padY = cfg.portrait and max(4, floor((btnH - (bw - padX * 2)) * 0.52)) or padX
             b.icon:ClearAllPoints()
-            b.icon:SetPoint("TOPLEFT", b, "TOPLEFT", pad, -pad)
-            b.icon:SetPoint("BOTTOMRIGHT", b, "BOTTOMRIGHT", -pad, pad)
+            b.icon:SetPoint("TOPLEFT", b, "TOPLEFT", padX, -padY)
+            b.icon:SetPoint("BOTTOMRIGHT", b, "BOTTOMRIGHT", -padX, padY)
+
+            if b.glow then
+                b.glow:ClearAllPoints()
+                local gPad = (style == "azaath" or style == "numenor") and -floor(size * 0.36) or -6
+                b.glow:SetPoint("TOPLEFT", b, "TOPLEFT", gPad, -gPad)
+                b.glow:SetPoint("BOTTOMRIGHT", b, "BOTTOMRIGHT", -gPad, gPad)
+            end
+
             b:ClearAllPoints()
-            b:SetPoint("LEFT", bar, "LEFT", (visibleIndex - 1) * (size + spacing), 0)
+            b:SetPoint("LEFT", bar, "LEFT", curX, 0)
+            curX = curX + bw + spacing
         else
             b:Hide()
         end
     end
 
-    local count = max(1, visibleIndex)
+    local latExtra = (style == "tabletop") and 11 or 0
+    local totalW = max(size, curX - spacing + latExtra)
     bar:SetScale(scale)
-    bar:SetWidth(count * size + (count - 1) * spacing)
-    bar:SetHeight(size)
+    bar:SetWidth(totalW)
+    bar:SetHeight(btnH)
     bar:ClearAllPoints()
     bar:SetPoint(anchor, Azaath.root, anchor, ox, oy)
     if Azaath.ClampToScreen then Azaath.ClampToScreen(bar) end
     bar:SetAlpha(M.editing and 1.0 or (db.idleAlpha or 0.80))
 
+    ApplyDockChrome(style, cfg, totalW, btnH)
     UpdateAllVisuals()
+end
+
+-- barras da Blizzard (actionbars.layout "blizzard"): o micromenu dela já está lá; o nosso não monta
+local function Wanted(db)
+    return db and db.enabled and not Azaath.IsBlizzBars()
 end
 
 function M:ApplyLayout()
     if not bar then
-        if self.db and self.db.enabled then
+        if Wanted(self.db) then
             Azaath:RunOutOfCombat(function() self:Build() end)
         end
         return
@@ -1052,6 +1584,9 @@ function M:ApplyLayout()
 end
 
 function M:Build()
+    -- uma vez só: ApplyLayout (chamado por outros módulos no login) pode já ter criado a barra;
+    -- criar de novo deixaria a cópia antiga congelada na posição inicial ("barra fantasma")
+    if bar then return self:ApplyLayout() end
     local db = self.db
     local size = db.buttonSize or 26
 
@@ -1083,7 +1618,7 @@ function M:OnInitialize()
 end
 
 function M:OnEnable()
-    if not self.db or not self.db.enabled then return end
+    if not Wanted(self.db) then return end
     Azaath:RunOutOfCombat(function()
         self:Build()
     end)

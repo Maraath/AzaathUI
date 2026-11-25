@@ -461,7 +461,8 @@ function M:Apply()
     if self.applied then return end
     self.applied = true
     for _, key in ipairs(ORDER) do
-        if self.db[key] then
+        -- (opções "Blizzard" de barra/skin: Azaath.HideBlizzOn deixa a parte do jogo à mostra)
+        if Azaath.HideBlizzOn(key) then
             local ok, err = pcall(Hide[key])
             if not ok then
                 geterrorhandler()(("AzaathUI [HideBlizz:%s] %s"):format(key, tostring(err)))

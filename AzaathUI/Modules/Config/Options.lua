@@ -59,6 +59,7 @@ A.Compass     = function() CallApply("Compass") end
 A.Experience  = function() CallApply("Experience") end
 A.UnitFrames  = function() CallApply("UnitFrames") end
 A.ActionBars  = function() CallApply("ActionBars") end
+A.Rotation    = function() local m = Azaath:GetModule("RotationAssist"); if m and m.ApplySettings then m:ApplySettings() end end
 A.StancePet   = function() CallApply("StancePetBars") end
 A.MicroMenu   = function() CallApply("MicroMenu") end
 A.CastBar     = function() CallApply("CastBar") end
@@ -170,6 +171,35 @@ A.TestPlates = function()
     local np = Azaath:GetModule("Nameplates")
     if np and np.Test then np:Test() end
 end
+A.OpenPlatesDesigner = function()
+    if Azaath.ConfigUI and Azaath.ConfigUI.Hide then Azaath.ConfigUI.Hide() end
+    local np = Azaath:GetModule("Nameplates")
+    if np and np.OpenDesigner then np:OpenDesigner() end
+end
+A.SyncPlateStyle = function(v)
+    local np = Azaath.NP
+    if np and np.db and v and v ~= "blizzard" then
+        local map = { auto = "modern", azaath = "azaath", zerker = "bdo", minimal = "bdo_pill" }
+        np.ApplyBarStylePreset(map[v] or "modern", false)
+    end
+    A.Layout()
+end
+A.SyncPlateSetting = function()
+    local np = Azaath.NP
+    local cfg = Azaath.db and Azaath.db.nameplates
+    if np and np.db and cfg then
+        np.db.general.enabled = cfg.enabled ~= false
+        np.db.general.utilityNPCs = cfg.utilityNPCs ~= false
+        np.db.general.hideWorldNames = cfg.hideWorldNames ~= false
+        if cfg.width and cfg.width >= 80 then
+            np.db.units.enemynpc.healthWidth = cfg.width
+            np.db.units.enemynpc.castWidth = cfg.width + 4
+        end
+        np.db.cast.enabled = cfg.castBar ~= false
+        np.InvalidateUnitProfiles()
+        np.RefreshAll()
+    end
+end
 A.TestDamage = function()
     local ct = Azaath:GetModule("CombatText")
     if ct and ct.Test then ct:Test() end
@@ -207,7 +237,6 @@ end
 --------------------------------------------------------------------------------
 local function IsBDO()    return Azaath.IsBDO and Azaath.IsBDO() end
 local function IsAzaath() return Azaath.IsAzaath and Azaath.IsAzaath() end
-local function NotAzaath() return not IsAzaath() end
 local function CastStyle(s) return function() return Azaath.db.castbar.player.style == s end end
 local function XPFixedWidth() return (Azaath.db.experience.width or 0) > 0 end
 
@@ -301,7 +330,7 @@ U.PAGES = {
     { key = "character", icon = ICON .. "INV_Misc_Head_Human_01", sections = {
         { key = "sec.skin", rows = {
             { t = "choice", path = "skin", reload = true, onChange = A.SkinChoice,
-              options = { { v = "modern" }, { v = "azaath" }, { v = "bdo" } } },
+              options = { { v = "modern" }, { v = "azaath" }, { v = "bdo" }, { v = "blizzard" } } },
         } },
         { key = "sec.zerker", when = IsBDO, why = "why.bdo", rows = {
             { t = "slider", path = "bdo.scale", min = 0.5, max = 2.0, step = 0.05, fmt = "%.2fx", apply = A.BDOHUD },
@@ -367,9 +396,17 @@ U.PAGES = {
     } },
     ----------------------------------------------------------------------------
     { key = "actionbars", icon = ICON .. "Ability_DualWield", sections = {
-        { key = "sec.barLayout", when = NotAzaath, why = "why.notAzaath", rows = {
+        { key = "sec.barLayout", rows = {
             { t = "choice", path = "actionbars.layout", onChange = A.BarChoice,
-              options = { { v = "bdo" }, { v = "split" }, { v = "az" } } },
+              options = { { v = "bdo" }, { v = "split" }, { v = "az" }, { v = "reforged" }, { v = "blizzard" } } },
+        } },
+        { key = "sec.rotation", rows = {
+            { t = "toggle", path = "actionbars.rotation.enabled", apply = A.Rotation },
+            { t = "toggle", path = "actionbars.rotation.shout", needs = "actionbars.rotation.enabled" },
+            { t = "toggle", path = "actionbars.rotation.sound", needs = "actionbars.rotation.enabled" },
+            { t = "toggle", path = "actionbars.rotation.castSfx", needs = "actionbars.rotation.enabled" },
+            { t = "toggle", path = "actionbars.rotation.castSounds", needs = "actionbars.rotation.enabled" },
+            { t = "slider", path = "actionbars.rotation.volume", min = 1, max = 3, step = 1, fmt = "%dx", needs = "actionbars.rotation.enabled" },
         } },
         { key = "sec.barsGeneral", rows = {
             { t = "toggle", path = "actionbars.enabled", reload = true },
@@ -411,6 +448,8 @@ U.PAGES = {
         } },
         { key = "sec.micromenu", rows = {
             { t = "toggle", path = "micromenu.enabled", apply = A.MicroMenu },
+            { t = "choice", path = "micromenu.style", apply = A.MicroMenu, needs = "micromenu.enabled",
+              options = { { v = "bdo" }, { v = "azaath" }, { v = "numenor" }, { v = "tabletop" } } },
             { t = "slider", path = "micromenu.buttonSize", min = 14, max = 44, step = 1, fmt = "%d px", apply = A.MicroMenu, needs = "micromenu.enabled" },
             { t = "slider", path = "micromenu.spacing", min = 1, max = 12, step = 1, fmt = "%d px", apply = A.MicroMenu, needs = "micromenu.enabled" },
             { t = "slider", path = "micromenu.scale", min = 0.5, max = 2.5, step = 0.05, fmt = "%.2fx", apply = A.MicroMenu, needs = "micromenu.enabled" },
@@ -438,17 +477,14 @@ U.PAGES = {
             { t = "slider", path = "auras.target.spacing", min = 1, max = 14, step = 1, fmt = "%d px", apply = A.Auras, needs = "auras.target.enabled" },
         } },
         { key = "sec.nameplates", rows = {
-            { t = "toggle", path = "nameplates.enabled", reload = true },
-            { t = "choice", path = "nameplates.style", reload = true, needs = "nameplates.enabled",
-              options = { { v = "auto" }, { v = "azaath" }, { v = "zerker" }, { v = "minimal" } } },
-            { t = "toggle", path = "nameplates.castBar", reload = true, needs = "nameplates.enabled" },
-            { t = "toggle", path = "nameplates.allies", reload = true, needs = "nameplates.enabled" },
-            { t = "toggle", path = "nameplates.friendlyClickable", reload = true, needs = "nameplates.enabled" },
-            { t = "toggle", path = "nameplates.utilityNPCs", reload = true, needs = "nameplates.enabled" },
-            { t = "toggle", path = "nameplates.pets", reload = true, needs = "nameplates.enabled" },
-            { t = "toggle", path = "nameplates.hideWorldNames", reload = true, needs = "nameplates.enabled" },
-            { t = "slider", path = "nameplates.width", min = 100, max = 260, step = 5, fmt = "%d px", reload = true, needs = "nameplates.enabled" },
-            { t = "slider", path = "nameplates.allyOffsetY", min = -30, max = 20, step = 1, fmt = "%d px", reload = true, needs = "nameplates.allies" },
+            { t = "toggle", path = "nameplates.enabled", apply = A.SyncPlateSetting, reload = true },
+            { t = "choice", path = "nameplates.style", apply = A.SyncPlateStyle, needs = "nameplates.enabled",
+              options = { { v = "auto" }, { v = "azaath" }, { v = "zerker" }, { v = "minimal" }, { v = "blizzard" } } },
+            { t = "toggle", path = "nameplates.castBar", apply = A.SyncPlateSetting, needs = "nameplates.enabled" },
+            { t = "toggle", path = "nameplates.utilityNPCs", apply = A.SyncPlateSetting, needs = "nameplates.enabled" },
+            { t = "toggle", path = "nameplates.hideWorldNames", apply = A.SyncPlateSetting, needs = "nameplates.enabled" },
+            { t = "slider", path = "nameplates.width", min = 100, max = 260, step = 5, fmt = "%d px", apply = A.SyncPlateSetting, needs = "nameplates.enabled" },
+            { t = "button", key = "btn.openPlatesDesigner", run = A.OpenPlatesDesigner, needs = "nameplates.enabled" },
             { t = "button", key = "btn.testPlates", run = A.TestPlates, needs = "nameplates.enabled" },
         } },
     } },
@@ -728,6 +764,9 @@ U.PAGES = {
             { t = "slider", path = "actioncam.mouseLookSpeed", min = 20, max = 200, step = 5, fmt = "%d%%", apply = A.ActionCam },
             { t = "slider", path = "actioncam.shoulderOffset", min = -3.0, max = 3.0, step = 0.1, fmt = "%.1f", apply = A.ActionCam },
             { t = "toggle", path = "actioncam.shoulderFollowsMouseLook", apply = A.ActionCam },
+            { t = "toggle", path = "actioncam.shoulderZoomScale", apply = A.ActionCam },
+            { t = "toggle", path = "actioncam.situations", apply = A.ActionCam },
+            { t = "toggle", path = "actioncam.situationZoomMemory", apply = A.ActionCam, needs = "actioncam.situations" },
             { t = "toggle", path = "actioncam.dynamicPitch", apply = A.ActionCam },
             { t = "slider", path = "actioncam.dynamicPitchStrength", min = 0.0, max = 1.0, step = 0.05, fmt = "%.2f", apply = A.ActionCam, needs = "actioncam.dynamicPitch" },
             { t = "slider", path = "actioncam.minCameraZoom", min = 0, max = 15, step = 1, fmt = "%d m", apply = A.ActionCam },
@@ -738,6 +777,7 @@ U.PAGES = {
         } },
         { key = "sec.acCursor", needs = "actioncam.enabled", rows = {
             { t = "toggle", path = "actioncam.frameWatching", apply = A.ActionCam },
+            { t = "toggle", path = "actioncam.ctrlToggle", apply = A.ActionCam },
             { t = "toggle", path = "actioncam.closeWindowsOnMouseLook", apply = A.ActionCam },
             { t = "toggle", path = "actioncam.pulseCursor", apply = A.ActionCam },
             { t = "toggle", path = "actioncam.hideTooltip", apply = A.ActionCam },
@@ -789,6 +829,8 @@ U.PAGES = {
             { t = "toggle", path = "actioncam.bdoCastFocus", apply = A.ActionCam, needs = "actioncam.bdoEnabled" },
             { t = "toggle", path = "actioncam.bdoSkillPunch", apply = A.ActionCam, needs = "actioncam.bdoEnabled" },
             { t = "toggle", path = "actioncam.bdoCritImpact", apply = A.ActionCam, needs = "actioncam.bdoEnabled" },
+            { t = "toggle", path = "actioncam.bdoMoves", apply = A.ActionCam, needs = "actioncam.bdoEnabled" },
+            { t = "toggle", path = "actioncam.bdoHurtShake", apply = A.ActionCam, needs = "actioncam.bdoEnabled" },
             { t = "toggle", path = "actioncam.bdoCritSound", apply = A.ActionCam, needs = "actioncam.bdoEnabled" },
             { t = "choice", path = "actioncam.bdoCritSoundStyle", apply = A.ActionCam, needs = "actioncam.bdoCritSound",
               options = { { v = "impact" }, { v = "ping" }, { v = "drum" }, { v = "thunder" } } },

@@ -100,7 +100,6 @@ P["msg.sectionReset"] = "Seção \"%s\" restaurada."
 -- Motivos de indisponibilidade
 P["why.bdo"]       = "Só vale com a skin Zerker."
 P["why.azaath"]    = "Só vale com a skin Azaath Reforged."
-P["why.notAzaath"] = "Na Azaath Reforged as barras fazem parte da HUD e não mudam de disposição."
 P["why.xpAuto"]    = "Desligue a largura automática para definir uma largura fixa."
 P["why.ring"]      = "Só vale com o estilo Espiral."
 P["why.bar"]       = "Só vale com o estilo Barra horizontal."
@@ -144,7 +143,8 @@ P["btn.factoryReset"] = { "Restaurar padrões de fábrica", "Apaga TODAS as conf
 P["sec.skin"]        = { "Skin", "Visual da barra de tarefas e do quadro do personagem." }
 P["skin"]            = { "Skin da Azaath UI", "Muda só as barras de ação e o quadro do personagem (vida, recurso e XP); o resto da interface fica igual. Recarrega ao trocar." }
 P["o.skin=modern"]   = { "Azaath", "Recurso e vida no centro inferior, losango de nível e XP sob a vida." }
-P["o.skin=azaath"]   = { "Azaath Reforged", "Painéis de ação dos dois lados (abas CF1/CF2), vida, recurso e XP na moldura central com o medalhão do nível. Buffs acompanham a HUD." }
+P["o.skin=azaath"]   = { "Azaath Reforged", "Vida, recurso e XP na moldura central com o medalhão do nível. Buffs acompanham a HUD. Combina com as barras Reforged." }
+P["o.skin=blizzard"] = { "Blizzard", "Quadros de vida do jogador e do alvo padrão do jogo. Barras, buffs e o resto da interface seguem o Azaath." }
 P["o.skin=bdo"]      = { "Zerker", "Quadro no canto superior esquerdo: losango com nível e XP pela borda, vida vermelha e recurso em seta. Barras e buffs ficam livres." }
 P["sec.zerker"]      = { "Quadro Zerker", "Ajustes do quadro da skin Zerker." }
 P["bdo.scale"]       = { "Escala do quadro", "Tamanho do quadro Zerker no canto superior esquerdo." }
@@ -199,6 +199,15 @@ P["actionbars.layout"] = { "Disposição das barras", "Escolhe o desenho das bar
 P["o.actionbars.layout=bdo"]   = { "Losyx", "Losangos em grupos de quatro no centro e asas de seis botões de cada lado." }
 P["o.actionbars.layout=split"] = { "NextGen", "Duas barras de 12 teclas, uma em cada borda, em octógonos com faixa de vidro." }
 P["o.actionbars.layout=az"]    = { "Minimalist", "Barra 1 à direita e barra 2 à esquerda da vida, como no Azaath." }
+P["o.actionbars.layout=blizzard"] = { "Blizzard", "Barras de ação padrão do jogo, com o micromenu e as bolsas delas; o micromenu do Azaath some." }
+P["o.actionbars.layout=reforged"] = { "Reforged", "Painéis da arte Azaath Reforged: barra 1 à direita, barra 2 à esquerda com as abas de postura. Cada painel se move à parte."  }
+P["sec.rotation"] = { "Assistente de rotação", "Só para Guerreiro por enquanto. Acende na barra o Brado de Batalha e as habilidades situacionais." }
+P["actionbars.rotation.enabled"] = { "Ligar assistente", "Faz brilhar Executar, Sobrepujar, Revanche, Ímpeto da Vitória, procs (Golpe, Batida com Escudo) e interrupções quando ficam disponíveis." }
+P["actionbars.rotation.shout"] = { "Lembrar do Brado de Batalha", "O botão do Brado brilha em vermelho enquanto você está sem o efeito." }
+P["actionbars.rotation.sound"] = { "Som de aviso", "Toca um som leve quando uma habilidade situacional acende." }
+P["actionbars.rotation.castSounds"] = { "Vozes ao usar habilidades", "Luz de Elluna diz \"testemunhem o poder de Eluna\"." }
+P["actionbars.rotation.volume"] = { "Volume dos sons", "1x = normal. 2x e 3x tocam o som em camadas para ficar mais alto que o limite do arquivo; em 3x pode distorcer." }
+P["actionbars.rotation.castSfx"] = { "Efeitos sonoros das habilidades", "Golpe Heroico, Cutilada, Batida, Subjugar, Executar e os três brados trocam o som original do jogo por um efeito próprio (o original fica mudo só no instante do seu uso)." }
 P["sec.barsGeneral"] = { "Geral", "Vale para todas as barras." }
 P["actionbars.enabled"]     = { "Ativar barras de ação AzaathUI", "Substitui as barras da Blizzard pelas da AzaathUI." }
 P["actionbars.showHotkeys"] = { "Mostrar teclas de atalho", "Escreve a tecla de cada botão. Desligue se você já decorou e prefere um visual limpo." }
@@ -225,6 +234,11 @@ P["actionbars.pet.buttonSize"]    = { "Tamanho dos botões de pet", "Tamanho de 
 P["actionbars.pet.scale"]         = { "Escala da barra de pet", "Tamanho do conjunto de pet." }
 P["sec.micromenu"]   = { "Menu de utilidades", "Botões de personagem, feitiços, talentos, missões, menu etc." }
 P["micromenu.enabled"]    = { "Ativar menu de utilidades", "Mostra a barra com os atalhos para as janelas do jogo." }
+P["micromenu.style"]      = { "Estilo do menu de utilidades", "Visual da barra de atalhos e dos placares de informação." }
+P["o.micromenu.style=bdo"]      = { "Minimalista", "Visual atual discreto: discos translúcidos, glifos limpos e losango central." }
+P["o.micromenu.style=azaath"]   = { "Azaath Arcano", "Doca de obsidiana e ouro velho com ponteiras em cristal ciano e placar arcano." }
+P["o.micromenu.style=numenor"]  = { "Forja de Númenor", "Ardósia negra, bronze oxidado, ícones gravados a buril e brilho de brasa." }
+P["o.micromenu.style=tabletop"] = { "Mesa de RPG (WoW)", "Pedra cinzelada, slots retrato 3D, ícones coloridos, barra de latência e pergaminho." }
 P["micromenu.buttonSize"] = { "Tamanho dos botões", "Tamanho de cada atalho." }
 P["micromenu.spacing"]    = { "Espaçamento", "Espaço entre os atalhos." }
 P["micromenu.scale"]      = { "Escala", "Tamanho de toda a barra." }
@@ -253,6 +267,7 @@ P["nameplates.style"]             = { "Estilo das placas", "Visual das placas de
 P["o.nameplates.style=auto"]   = { "Conforme a skin", "Zerker usa a minimalista; Azaath e Reforged usam a Azaath." }
 P["o.nameplates.style=azaath"] = { "Azaath", "Nome espaçado, barra em pincel e tinta, losango de nível e asas nas elites." }
 P["o.nameplates.style=zerker"] = { "Zerker", "Barra em paralelogramo com a mesma arte líquida da vida do quadro." }
+P["o.nameplates.style=blizzard"] = { "Blizzard", "Placas de nome padrão do jogo, sem os marcadores, molduras e efeitos do Azaath." }
 P["o.nameplates.style=minimal"] = { "Minimalista", "Como no Black Desert: nome pequeno e barra fina arredondada." }
 P["nameplates.castBar"]           = { "Conjuração nos inimigos", "Barra de conjuração sob a placa do inimigo, para saber o que interromper." }
 P["nameplates.allies"]            = { "Aliados no estilo Azaath", "Jogadores aliados com losango de nível e nome." }
@@ -262,6 +277,7 @@ P["nameplates.pets"]              = { "Pets no estilo Azaath", "Pets aliados com
 P["nameplates.hideWorldNames"]    = { "Esconder nomes do WoW ao longe", "Tira os nomes padrão do jogo de aliados e pets para não duplicar com as placas." }
 P["nameplates.width"]             = { "Largura das placas", "Comprimento da barra de vida dos inimigos." }
 P["nameplates.allyOffsetY"]       = { "Altura da placa dos aliados", "Aproxima (negativo) ou afasta a placa da cabeça do aliado." }
+P["btn.openPlatesDesigner"] = { "Personalizar tudo (Designer Visual)", "Abre o editor completo de placas com prévia ao vivo, auras, execute, ameaça, cores, perfis e importação (/azplates).", "Abrir Designer" }
 P["btn.testPlates"]  = { "Testar placas", "Simula uma conjuração nas placas visíveis.", "Testar" }
 
 -- Combate ----------------------------------------------------------------------
@@ -497,6 +513,9 @@ P["sec.acCamera"]    = { "Câmera e Mouse Look", "Movimento e enquadramento da c
 P["actioncam.mouseLookSpeed"]       = { "Velocidade do Mouse Look", "Sensibilidade do mouse com a câmera travada." }
 P["actioncam.shoulderOffset"]       = { "Deslocamento de ombro", "Coloca o personagem um pouco de lado, como em jogos em terceira pessoa." }
 P["actioncam.shoulderFollowsMouseLook"] = { "Ombro só no Mouse Look", "Aplica o deslocamento de ombro apenas enquanto a câmera está travada." }
+P["actioncam.situations"] = { "Câmera por situação", "Combate, chefe, montaria, voo, nado, masmorra, interior, descanso e morte ganham enquadramento próprio, com transição suave." }
+P["actioncam.situationZoomMemory"] = { "Lembrar zoom por situação", "Cada situação guarda a distância de câmera que você usou nela e volta para ela ao entrar de novo." }
+P["actioncam.shoulderZoomScale"] = { "Ombro proporcional ao zoom", "Ajusta o deslocamento de ombro à distância da câmera: o enquadramento fica igual de perto e de longe." }
 P["actioncam.dynamicPitch"]         = { "Inclinação dinâmica", "Inclina a câmera para mostrar mais do que está à frente." }
 P["actioncam.dynamicPitchStrength"] = { "Força da inclinação", "Quanto a câmera inclina." }
 P["actioncam.minCameraZoom"]        = { "Zoom mínimo", "Distância mínima da câmera (0 = sem limite)." }
@@ -509,6 +528,7 @@ P["o.actioncam.vignetteConditions=mouselook,combat"] = { "Ambos", "Com a câmera
 P["o.actioncam.vignetteConditions="]          = { "Desligada", "Nunca escurece as bordas." }
 P["sec.acCursor"]    = { "Cursor", "Quando o cursor aparece e some." }
 P["actioncam.frameWatching"]           = { "Destravar ao abrir janelas", "Solta o cursor sozinho quando você abre bolsas, mapa, diálogos etc." }
+P["actioncam.ctrlToggle"]              = { "Ctrl alterna a Câmera Action", "Um toque rápido no Ctrl trava/destrava o Mouse Look, igual à tecla V. Ctrl+tecla, Ctrl+clique ou segurar o Ctrl não alternam." }
 P["actioncam.closeWindowsOnMouseLook"] = { "Mouse Look fecha janelas", "A tecla de Mouse Look fecha as janelas abertas antes de travar." }
 P["actioncam.pulseCursor"]             = { "Pulso no cursor", "Um brilho rápido mostra onde o cursor reapareceu." }
 P["actioncam.hideTooltip"]             = { "Esconder tooltips no Mouse Look", "Evita tooltips piscando enquanto você gira a câmera." }
@@ -571,6 +591,8 @@ P["actioncam.bdoIntensity"]    = { "Intensidade", "Força geral dos efeitos (0 =
 P["actioncam.bdoHitShake"]     = { "Tremor ao acertar", "Pequeno tremor da câmera em cada golpe." }
 P["actioncam.bdoCastFocus"]    = { "Foco ao conjurar", "Leve zoom enquanto você conjura ou canaliza." }
 P["actioncam.bdoSkillPunch"]   = { "Pulso das habilidades", "Pequeno recuo da câmera ao usar habilidades." }
+P["actioncam.bdoMoves"]        = { "Câmera por habilidade", "Investida avança, giros abrem, golpes pesados dão soco, brados sacodem e a Tempestade de Lâminas afasta a câmera." }
+P["actioncam.bdoHurtShake"]    = { "Tremor ao levar dano", "A câmera sacode de leve quando você é atingido (mais forte em críticos)." }
 P["actioncam.bdoCritImpact"]   = { "Impacto em críticos", "Micro-zoom extra nos acertos críticos." }
 P["actioncam.bdoCritSound"]    = { "Som de crítico", "Toca um som de impacto nos críticos." }
 P["actioncam.bdoCritSoundStyle"] = { "Som do crítico", "Qual som tocar nos críticos." }
@@ -677,15 +699,6 @@ P["setup.m.dialog"]      = { "Diálogos", "Conversas com NPCs e missões no esti
 P["setup.m.loot"]        = { "Saque", "Janela de saque própria." }
 P["setup.m.merchant"]    = { "Mercador", "Janela de compra e venda dos vendedores." }
 P["setup.m.chat"]        = { "Chat", "Janela de conversa limpa e transparente." }
-P["setup.step3.title"] = "Recursos extras"
-P["setup.step3.desc"]  = "Peças do addon sem equivalente na Blizzard: bússola, XP, navegação, saque, NPCs e mais."
-P["setup.step3.note"]  = "Os ajustes finos de cada recurso ficam nas abas do painel (/azaath)."
-P["setup.step4.title"] = "Câmera Action"
-P["setup.step4.desc"]  = "Combate com Mouse Look e mira no centro da tela, como em jogos de ação."
-P["setup.step4.note"]  = "Com a câmera ligada, a tecla do Mouse Look alterna entre mirar e usar o cursor. Mais opções em /azaath > Câmera Action."
-P["setup.step5.title"] = "Visual"
-P["setup.step5.desc"]  = "Skin da HUD, desenho das barras e tamanho geral. Passe o mouse sobre cada opção para ver o que muda."
-P["setup.step5.note"]  = "Para mover ou redimensionar cada elemento use o Modo de Edição (/azaath edit) depois de concluir."
 P["setup.step6.title"] = "Tudo pronto"
 P["setup.step6.desc"]  = "Confira o resumo. Clique em uma etapa acima para revisar qualquer escolha antes de aplicar."
 P["setup.camPreset"] = { "Estilo da câmera", "Desligada mantém a câmera do jogo. Clássica liga a Câmera Action com os valores padrão. Black Desert aplica o preset completo (ombro, inclinação, tremor e inércia)." }
@@ -706,7 +719,6 @@ P["setup.tip.6"]     = "Lista todos os comandos."
 P["setup.where"]     = "Para reabrir: /azaath setup, /azaath tutorial ou Painel > Geral > Primeiros Passos."
 P["setup.sum.addon"] = "Módulos do addon"
 P["setup.sum.blizz"] = "Módulos da Blizzard"
-P["setup.sum.hud"]   = "Parte da HUD"
 P["setup.sum.reload"] = "Recarregar a interface"
 P["setup.sum.reloadN"] = "Sim (%d mudança(s))"
 P["setup.sum.none"]  = "Não é preciso"
@@ -759,7 +771,6 @@ E["msg.sectionReset"] = "Section \"%s\" restored."
 
 E["why.bdo"]       = "Only applies to the Zerker skin."
 E["why.azaath"]    = "Only applies to the Azaath Reforged skin."
-E["why.notAzaath"] = "In Azaath Reforged the bars are part of the HUD and keep their layout."
 E["why.xpAuto"]    = "Turn off automatic width to set a fixed width."
 E["why.ring"]      = "Only applies to the Spiral style."
 E["why.bar"]       = "Only applies to the Horizontal bar style."
@@ -800,7 +811,8 @@ E["btn.factoryReset"] = { "Restore factory defaults", "Erases ALL AzaathUI setti
 E["sec.skin"]        = { "Skin", "Look of the action bars and the character frame." }
 E["skin"]            = { "Azaath UI skin", "Only changes the action bars and the character frame (health, resource and XP); the rest of the UI stays the same. Reloads on change." }
 E["o.skin=modern"]   = { "Azaath", "Resource and health at the bottom center, level diamond and XP below health." }
-E["o.skin=azaath"]   = { "Azaath Reforged", "Action panels on both sides (CF1/CF2 tabs), health, resource and XP in the central frame with the level medallion. Buffs follow the HUD." }
+E["o.skin=azaath"]   = { "Azaath Reforged", "Health, resource and XP in the central frame with the level medallion. Buffs follow the HUD. Pairs with the Reforged bars." }
+E["o.skin=blizzard"] = { "Blizzard", "The game's default player and target health frames. Bars, buffs and the rest of the UI stay Azaath." }
 E["o.skin=bdo"]      = { "Zerker", "Frame at the top left: level diamond with XP around its edge, red health and arrow resource. Bars and buffs stay free." }
 E["sec.zerker"]      = { "Zerker frame", "Settings for the Zerker skin frame." }
 E["bdo.scale"]       = { "Frame scale", "Size of the Zerker frame at the top left." }
@@ -854,6 +866,15 @@ E["actionbars.layout"] = { "Bar layout", "Picks the action bar design. Reloads o
 E["o.actionbars.layout=bdo"]   = { "Losyx", "Diamonds in groups of four in the center and six-button wings on each side." }
 E["o.actionbars.layout=split"] = { "NextGen", "Two 12-key bars, one on each edge, in octagons with a glass strip." }
 E["o.actionbars.layout=az"]    = { "Minimalist", "Bar 1 to the right and bar 2 to the left of health, like Azaath." }
+E["o.actionbars.layout=blizzard"] = { "Blizzard", "The game's default action bars, with their micro menu and bags; the Azaath micro menu is hidden." }
+E["o.actionbars.layout=reforged"] = { "Reforged", "Azaath Reforged art panels: bar 1 on the right, bar 2 on the left with the stance tabs. Each panel moves on its own." }
+E["sec.rotation"] = { "Rotation helper", "Warrior only for now. Lights up Battle Shout and situational abilities on the bar." }
+E["actionbars.rotation.enabled"] = { "Enable helper", "Makes Execute, Overpower, Revenge, Victory Rush, procs (Slam, Shield Slam) and interrupts glow when available." }
+E["actionbars.rotation.shout"] = { "Battle Shout reminder", "The Battle Shout button glows red while you lack the buff." }
+E["actionbars.rotation.sound"] = { "Alert sound", "Plays a soft sound when a situational ability lights up." }
+E["actionbars.rotation.castSounds"] = { "Voices on ability use", "Light of Elune says its line when used." }
+E["actionbars.rotation.volume"] = { "Sound volume", "1x = normal. 2x and 3x layer the sound to go past the file's limit; 3x may distort." }
+E["actionbars.rotation.castSfx"] = { "Ability sound effects", "Heroic Strike, Execute and the three shouts replace the game's original sound with their own effect (the original is muted only around your use)." }
 E["sec.barsGeneral"] = { "General", "Applies to every bar." }
 E["actionbars.enabled"]     = { "Enable AzaathUI action bars", "Replaces Blizzard's action bars with AzaathUI's." }
 E["actionbars.showHotkeys"] = { "Show keybinds", "Prints each button's key. Turn off if you know them by heart and prefer a clean look." }
@@ -880,6 +901,11 @@ E["actionbars.pet.buttonSize"]    = { "Pet button size", "Size of each pet butto
 E["actionbars.pet.scale"]         = { "Pet bar scale", "Size of the pet group." }
 E["sec.micromenu"]   = { "Utility menu", "Character, spellbook, talents, quests, game menu buttons and more." }
 E["micromenu.enabled"]    = { "Enable utility menu", "Shows the bar with shortcuts to the game windows." }
+E["micromenu.style"]      = { "Utility menu style", "Visual theme of the utility bar and info placards." }
+E["o.micromenu.style=bdo"]      = { "Minimalist", "Current sleek look: translucent discs, clean glyphs and central diamond." }
+E["o.micromenu.style=azaath"]   = { "Azaath Arcane", "Obsidian and antique gold dock with cyan crystal wings and arcane placard." }
+E["o.micromenu.style=numenor"]  = { "Forge of Númenor", "Dark slate, tarnished bronze, etched icons and forge ember glow." }
+E["o.micromenu.style=tabletop"] = { "Tabletop RPG (WoW)", "Chiseled stone rail, 3D portrait slots, painted icons, latency bar and parchment." }
 E["micromenu.buttonSize"] = { "Button size", "Size of each shortcut." }
 E["micromenu.spacing"]    = { "Spacing", "Space between shortcuts." }
 E["micromenu.scale"]      = { "Scale", "Size of the whole bar." }
@@ -907,6 +933,7 @@ E["nameplates.style"]             = { "Nameplate style", "Look of enemy nameplat
 E["o.nameplates.style=auto"]   = { "Follow the skin", "Zerker uses Minimal; Azaath and Reforged use Azaath." }
 E["o.nameplates.style=azaath"] = { "Azaath", "Spaced name, ink-brush bar, level diamond and wings on elites." }
 E["o.nameplates.style=zerker"] = { "Zerker", "Parallelogram bar with the same liquid art as the health frame." }
+E["o.nameplates.style=blizzard"] = { "Blizzard", "The game's default nameplates, without the Azaath markers, frames and effects." }
 E["o.nameplates.style=minimal"] = { "Minimal", "Like Black Desert: small name and a thin rounded bar." }
 E["nameplates.castBar"]           = { "Enemy cast bars", "Cast bar under the enemy plate so you know what to interrupt." }
 E["nameplates.allies"]            = { "Azaath style allies", "Friendly players with level diamond and name." }
@@ -916,6 +943,7 @@ E["nameplates.pets"]              = { "Azaath style pets", "Friendly pets with a
 E["nameplates.hideWorldNames"]    = { "Hide WoW names at range", "Removes the game's default names on allies and pets to avoid duplicates." }
 E["nameplates.width"]             = { "Plate width", "Length of enemy health bars." }
 E["nameplates.allyOffsetY"]       = { "Ally plate height", "Moves the ally plate closer (negative) or farther from their head." }
+E["btn.openPlatesDesigner"] = { "Customize everything (Visual Designer)", "Opens the full Nameplates Designer with live preview, auras, execute, threat, colors, profiles and import/export (/azplates).", "Open Designer" }
 E["btn.testPlates"]  = { "Test nameplates", "Simulates a cast on visible nameplates.", "Test" }
 
 E["sec.castPlayer"]  = { "Player cast bar", "Bar or spiral showing your spells being cast." }
@@ -1143,6 +1171,9 @@ E["sec.acCamera"]    = { "Camera and Mouse Look", "Camera movement and framing."
 E["actioncam.mouseLookSpeed"]       = { "Mouse Look speed", "Mouse sensitivity while the camera is locked." }
 E["actioncam.shoulderOffset"]       = { "Shoulder offset", "Places the character slightly to the side, like third-person games." }
 E["actioncam.shoulderFollowsMouseLook"] = { "Shoulder only in Mouse Look", "Applies the shoulder offset only while the camera is locked." }
+E["actioncam.situations"] = { "Camera per situation", "Combat, boss, mount, flying, swimming, dungeon, indoors, resting and death get their own framing with smooth transitions." }
+E["actioncam.situationZoomMemory"] = { "Remember zoom per situation", "Each situation keeps the camera distance you used in it and returns to it when you enter again." }
+E["actioncam.shoulderZoomScale"] = { "Shoulder scales with zoom", "Scales the shoulder offset with camera distance so framing stays the same up close and far away." }
 E["actioncam.dynamicPitch"]         = { "Dynamic pitch", "Tilts the camera to show more of what's ahead." }
 E["actioncam.dynamicPitchStrength"] = { "Pitch strength", "How much the camera tilts." }
 E["actioncam.minCameraZoom"]        = { "Minimum zoom", "Minimum camera distance (0 = no limit)." }
@@ -1155,6 +1186,7 @@ E["o.actioncam.vignetteConditions=mouselook,combat"] = { "Both", "Camera locked 
 E["o.actioncam.vignetteConditions="]          = { "Off", "Never darkens the edges." }
 E["sec.acCursor"]    = { "Cursor", "When the cursor shows and hides." }
 E["actioncam.frameWatching"]           = { "Unlock when windows open", "Frees the cursor on its own when you open bags, map, dialogs and so on." }
+E["actioncam.ctrlToggle"]              = { "Ctrl toggles Action Camera", "A quick tap on Ctrl locks/unlocks Mouse Look, like the V key. Ctrl+key, Ctrl+click or holding Ctrl do not toggle." }
 E["actioncam.closeWindowsOnMouseLook"] = { "Mouse Look closes windows", "The Mouse Look key closes open windows before locking." }
 E["actioncam.pulseCursor"]             = { "Cursor pulse", "A quick flash shows where the cursor reappeared." }
 E["actioncam.hideTooltip"]             = { "Hide tooltips in Mouse Look", "Avoids flickering tooltips while you turn the camera." }
@@ -1217,6 +1249,8 @@ E["actioncam.bdoIntensity"]    = { "Intensity", "Overall strength of the effects
 E["actioncam.bdoHitShake"]     = { "Hit shake", "Small camera shake on each hit." }
 E["actioncam.bdoCastFocus"]    = { "Cast focus", "Light zoom while casting or channeling." }
 E["actioncam.bdoSkillPunch"]   = { "Skill punch", "Small camera recoil when using abilities." }
+E["actioncam.bdoMoves"]        = { "Camera per ability", "Charges push in, spins pull out, heavy strikes punch, shouts shake and Bladestorm pulls the camera back." }
+E["actioncam.bdoHurtShake"]    = { "Shake when hit", "The camera shakes slightly when you take damage (stronger on crits)." }
 E["actioncam.bdoCritImpact"]   = { "Critical impact", "Extra micro zoom on critical hits." }
 E["actioncam.bdoCritSound"]    = { "Critical sound", "Plays an impact sound on crits." }
 E["actioncam.bdoCritSoundStyle"] = { "Critical sound style", "Which sound plays on crits." }
@@ -1321,15 +1355,6 @@ E["setup.m.dialog"]      = { "Dialogs", "NPC and quest conversations in the addo
 E["setup.m.loot"]        = { "Loot", "The addon's own loot window." }
 E["setup.m.merchant"]    = { "Merchant", "Vendors' buy and sell window." }
 E["setup.m.chat"]        = { "Chat", "Clean, transparent chat window." }
-E["setup.step3.title"] = "Extra features"
-E["setup.step3.desc"]  = "Addon pieces with no Blizzard equivalent: compass, XP, navigation, loot, NPCs and more."
-E["setup.step3.note"]  = "Fine tuning for each feature lives in the panel tabs (/azaath)."
-E["setup.step4.title"] = "Action Camera"
-E["setup.step4.desc"]  = "Mouse Look combat with a crosshair in the middle of the screen, like action games."
-E["setup.step4.note"]  = "With the camera on, the Mouse Look key toggles between aiming and using the cursor. More options in /azaath > Action Camera."
-E["setup.step5.title"] = "Visual"
-E["setup.step5.desc"]  = "HUD skin, bar design and overall size. Hover each option to see what changes."
-E["setup.step5.note"]  = "To move or resize each element use Edit Mode (/azaath edit) after finishing."
 E["setup.step6.title"] = "All set"
 E["setup.step6.desc"]  = "Check the summary. Click a step above to review any choice before applying."
 E["setup.camPreset"] = { "Camera style", "Off keeps the game camera. Classic turns on the Action Camera with default values. Black Desert applies the full preset (shoulder, pitch, shake and inertia)." }
@@ -1350,7 +1375,6 @@ E["setup.tip.6"]     = "Lists every command."
 E["setup.where"]     = "To reopen: /azaath setup, /azaath tutorial or Panel > General > First Steps."
 E["setup.sum.addon"] = "Addon modules"
 E["setup.sum.blizz"] = "Blizzard modules"
-E["setup.sum.hud"]   = "Part of the HUD"
 E["setup.sum.reload"] = "Reload the interface"
 E["setup.sum.reloadN"] = "Yes (%d change(s))"
 E["setup.sum.none"]  = "Not needed"
@@ -1362,7 +1386,7 @@ E["setup.msg.hint"]  = "new: First Steps wizard with |cffe3c78b/azaath setup|r."
 -- Modo de Edição (texto em português -> inglês)
 --==============================================================================
 local ED = U.EDITOR_EN
-ED["HUD Azaath Reforged (Barras + Vida)"] = "Azaath Reforged HUD (Bars + Health)"
+ED["HUD Azaath Reforged (Vida)"] = "Azaath Reforged HUD (Health)"
 ED["Barra de Experiência (XP)"] = "Experience Bar (XP)"
 ED["Largura (0 = Auto)"] = "Width (0 = Auto)"
 ED["Altura da Barra"] = "Bar Height"

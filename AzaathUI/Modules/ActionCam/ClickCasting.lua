@@ -108,7 +108,6 @@ end
 --------------------------------------------------------------------------------
 -- Botões seguros
 --------------------------------------------------------------------------------
-local MouselookOverrideOwner = CreateFrame("Frame", "AzaathUIMouselookOverrideOwner", UIParent)
 local ClickCastFrames = {}
 for i, info in ipairs(CLICKCAST_KEYS) do
     local f = CreateFrame("Button", "AzaathUIClickCast" .. i, UIParent, "SecureActionButtonTemplate")

@@ -641,9 +641,8 @@ end
 
 local function VisualDefs()
     return {
-        D("choice", "skin", { options = { { v = "modern" }, { v = "azaath" }, { v = "bdo" } } }),
-        D("choice", "actionbars.layout", { options = { { v = "bdo" }, { v = "split" }, { v = "az" } },
-            when = function() return Get("skin") ~= "azaath" end, why = "why.notAzaath" }),
+        D("choice", "skin", { options = { { v = "modern" }, { v = "azaath" }, { v = "bdo" }, { v = "blizzard" } } }),
+        D("choice", "actionbars.layout", { options = { { v = "bdo" }, { v = "split" }, { v = "az" }, { v = "reforged" }, { v = "blizzard" } } }),
         D("slider", "scale", { min = 0.6, max = 1.5, step = 0.05, fmt = "%.2fx" }),
     }
 end
@@ -796,7 +795,7 @@ local function BuildFinish(page, p)
             { "setup.sum.features", format("%d / %d", nF, #FEATURE_DEFS) },
             { "setup.sum.camera", L("o.setup.camPreset=" .. CamPreset()) },
             { "skin", L("o.skin=" .. skin) },
-            { "actionbars.layout", skin == "azaath" and L("setup.sum.hud") or L("o.actionbars.layout=" .. layout) },
+            { "actionbars.layout", L("o.actionbars.layout=" .. layout) },
             { "scale", format("%.2fx", Get("scale") or 1) },
             { "setup.sum.reload", n > 0 and ("|cfffa9438" .. format(L("setup.sum.reloadN"), n) .. "|r") or L("setup.sum.none") },
         }

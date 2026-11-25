@@ -1045,14 +1045,13 @@ local function Button_PostClick(self)
 end
 
 --------------------------------------------------------------------------------
--- Skin Azaath (arte de conceito de 15/11/2026): os espaços já estão pintados na
--- HUD (AzaathHUD.lua); os botões ficam transparentes, exatamente sobre eles.
---   barra 1 -> painel direito (12 espaços de 54 px, teclas 1..=)
---   barra 2 -> painel esquerdo (44 px); as "abas" CF1/CF2 do conceito são a
---   barra de posturas (atalhos Ctrl+F1/F2), em StancePetBars.lua
+-- Barras Reforged (Opção 4): botões transparentes sobre os espaços da faixa
+-- (desenho e arranjo em PlaceAzaathBar, abaixo); as abas de postura ficam em
+-- cima da faixa esquerda (StancePetBars.lua).
 --------------------------------------------------------------------------------
 local AZ_KEY_H, AZ_KEY_CAP = 22, 9
-local function IsAzaath() return Azaath.IsAzaath and Azaath.IsAzaath() and Azaath.AZAATH ~= nil end
+-- Opção 4 (Reforged), em qualquer skin: cada faixa é a própria barra e se move à parte
+local function IsAzaath() return Azaath.IsReforgedBars and Azaath.IsReforgedBars() end
 
 -- Caixinha de tecla recortada do conceito (Media/Azaath/Key)
 function Azaath.AzaathStyleKeyBox(box)
@@ -1101,51 +1100,111 @@ local function AzaathSkinButton(b, inset, circular)
     b.count:SetPoint("BOTTOM", b, "BOTTOM", 0, inset + 1)
 end
 
+-- Opção 4 (Reforged) minimalista (tools/reforged-bars/gen.js): cada barra é uma
+-- faixa escura com filete dourado (RBarPlate, 9 fatias) e espaços com a
+-- moldura dourada do conceito (RBarSlot). A barra 2 fica à esquerda da moldura
+-- de vida, a barra 1 à direita. Com 3 barras, a barra 3 vira a fileira de cima
+-- das duas faixas: botões 1-6 na esquerda, 7-12 na direita (a faixa cresce
+-- para cima). Posição de fábrica: BOTTOM na raiz, base fixa.
+local RB_SIZE, RB_SP, RB_PAD = 44, 6, 10
+local REFORGED_BASE = { [1] = { 396, 122 }, [2] = { -396, 122 } }
+local function RTex(n) return Azaath.media.path .. "Azaath\\" .. n end
+
+-- faixa em 9 fatias: pontas de 32 px e topo/base de 16 px em tamanho real
+local PLATE_UV = { { 0, 0.25 }, { 0.25, 0.75 }, { 0.75, 1 } }
+local function ReforgedPlate(bar)
+    if bar.rplate then return bar.rplate end
+    local p = {}
+    for r = 1, 3 do
+        for c = 1, 3 do
+            local t = bar:CreateTexture(nil, "BACKGROUND", nil, 1)
+            t:SetTexture(RTex("RBarPlate"))
+            t:SetTexCoord(PLATE_UV[c][1], PLATE_UV[c][2], PLATE_UV[r][1], PLATE_UV[r][2])
+            p[(r - 1) * 3 + c] = t
+        end
+    end
+    -- cantos fixos
+    for k, pt in pairs({ [1] = "TOPLEFT", [3] = "TOPRIGHT", [7] = "BOTTOMLEFT", [9] = "BOTTOMRIGHT" }) do
+        p[k]:SetPoint(pt, bar, pt, 0, 0)
+        p[k]:SetSize(32, 16)
+    end
+    -- bordas e meio esticam entre os cantos
+    local function Span(t, a, aPt, b, bPt)
+        t:SetPoint("TOPLEFT", a, aPt)
+        t:SetPoint("BOTTOMRIGHT", b, bPt)
+    end
+    Span(p[2], p[1], "TOPRIGHT", p[3], "BOTTOMLEFT")
+    Span(p[8], p[7], "TOPRIGHT", p[9], "BOTTOMLEFT")
+    Span(p[4], p[1], "BOTTOMLEFT", p[7], "TOPRIGHT")
+    Span(p[6], p[3], "BOTTOMLEFT", p[9], "TOPRIGHT")
+    Span(p[5], p[1], "BOTTOMRIGHT", p[9], "TOPLEFT")
+    bar.rplate = p
+    return p
+end
+
+-- espaço com a moldura dourada atrás do botão
+local function ReforgedSlot(b, size)
+    if not b.rslot then
+        b.rslot = b:CreateTexture(nil, "BACKGROUND", nil, -7)
+        b.rslot:SetTexture(RTex("RBarSlot"))
+        b.rslot:SetAllPoints(b)
+    end
+    b:SetWidth(size)
+    b:SetHeight(size)
+    b:Show()
+    AzaathSkinButton(b, math.floor(size * 6 / 54 + 0.5))
+end
+
+local function ReforgedHasBar3()
+    local db = Azaath.db.actionbars
+    return db.enabled and math.min(#BAR_DEFS, db.bars or 3) >= 3 and bars[3] ~= nil
+end
+
 local function PlaceAzaathBar(bar, id)
-    local A = Azaath.AZAATH
-    local hud = Azaath.GetAzaathFrame and Azaath.GetAzaathFrame()
-    if not hud then return end
-    local P = (id == 1) and A.right or A.left
-    local size, scale = P.size, hud:GetScale()
+    local db = Azaath.db.actionbars
     if bar.def.visibility then
         RegisterStateDriver(bar, "visibility", bar.def.visibility)
     else
         bar:Show()
     end
+    local step = RB_SIZE + RB_SP
     if id == 3 then
-        -- o conceito tem só dois painéis: a barra 3 é um bloco extra 6x2 (estilo padrão dos botões)
-        -- logo acima da HUD, alinhado ao painel direito
-        local s3, gap = A.left.size, 8
-        local rowStep = s3 + gap + KEYBOX_H + 3
-        bar:SetScale(scale)
-        bar:SetWidth(6 * s3 + 5 * gap)
-        bar:SetHeight(2 * rowStep - gap)
+        -- sem faixa própria: 1-6 na fileira de cima da barra 2, 7-12 na da barra 1
+        -- (cada botão pega a escala da barra onde fica)
+        bar:SetScale(1)
+        bar:SetSize(1, 1)
         bar:ClearAllPoints()
-        bar:SetPoint("BOTTOMLEFT", hud, "TOPLEFT", A.right.x[1], 8)
+        bar:SetPoint("BOTTOM", Azaath.root, "BOTTOM", 0, 0)
         for i, b in ipairs(bar.buttons or {}) do
-            local r, c = math.floor((i - 1) / 6), (i - 1) % 6
-            b:SetWidth(s3)
-            b:SetHeight(s3)
+            local host = (i <= 6) and bars[2] or bars[1]
             b:ClearAllPoints()
-            b:SetPoint("TOPLEFT", bar, "TOPLEFT", c * (s3 + gap), -r * rowStep)
-            b:Show()
+            if host then
+                b:SetScale(host:GetScale())
+                b:SetPoint("TOPLEFT", host, "TOPLEFT", RB_PAD + ((i - 1) % 6) * step, -RB_PAD)
+                ReforgedSlot(b, RB_SIZE)
+            else
+                b:Hide()
+            end
         end
         return
     end
-    bar:SetScale(scale)
-    bar:SetWidth(P.x[6] - P.x[1] + size)
-    bar:SetHeight(P.y[2] - P.y[1] + size)
+    local bcfg = db["bar" .. id] or {}
+    local scale = (bcfg.scale and bcfg.scale > 0) and bcfg.scale or (db.scale or 1)
+    local base = REFORGED_BASE[id]
+    local extra = ReforgedHasBar3() and 1 or 0
+    bar:SetScale(scale > 0 and scale or 1)
+    bar:SetWidth(6 * RB_SIZE + 5 * RB_SP + 2 * RB_PAD)
+    bar:SetHeight((2 + extra) * RB_SIZE + (1 + extra) * RB_SP + 2 * RB_PAD)
     bar:ClearAllPoints()
-    bar:SetPoint("TOPLEFT", hud, "TOPLEFT", P.x[1], -P.y[1])
+    bar:SetPoint("BOTTOM", Azaath.root, "BOTTOM", base[1] + (bcfg.offsetX or 0), base[2] + (bcfg.offsetY or 0))
+    ReforgedPlate(bar)
     for i, b in ipairs(bar.buttons or {}) do
-        local r, c = math.floor((i - 1) / 6), (i - 1) % 6
-        b:SetWidth(size)
-        b:SetHeight(size)
+        local r, c = math.floor((i - 1) / 6) + extra, (i - 1) % 6
         b:ClearAllPoints()
-        b:SetPoint("TOPLEFT", bar, "TOPLEFT", P.x[c + 1] - P.x[1], -(P.y[r + 1] - P.y[1]))
-        b:Show()
-        AzaathSkinButton(b, P.inset, P.circular)
+        b:SetPoint("TOPLEFT", bar, "TOPLEFT", RB_PAD + c * step, -(RB_PAD + r * step))
+        ReforgedSlot(b, RB_SIZE)
     end
+    if Azaath.ClampToScreen then Azaath.ClampToScreen(bar) end
 end
 
 --------------------------------------------------------------------------------
@@ -1675,6 +1734,9 @@ local function BarGeometry(id, db, bars, count)
 end
 
 local function CreateBar(def, db, count)
+    -- já existe (ApplyLayout pode criar antes do Build): criar de novo deixaria a
+    -- cópia antiga, com o mesmo nome global, congelada por baixo da nova ("fantasma")
+    if bars[def.id] then return bars[def.id] end
     local size, cols, keyBox, point, rel, relPoint, x, y = BarGeometry(def.id, db, bars, count)
     local spacing = db.spacing
     local displaySlots = NUM_BUTTONS
@@ -1757,7 +1819,15 @@ local function CreateLeaveButton(mainBar, size, azLayout)
     hl:SetVertexColor(1, 1, 1)
     hl:SetAlpha(0.15)
 
-    b:SetScript("OnClick", function() VehicleExit() end)
+    b:SetScript("OnClick", function(self)
+        if UnitOnTaxi and UnitOnTaxi("player") and TaxiRequestEarlyLanding then
+            pcall(TaxiRequestEarlyLanding)
+        end
+        if VehicleExit then
+            pcall(VehicleExit)
+        end
+        self:Hide()
+    end)
     b:SetScript("OnEnter", function(self)
         GameTooltip_SetDefaultAnchor(GameTooltip, self)
         GameTooltip:SetText(LEAVE_VEHICLE or "Sair do veículo")
@@ -1874,10 +1944,21 @@ end
 
 local function UpdateLeaveButton()
     if not leaveButton then return end
-    if CanExitVehicle and CanExitVehicle() then
-        leaveButton:Show()
-    else
-        leaveButton:Hide()
+    local onTaxi = UnitOnTaxi and UnitOnTaxi("player")
+    if Azaath.IsSecret(onTaxi) then onTaxi = false end
+    local inVeh = true
+    if UnitInVehicle then
+        local v = UnitInVehicle("player")
+        local ui = UnitHasVehicleUI and UnitHasVehicleUI("player")
+        if not Azaath.AnySecret(v, ui) then
+            inVeh = (v or ui) and true or false
+        end
+    end
+    local canExit = inVeh and CanExitVehicle and CanExitVehicle()
+    if Azaath.IsSecret(canExit) then canExit = false end
+    local show = (onTaxi or canExit) and true or false
+    if leaveButton:IsShown() ~= show then
+        leaveButton:SetShown(show)
     end
 end
 
@@ -2053,9 +2134,15 @@ for _, e in ipairs({ "PLAYER_ENTER_COMBAT", "PLAYER_LEAVE_COMBAT", "START_AUTORE
                      "UPDATE_SHAPESHIFT_FORM", "COMPANION_UPDATE" }) do
     EVENT_HANDLERS[e] = UpdateAllStates
 end
-for _, e in ipairs({ "UPDATE_SHAPESHIFT_FORMS", "LEARNED_SPELL_IN_TAB", "UPDATE_MACROS",
-                     "UPDATE_VEHICLE_ACTIONBAR" }) do
+for _, e in ipairs({ "UPDATE_SHAPESHIFT_FORMS", "LEARNED_SPELL_IN_TAB", "UPDATE_MACROS" }) do
     EVENT_HANDLERS[e] = UpdateAllButtons
+end
+EVENT_HANDLERS.UPDATE_VEHICLE_ACTIONBAR = function()
+    UpdateAllButtons()
+    UpdateLeaveButton()
+end
+for _, e in ipairs({ "PLAYER_CONTROL_GAINED", "PLAYER_CONTROL_LOST", "UPDATE_BONUS_ACTIONBAR", "VEHICLE_UPDATE" }) do
+    EVENT_HANDLERS[e] = UpdateLeaveButton
 end
 for _, e in ipairs({ "PLAYER_EQUIPMENT_CHANGED", "UNIT_INVENTORY_CHANGED" }) do
     EVENT_HANDLERS[e] = UpdateEquipment
@@ -2110,6 +2197,7 @@ local function MainTick(self, elapsed)
     self.elapsed = (self.elapsed or 0) + (elapsed or 0)
     if self.elapsed < (self.interval or 0.2) then return end
     self.elapsed = 0
+    UpdateLeaveButton()
     for i = 1, #buttons do
         local b = buttons[i]
         local a = b.action
@@ -2132,7 +2220,41 @@ function M:OnInitialize()
     self.bars = bars
 end
 
+-- Reler ícones e atalhos de todos os botões (depois do /reload o cliente pode
+-- entregar ações/atalhos um pouco depois do PLAYER_LOGIN)
+local function RefreshAllButtons()
+    UpdateSpellBookCache()
+    ForEachButton(UpdateButton)
+    lastBindingSignature = nil
+    M:UpdateBindings()
+end
+
+-- Diagnóstico: AzaathUICharDB.abDiag (gravado no /reload ou ao sair)
+local function WriteBarDiag()
+    local d = { time = date("%Y-%m-%d %H:%M:%S"), built = M.built and true or false,
+        buttons = #buttons, layout = tostring(M.db and M.db.layout), owner = bindOwner and bindOwner:GetName() or "nil",
+        bars = {}, sample = {} }
+    for id = 1, #BAR_DEFS do
+        local bar = bars[id]
+        d.bars[id] = bar and format("%s shown=%s vis=%s", bar:GetName() or "?", tostring(bar:IsShown()), tostring(bar:IsVisible())) or "nil"
+    end
+    for _, i in ipairs({ 1, 2, 13, 14, 25 }) do
+        local b = buttons[i]
+        if b then
+            local a = b:GetAttribute("action")
+            local k = GetBindingKey(b.bindingCommand)
+            d.sample[#d.sample + 1] = format("%s action=%s has=%s key=%s icon=%s shown=%s",
+                b:GetName() or "?", tostring(a), tostring(a and HasAction(a)), tostring(k),
+                tostring(b.icon and b.icon:GetTexture()), tostring(b:IsVisible()))
+        end
+    end
+    Azaath.db.abDiag = d
+end
+
 function M:Build()
+    -- uma vez só: os botões, a saída de veículo e a mochila têm nome global
+    if self.built then return self:ApplyLayout() end
+    self.built = true
     local db = self.db
     local count = math.max(1, math.min(#BAR_DEFS, db.bars or 3))
 
@@ -2193,10 +2315,16 @@ function M:Build()
     events:SetScript("OnUpdate", MainTick)
 
     self:ApplyLayout()
+    if C_Timer and C_Timer.After then
+        C_Timer.After(1, RefreshAllButtons)
+        C_Timer.After(4, function() RefreshAllButtons(); pcall(WriteBarDiag) end)
+    end
 end
 
 function M:ApplyLayout()
-    if not Azaath.db.hideBlizzard.actionBars then return end
+    if not Azaath.HideBlizzOn("actionBars") then return end
+    -- só depois do Build: barras criadas antes dele ficavam sem eventos nem atalhos
+    if not self.built then return end
     if self.applyingLayout then return end
     self.applyingLayout = true
     Azaath:RunOutOfCombat(function()
@@ -2330,7 +2458,7 @@ end
 
 function M:OnEnable()
     if not self.db.enabled then return end
-    if not Azaath.db.hideBlizzard.actionBars then
+    if not Azaath.HideBlizzOn("actionBars") then
         -- Barras da Blizzard restauradas (/azaath blizz actionbars): não sobrepõe.
         return
     end

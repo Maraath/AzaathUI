@@ -100,6 +100,7 @@ local function EnsureCrosshair()
     iconBg:SetPoint("LEFT", interactHUD, "LEFT", 4, 0)
     iconBg:SetTexture(Azaath.media.path .. "Disc.tga")
     iconBg:SetVertexColor(0.06, 0.05, 0.04, 0.86)
+    interactHUD.iconBg = iconBg
 
     local iconMask = interactHUD:CreateMaskTexture()
     iconMask:SetSize(16, 16)
@@ -598,6 +599,11 @@ function UpdateTargetPreview(db)
         return
     end
 
+    local okG, isObj = pcall(function() return _G.UnitIsGameObject and _G.UnitIsGameObject(unit) end)
+    if okG and not Azaath.IsSecret(isObj) and isObj == true then
+        if targetPreviewFrame then targetPreviewFrame:Hide() end
+        return
+    end
     local name = SafeUnitNameUnmodified(unit)
     if not name or name == "" then
         if targetPreviewFrame then targetPreviewFrame:Hide() end

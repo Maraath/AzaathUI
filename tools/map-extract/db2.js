@@ -96,10 +96,26 @@ function parseWDC5(buf) {
       rows.push({ id: id !== null ? id : vals[H.idIndex], vals, ref: rel.get(r), base });
     }
   }
-  // texto de um campo de string (o valor é a distância do próprio campo até o texto)
+  // texto de um campo de string. O valor é a distância do próprio campo até o texto, contada como se
+  // os registros de todas as seções viessem juntos, seguidos de todas as tabelas de texto juntas
+  // (com uma seção só, é a distância direta no arquivo).
+  const secRec = (s) => s.recordCount * H.recordSize;
+  const totalRec = sections.reduce((a, s) => a + secRec(s), 0);
   const str = (row, fi) => {
-    const p = row.base + info[fi].offBits / 8 + row.vals[fi];
-    if (!row.vals[fi] || p >= buf.length) return "";
+    if (!row.vals[fi]) return "";
+    let before = 0, sec = null;
+    for (const s of sections) {
+      if (row.base >= s.fileOffset && row.base < s.fileOffset + secRec(s)) { sec = s; break; }
+      before += secRec(s);
+    }
+    if (!sec) return "";
+    let v = before + (row.base - sec.fileOffset) + info[fi].offBits / 8 + row.vals[fi] - totalRec;
+    let p = -1;
+    for (const s of sections) {
+      if (v < s.stringTableSize) { p = s.fileOffset + secRec(s) + v; break; }
+      v -= s.stringTableSize;
+    }
+    if (p < 0 || p >= buf.length) return "";
     let e = p;
     while (e < buf.length && buf[e] !== 0) e++;
     return buf.toString("utf8", p, e);

@@ -112,6 +112,59 @@ local function FindEntry(questID)
     for _, q in ipairs(M:List()) do if q.questID == questID then return q end end
 end
 
+local function CanAbandon(q)
+    if not q then return false end
+    if QL and QL.SetSelectedQuest then Safe(QL.SetSelectedQuest, q.questID) end
+    if SelectQuestLogEntry and q.index then Safe(SelectQuestLogEntry, q.index) end
+    if QL and QL.CanAbandonQuest then
+        local ok, res = pcall(QL.CanAbandonQuest, q.questID)
+        if ok then return res and true or false end
+    end
+    if CanAbandonQuest then
+        local ok, res = pcall(CanAbandonQuest)
+        if ok then return res and true or false end
+    end
+    return true
+end
+
+if StaticPopupDialogs and not StaticPopupDialogs["AZAATH_ABANDON_QUEST"] then
+    StaticPopupDialogs["AZAATH_ABANDON_QUEST"] = {
+        text = ABANDON_QUEST_CONFIRM or "Abandonar \"%s\"?",
+        button1 = ACCEPT or "Sim",
+        button2 = CANCEL or "Não",
+        OnAccept = function(_, data)
+            if not data then return end
+            if QL and QL.SetSelectedQuest then Safe(QL.SetSelectedQuest, data.questID) end
+            if SelectQuestLogEntry and data.index then Safe(SelectQuestLogEntry, data.index) end
+            if QL and QL.AbandonQuest then
+                if QL.SetAbandonQuest then Safe(QL.SetAbandonQuest) end
+                Safe(QL.AbandonQuest)
+            elseif SetAbandonQuest and AbandonQuest then
+                Safe(SetAbandonQuest)
+                Safe(AbandonQuest)
+            elseif AbandonQuest then
+                Safe(AbandonQuest)
+            end
+            if U.sel == data.questID then
+                U.sel = nil
+                if U.detail then U.detail:Hide() end
+            end
+            U.refAt = 0
+            M:Refresh()
+        end,
+        timeout = 0,
+        whileDead = 1,
+        hideOnEscape = 1,
+        preferredIndex = 3,
+    }
+end
+
+local function Abandon(q)
+    if not (q and CanAbandon(q) and StaticPopup_Show) then return end
+    local dialog = StaticPopup_Show("AZAATH_ABANDON_QUEST", q.title or "")
+    if dialog then dialog.data = { questID = q.questID, index = q.index } end
+end
+
 ---------------------------------------------------------------------------
 -- Linhas da lista: cabeçalhos de zona e cartões
 ---------------------------------------------------------------------------
@@ -293,7 +346,14 @@ local function Card(i)
     c.pct:SetTextColor(TEAL[1], TEAL[2], TEAL[3])
     c.bar = Bar(c)
     c.bar:SetPoint("BOTTOMLEFT", 56, 14); c.bar:SetPoint("BOTTOMRIGHT", -14, 14)
-    c:SetScript("OnClick", function(self) M:Open(self.questID, true) end)
+    c:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+    c:SetScript("OnClick", function(self, button)
+        if button == "RightButton" then
+            Abandon(FindEntry(self.questID))
+        else
+            M:Open(self.questID, true)
+        end
+    end)
     c:SetScript("OnEnter", function(self) if U.sel ~= self.questID then self.box:SetState("hover") end end)
     c:SetScript("OnLeave", function(self) if U.sel ~= self.questID then self.box:SetState("normal") end end)
     U.cards[i] = c
@@ -304,14 +364,20 @@ end
 local function Rows(list)
     local rows, idx = {}, {}
     local collapsed = DB().questCollapsed
+    local qstr = (U.search or ""):match("^%s*(.-)%s*$"):lower()
     for _, q in ipairs(list) do
-        if not idx[q.zone] then
-            idx[q.zone] = { head = q.zone, n = 0 }
-            rows[#rows + 1] = idx[q.zone]
+        local ok = qstr == ""
+            or (q.title and q.title:lower():find(qstr, 1, true))
+            or (q.zone and q.zone:lower():find(qstr, 1, true))
+        if ok then
+            if not idx[q.zone] then
+                idx[q.zone] = { head = q.zone, n = 0 }
+                rows[#rows + 1] = idx[q.zone]
+            end
+            local h = idx[q.zone]
+            h.n = h.n + 1
+            if not collapsed[q.zone] or qstr ~= "" then rows[#rows + 1] = { quest = q } end
         end
-        local h = idx[q.zone]
-        h.n = h.n + 1
-        if not collapsed[q.zone] then rows[#rows + 1] = { quest = q } end
     end
     return rows
 end
@@ -320,6 +386,9 @@ function M:Refresh()
     if not U.panel then return end
     local list = self:List()
     U.data = list
+    if U.counter then
+        U.counter:SetText(string.format("Missões: %d/%d", #list, _G.MAX_QUESTLOG_QUESTS or 25))
+    end
     local rows = Rows(list)
     U.rows = rows
     for _, c in ipairs(U.cards) do c:Hide() end
@@ -377,7 +446,10 @@ function M:Refresh()
             y = y + h + 8
         end
     end
-    U.empty:SetShown(#list == 0)
+    U.empty:SetShown(#rows == 0)
+    if U.empty then
+        U.empty:SetText(#list == 0 and "Nenhuma missão no diário." or "Nenhuma missão encontrada.")
+    end
     U.more:SetShown(last < #rows)
     if U.detail:IsShown() and U.sel then self:ShowDetail(U.sel) end
 end
@@ -461,7 +533,15 @@ end
 function M:ShowDetail(questID)
     local q = FindEntry(questID)
     local d = U.detail
-    if not q then d:Hide() return end
+    if not q then
+        U.sel = nil
+        U.detailInView = false
+        d:Hide()
+        if U.panelShown and U.panel then U.panel:Show() end
+        return
+    end
+    U.detailInView = true
+    if U.panel then U.panel:Hide() end
     d.title:SetText(q.title)
     d.meta:SetText(((q.level and q.level > 0) and ("Nível " .. q.level) or "") .. (q.zone ~= "" and ("  -  " .. q.zone) or ""))
     -- texto e recompensas: o diário precisa da missão selecionada (cliente moderno: pelo ID;
@@ -472,7 +552,7 @@ function M:ShowDetail(questID)
     if (not desc or desc == "") then desc, objText = Safe(GetQuestLogQuestText) end
     for _, fs in ipairs(d.texts) do fs:Hide() end
     for _, it in ipairs(d.items) do it:Hide() end
-    local W = (U.dw or DETAIL_W) - 40
+    local W = max(200, (d:GetWidth() or DETAIL_W) - 36)
     d.content:SetWidth(W)
     local y, nt, ni = 0, 0, 0
     local function Text(str, size, color, bold, gap)
@@ -558,6 +638,11 @@ function M:ShowDetail(questID)
         if QuestLogPushQuest then Safe(QuestLogPushQuest) end
     end)
     d.show:SetScript("OnClick", function() M:Locate(questID) end)
+    local canAb = CanAbandon(q)
+    d.abandon:SetEnabled(canAb)
+    d.abandon.fs:SetTextColor(canAb and 0.95 or MUTED[1], canAb and 0.58 or MUTED[2], canAb and 0.52 or MUTED[3])
+    d.abandon:SetAlpha(canAb and 1 or 0.5)
+    d.abandon:SetScript("OnClick", function() Abandon(q) end)
     d.noMark:SetShown(not api.FindQuest(questID))
     d:Show()
 end
@@ -571,8 +656,9 @@ end
 
 -- abre a missão: seleciona o cartão, mostra os detalhes e (se pedido) leva o mapa até ela
 function M:Open(questID, focus)
+    U.detailInView = true
     local chrome = Azaath:GetModule("MapChrome")
-    if chrome and chrome.SetActive and not U.panel:IsShown() then chrome:SetActive("quests") end
+    if chrome and chrome.SetActive and not U.panelShown then chrome:SetActive("quests") end
     U.sel = questID
     -- a zona dela aberta, e o cartão à vista
     local q = FindEntry(questID)
@@ -590,9 +676,21 @@ end
 
 function M:SetShown(on)
     if not U.panel then return end
-    U.panel:SetShown(on)
-    if not on then U.detail:Hide() end
-    if on then self:Refresh() end
+    U.panelShown = on and true or false
+    if not on then
+        U.panel:Hide()
+        U.detail:Hide()
+        return
+    end
+    if U.layout then U.layout() end
+    if U.detailInView and U.sel then
+        U.panel:Hide()
+        self:ShowDetail(U.sel)
+    else
+        U.detail:Hide()
+        U.panel:Show()
+        self:Refresh()
+    end
 end
 
 ---------------------------------------------------------------------------
@@ -601,19 +699,17 @@ function M:Build(f, v, mapApi)
     C = Azaath:GetModule("MapChrome")
     if not C then return end
     if type(DB().questCollapsed) ~= "table" then DB().questCollapsed = {} end
-    -- painel "MISSÕES ATIVAS" (ao lado do estandarte da esquerda)
-    local p = CreateFrame("Frame", nil, f)
-    if C.PanelAnchor then C.PanelAnchor(p) else p:SetPoint("TOPLEFT", v, "TOPLEFT", 78, -24) end
-    p:SetWidth(PANEL_W)
-    p:SetFrameLevel(f:GetFrameLevel() + 32)
+    local side = (C.GetSideDock and C.GetSideDock()) or f
+
+    -- painel "MISSÕES ATIVAS" (acoplado na gaveta lateral direita)
+    local p = CreateFrame("Frame", nil, side)
+    p:SetAllPoints(side)
+    p:SetFrameLevel(side:GetFrameLevel() + 2)
     p:EnableMouse(true)
     p:EnableMouseWheel(true)
-    C.PanelBox(p)
-    local gem = C.Tex(p, "PanelGem", 20, 12, "OVERLAY")
-    gem:SetPoint("CENTER", p, "TOP", 0, 0)
-    local hdr = p:CreateFontString(nil, "OVERLAY"); C.Font(hdr, 18)
-    hdr:SetPoint("TOPLEFT", 16, -16)
-    hdr:SetText(Azaath.Upper and Azaath.Upper("Missões ativas") or "MISSÕES ATIVAS")
+    local hdr = p:CreateFontString(nil, "OVERLAY"); C.Font(hdr, 16)
+    hdr:SetPoint("TOPLEFT", 14, -14)
+    hdr:SetText(Azaath.Upper and Azaath.Upper("Missões") or "MISSÕES")
     hdr:SetTextColor(0.88, 0.9, 0.9)
     -- fechar o painel (pelo menu lateral, para o ícone de Missões apagar junto)
     local px = CreateFrame("Button", nil, p)
@@ -624,21 +720,57 @@ function M:Build(f, v, mapApi)
     px:SetScript("OnClick", function()
         if C.SetActive then C:SetActive(nil) else M:SetShown(false) end
     end)
-    hdr:SetPoint("RIGHT", px, "LEFT", -4, 0)
+    U.px = px
+    U.counter = p:CreateFontString(nil, "OVERLAY"); C.Font(U.counter, 13, true)
+    U.counter:SetPoint("RIGHT", px, "LEFT", -8, 0)
+    U.counter:SetTextColor(GOLD[1], GOLD[2], GOLD[3])
+    hdr:SetPoint("RIGHT", U.counter, "LEFT", -6, 0)
     hdr:SetJustifyH("LEFT")
+
+    -- barra de busca rápida (estilo Blizzard)
+    local sb = CreateFrame("Frame", nil, p)
+    sb:SetPoint("TOPLEFT", 14, -40); sb:SetPoint("TOPRIGHT", -14, -40)
+    sb:SetHeight(26)
+    U.sb = sb
+    C.RoundBox(sb, 5, { 0.04, 0.06, 0.075, 0.92 }, { 0.27, 0.40, 0.43, 0.9 })
+    local eb = CreateFrame("EditBox", nil, sb)
+    eb:SetPoint("TOPLEFT", 10, -2); eb:SetPoint("BOTTOMRIGHT", -24, 2)
+    eb:SetAutoFocus(false)
+    C.Font(eb, 13)
+    eb:SetTextColor(CREAM[1], CREAM[2], CREAM[3])
+    local ph = sb:CreateFontString(nil, "OVERLAY"); C.Font(ph, 12)
+    ph:SetPoint("LEFT", 10, 0)
+    ph:SetText("Buscar Registro de Missões...")
+    ph:SetTextColor(MUTED[1], MUTED[2], MUTED[3])
+    local clr = CreateFrame("Button", nil, sb)
+    clr:SetSize(18, 18); clr:SetPoint("RIGHT", -4, 0)
+    local clri = C.Tex(clr, "IcoClose", 10, 10); clri:SetPoint("CENTER")
+    clri:SetVertexColor(MUTED[1], MUTED[2], MUTED[3])
+    clr:Hide()
+    clr:SetScript("OnClick", function() eb:SetText(""); eb:ClearFocus() end)
+    eb:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
+    eb:SetScript("OnTextChanged", function(self)
+        local txt = self:GetText() or ""
+        ph:SetShown(txt == "")
+        clr:SetShown(txt ~= "")
+        U.search = txt
+        U.offset = 0
+        M:Refresh()
+    end)
+
     local rule = C.Tex(p, "Rule", nil, 10, "OVERLAY")
-    rule:SetPoint("TOPLEFT", 10, -42); rule:SetPoint("TOPRIGHT", -10, -42)
+    rule:SetPoint("TOPLEFT", 10, -70); rule:SetPoint("TOPRIGHT", -10, -70)
     rule:SetBlendMode("ADD")
     U.rule = rule
     local list = CreateFrame("Frame", nil, p)
-    list:SetPoint("TOPLEFT", 12, -58); list:SetPoint("BOTTOMRIGHT", -12, 26)
+    list:SetPoint("TOPLEFT", 12, -84); list:SetPoint("BOTTOMRIGHT", -12, 24)
     U.list = list
     U.empty = p:CreateFontString(nil, "OVERLAY"); C.Font(U.empty, 14)
-    U.empty:SetPoint("TOP", list, "TOP", 0, -10)
+    U.empty:SetPoint("TOP", list, "TOP", 0, -14)
     U.empty:SetText("Nenhuma missão no diário.")
     U.empty:SetTextColor(MUTED[1], MUTED[2], MUTED[3])
     U.more = p:CreateFontString(nil, "OVERLAY"); C.Font(U.more, 12)
-    U.more:SetPoint("BOTTOM", 0, 8)
+    U.more:SetPoint("BOTTOM", 0, 6)
     U.more:SetText("role para ver mais")
     U.more:SetTextColor(MUTED[1], MUTED[2], MUTED[3])
     p:SetScript("OnMouseWheel", function(_, delta)
@@ -648,21 +780,32 @@ function M:Build(f, v, mapApi)
     p:Hide()
     U.panel = p
 
-    -- detalhes (ao lado do painel); o conteúdo rola com a roda do mouse
-    local d = CreateFrame("Frame", nil, f)
-    d:SetPoint("TOPLEFT", p, "TOPRIGHT", 12, 0)
-    d:SetWidth(DETAIL_W)
-    d:SetFrameLevel(f:GetFrameLevel() + 32)
+    -- detalhes dentro da mesma gaveta (substitui a lista, com botão Voltar)
+    local d = CreateFrame("Frame", nil, side)
+    d:SetAllPoints(side)
+    d:SetFrameLevel(side:GetFrameLevel() + 2)
     d:EnableMouse(true)
-    C.PanelBox(d)
-    local dgem = C.Tex(d, "PanelGem", 20, 12, "OVERLAY")
-    dgem:SetPoint("CENTER", d, "TOP", 0, 0)
+    d.back = Btn(d, "← Voltar", 84)
+    d.back:SetSize(84, 24)
+    d.back:SetPoint("TOPLEFT", 14, -10)
+    C.Font(d.back.fs, 12, true)
+    d.back:SetScript("OnClick", function()
+        U.detailInView = false
+        d:Hide()
+        p:Show()
+        M:Refresh()
+    end)
     local x = CreateFrame("Button", nil, d)
     x:SetSize(24, 24); x:SetPoint("TOPRIGHT", -8, -8)
     local xi = C.Tex(x, "IcoClose", 14, 14); xi:SetPoint("CENTER")
-    x:SetScript("OnClick", function() d:Hide() end)      -- (a missão continua marcada no mapa)
-    d.title = d:CreateFontString(nil, "OVERLAY"); C.Font(d.title, 18, true)
-    d.title:SetPoint("TOPLEFT", 18, -16); d.title:SetPoint("RIGHT", -36, 0)
+    x:SetScript("OnEnter", function() xi:SetVertexColor(TEAL[1], TEAL[2], TEAL[3]) end)
+    x:SetScript("OnLeave", function() xi:SetVertexColor(1, 1, 1) end)
+    x:SetScript("OnClick", function()
+        if C.SetActive then C:SetActive(nil) else M:SetShown(false) end
+    end)
+    U.dx = x
+    d.title = d:CreateFontString(nil, "OVERLAY"); C.Font(d.title, 17, true)
+    d.title:SetPoint("TOPLEFT", 16, -42); d.title:SetPoint("RIGHT", -16, 0)
     d.title:SetJustifyH("LEFT")
     d.title:SetTextColor(CREAM[1], CREAM[2], CREAM[3])
     d.meta = d:CreateFontString(nil, "OVERLAY"); C.Font(d.meta, 13)
@@ -673,7 +816,7 @@ function M:Build(f, v, mapApi)
     drule:SetBlendMode("ADD")
     local sf = CreateFrame("ScrollFrame", nil, d)
     sf:SetPoint("TOPLEFT", drule, "BOTTOMLEFT", 8, -6)
-    sf:SetPoint("BOTTOMRIGHT", -14, 76)
+    sf:SetPoint("BOTTOMRIGHT", -14, 106)
     sf:EnableMouseWheel(true)
     local content = CreateFrame("Frame", nil, sf)
     content:SetSize(DETAIL_W - 40, 10)
@@ -684,23 +827,25 @@ function M:Build(f, v, mapApi)
     end)
     d.scroll, d.content, d.texts, d.items = sf, content, {}, {}
     d.hint = d:CreateFontString(nil, "OVERLAY"); C.Font(d.hint, 11)
-    d.hint:SetPoint("BOTTOMRIGHT", -16, 62)
+    d.hint:SetPoint("BOTTOMRIGHT", -16, 92)
     d.hint:SetText("role para ler tudo")
     d.hint:SetTextColor(MUTED[1], MUTED[2], MUTED[3])
     d.noMark = d:CreateFontString(nil, "OVERLAY"); C.Font(d.noMark, 12)
-    d.noMark:SetPoint("BOTTOMLEFT", 18, 50)
+    d.noMark:SetPoint("BOTTOMLEFT", 18, 78)
     d.noMark:SetText("Esta missão não tem marca no mapa.")
     d.noMark:SetTextColor(MUTED[1], MUTED[2], MUTED[3])
-    -- três botões do mesmo tamanho, dividindo a largura da janela (LayoutButtons)
-    d.show = Btn(d, "Ver no mapa"); d.track = Btn(d, "Acompanhar"); d.share = Btn(d, "Compartilhar")
-    for _, b in ipairs({ d.show, d.track, d.share }) do C.Font(b.fs, 12, true); b.fs:SetWidth(0) end
+    -- quatro botões em grade 2x2 dividindo a largura da janela (LayoutButtons)
+    d.show = Btn(d, "Ver no mapa"); d.track = Btn(d, "Acompanhar")
+    d.share = Btn(d, "Compartilhar"); d.abandon = Btn(d, "Abandonar")
+    for _, b in ipairs({ d.show, d.track, d.share, d.abandon }) do C.Font(b.fs, 12, true); b.fs:SetWidth(0) end
     local function LayoutButtons()
         local gap, side = 6, 12
-        local w = floor(((U.dw or DETAIL_W) - 2 * side - 2 * gap) / 3)
-        d.show:ClearAllPoints(); d.show:SetPoint("BOTTOMLEFT", side, 12); d.show:SetSize(w, 26)
+        local w = floor(((U.dw or DETAIL_W) - 2 * side - gap) / 2)
+        d.show:ClearAllPoints(); d.show:SetPoint("BOTTOMLEFT", side, 42); d.show:SetSize(w, 26)
         d.track:ClearAllPoints(); d.track:SetPoint("LEFT", d.show, "RIGHT", gap, 0); d.track:SetSize(w, 26)
-        d.share:ClearAllPoints(); d.share:SetPoint("LEFT", d.track, "RIGHT", gap, 0); d.share:SetSize(w, 26)
-        for _, b in ipairs({ d.show, d.track, d.share }) do
+        d.share:ClearAllPoints(); d.share:SetPoint("BOTTOMLEFT", side, 12); d.share:SetSize(w, 26)
+        d.abandon:ClearAllPoints(); d.abandon:SetPoint("LEFT", d.share, "RIGHT", gap, 0); d.abandon:SetSize(w, 26)
+        for _, b in ipairs({ d.show, d.track, d.share, d.abandon }) do
             b.fs:ClearAllPoints(); b.fs:SetPoint("LEFT", 4, 0); b.fs:SetPoint("RIGHT", -4, 0)
             b.fs:SetJustifyH("CENTER"); b.fs:SetWordWrap(false)
         end
@@ -709,26 +854,33 @@ function M:Build(f, v, mapApi)
     d:Hide()
     U.detail = d
 
-    -- altura dos painéis: acompanha a janela (ficam acima da barra de status)
+    -- ajusta o conteúdo quando a gaveta muda de tamanho (escala 1:1, sem encolher texto)
     local function Layout()
-        local h = v:GetHeight() or 600
-        local maxed = api.IsMaximized and api.IsMaximized()
-        -- no modo janela as duas ficam mais estreitas e mais baixas, para o mapa respirar
-        U.pw, U.dw = maxed and PANEL_W or 262, maxed and DETAIL_W or 300
+        local w = side:GetWidth()
+        if not w or w < 100 then return end
+        local maxed = api and api.IsMaximized and api.IsMaximized()
+        local rPad = maxed and 68 or 8
+        if U.px then
+            U.px:ClearAllPoints()
+            U.px:SetPoint("TOPRIGHT", -rPad, -8)
+        end
+        if U.dx then
+            U.dx:ClearAllPoints()
+            U.dx:SetPoint("TOPRIGHT", -rPad, -8)
+        end
+        if U.sb then
+            U.sb:ClearAllPoints()
+            U.sb:SetPoint("TOPLEFT", 14, -40)
+            U.sb:SetPoint("TOPRIGHT", -(maxed and 56 or 14), -40)
+        end
+        U.pw, U.dw = w, w
+        d.content:SetWidth(max(200, w - 36))
         if U.layoutButtons then U.layoutButtons() end
-        -- escala menor (cartões, fontes e botões juntos) e altura limitada: o mapa fica à vista
-        local s = maxed and 0.7 or 0.64
-        p:SetScale(s)
-        d:SetScale(s)
-        if C.PanelAnchor then C.PanelAnchor(p) end
-        p:SetWidth(U.pw)
-        d:SetWidth(U.dw)
-        p:SetHeight(max(220, min((maxed and (h - 110) or (h * 0.70)) / s, maxed and 600 or 560)))
-        d:SetHeight(max(280, min((maxed and (h - 110) or (h * 0.62)) / s, maxed and 540 or 480)))
         if d:IsShown() and U.sel then M:ShowDetail(U.sel) end
         if p:IsShown() then M:Refresh() end
     end
-    v:HookScript("OnSizeChanged", Layout)
+    U.layout = Layout
+    side:HookScript("OnSizeChanged", Layout)
     Layout()
 
     -- efeito Azaath: brilho correndo nas barras de progresso e o cartão selecionado pulsando
@@ -756,9 +908,20 @@ function M:Build(f, v, mapApi)
     local ev = CreateFrame("Frame")
     ev:RegisterEvent("QUEST_LOG_UPDATE")
     ev:SetScript("OnEvent", function()
-        if p:IsShown() and GetTime() - (U.refAt or 0) > 0.5 then
-            U.refAt = GetTime()
+        if not U.panelShown then return end
+        local now = GetTime()
+        if now - (U.refAt or 0) > 0.5 then
+            U.refAt = now
             M:Refresh()
+        elseif not U.refPending and C_Timer and C_Timer.After then
+            U.refPending = true
+            C_Timer.After(0.55, function()
+                U.refPending = false
+                if U.panelShown then
+                    U.refAt = GetTime()
+                    M:Refresh()
+                end
+            end)
         end
     end)
 end

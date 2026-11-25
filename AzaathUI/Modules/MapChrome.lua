@@ -14,7 +14,7 @@ local _, Azaath = ...
 local M = Azaath:NewModule("MapChrome")
 
 local TEX = Azaath.media.path .. "MapFrame\\"
-local floor, max, sin = math.floor, math.max, math.sin
+local floor, min, max, sin = math.floor, math.min, math.max, math.sin
 local ipairs, pairs = ipairs, pairs
 
 local CYAN = { 0.37, 0.89, 0.90 }
@@ -147,38 +147,13 @@ end
 
 local function DB() return Azaath.db.worldmap end
 
--- faixa de nível de um mapa, nesta ordem:
---   1) a do jogo (C_Map.GetMapLevels; no Forever devolve 0);
---   2) a dos roteiros de leveling da nossa ferramenta (Azaath.TryhardRoutes, categoria Leveling): cada roteiro
---      conta para a zona onde ficam a maioria das etapas dele (o campo z de alguns roteiros aponta outra zona);
---   3) a das missões que começam na zona (QuestDB:ZoneLevelRange), para as zonas sem roteiro.
-local routeLevels
-local TRAVEL = { goto = true, fly = true, enter = true, hs = true, level = true }
+-- faixa de nível de um mapa: tenta a do jogo (C_Map.GetMapLevels; no Forever devolve 0)
+-- e, senão, a das missões que começam na zona (QuestDB:ZoneLevelRange).
 function M.MapLevels(mapID)
     if C_Map and C_Map.GetMapLevels then
         local ok, lo, hi = pcall(C_Map.GetMapLevels, mapID)
         if ok and lo and hi and lo > 0 and hi > 0 then return lo, hi end
     end
-    if not routeLevels then
-        routeLevels = {}
-        for _, g in ipairs(Azaath.TryhardRoutes or {}) do
-            if (g.cat or "Leveling") == "Leveling" and (g.min or 0) > 0 then
-                local count, best, bc = {}, g.z, -1
-                for _, st in ipairs(g.steps or {}) do
-                    if st.m and st.m > 0 and not TRAVEL[st.t] then count[st.m] = (count[st.m] or 0) + 1 end
-                end
-                for m, c in pairs(count) do if c > bc then best, bc = m, c end end
-                if best and best > 0 then
-                    local r = routeLevels[best]
-                    if not r then r = { g.min, g.max or g.min }; routeLevels[best] = r end
-                    r[1] = math.min(r[1], g.min)
-                    r[2] = math.max(r[2], g.max or g.min)
-                end
-            end
-        end
-    end
-    local r = routeLevels[mapID]
-    if r then return r[1], r[2] end
     local Q = Azaath:GetModule("QuestDB")
     if Q and Q.ZoneLevelRange then
         local lo, hi = Q:ZoneLevelRange(mapID)
@@ -203,13 +178,21 @@ end
 ---------------------------------------------------------------------------
 local ART_W = 2000
 local PAPER_L, PAPER_T, PAPER_R, PAPER_B = 76, 65, 76, 68     -- o papel do mapa dentro da moldura
--- botões (pixels da arte): o menu desce pelo pano do estandarte da esquerda; fechar e tela cheia no alto à direita
--- (os ícones têm um filete de luz em volta e ocupam 7/8 da textura)
--- (centrados no pano entre a faixa dourada, y ~152, e o começo dos rasgos, y ~560)
-local MENU_X, MENU_Y0, MENU_STEP, MENU_SIZE = 198, 198, 60, 60
--- tela cheia e fechar: medalhões na pedra do canto superior direito (tools/map-ui-concept/expedicao/janela.js)
-local WIN_Y, WIN_X0, WIN_STEP, WIN_SIZE = 34, 1950, 56, 48
+local SIDE_W_WIN, SIDE_W_MAX, SIDE_GAP = 340, 360, 6          -- gaveta lateral direita (fora do mapa)
+-- botões (pixels da arte): o menu desce pelo pano do estandarte à direita do mapa; fechar e tela cheia no alto à direita
+local MENU_STEP, MENU_SIZE = 60, 60
+-- tela cheia e fechar: medalhões na pedra do canto superior direito (50 px da borda direita em 2000 px)
+local WIN_Y, WIN_RIGHT, WIN_STEP, WIN_SIZE = 34, 50, 56, 48
 local TITLE_Y, TITLE_SIZE, TITLE_W = 93, 52, 330               -- nome do lugar no estandarte
+
+local function SideOpen() return U.active == "quests" or U.active == "loremaster" end
+function M:GetSideWidth(h)
+    if not SideOpen() then return 0 end
+    if api and api.IsMaximized and api.IsMaximized() then return SIDE_W_MAX end
+    h = h or (U.f and U.f:GetHeight()) or 692
+    return max(280, min(380, floor(h * 0.5)))
+end
+function M.GetSideDock() return U.sideDock end
 
 local function Piece(parent, name, sub)
     local t = parent:CreateTexture(nil, "ARTWORK", nil, sub or 0)
@@ -252,8 +235,92 @@ local function BuildFrame(f)
         P[n] = Piece(fr, n, 0)
     end
     P.ExpBanner = Piece(fr, "ExpBanner", 2)     -- estandarte e cordas por cima das vigas
-    P.ExpFlag = Piece(fr, "ExpFlag", 3)         -- o pendurado da esquerda, por cima de tudo
+    P.ExpFlag = Piece(fr, "ExpFlag", 3)         -- o estandarte do menu, à direita do mapa
+    P.ExpFlag:SetTexCoord(1, 0, 0, 1)
     U.P = P
+
+    -- gaveta lateral direita (Missões / Loremaster), lado a lado com o mapa
+    local dock = CreateFrame("Frame", nil, f)
+    dock:SetFrameLevel(f:GetFrameLevel() + 25)
+    dock:EnableMouse(true)
+    M.PanelBox(dock)
+    dock:Hide()
+    U.sideDock = dock
+
+    -- botão de recolher/expandir no canto inferior direito do mapa (estilo Blizzard)
+    local db = CreateFrame("Button", nil, fr)
+    db:SetSize(32, 32)
+    db:SetFrameLevel(fr:GetFrameLevel() + 6)
+    M.RoundBox(db, 6, { 0.08, 0.11, 0.13, 0.96 }, { 0.72, 0.60, 0.36 })
+    local dhl = db:CreateTexture(nil, "HIGHLIGHT")
+    dhl:SetAllPoints()
+    dhl:SetColorTexture(0.95, 0.82, 0.45, 0.18)
+    db.ico = db:CreateTexture(nil, "OVERLAY")
+    db.ico:SetSize(16, 16)
+    db.ico:SetPoint("CENTER")
+    db.ico:SetTexture((Azaath.media.path .. "MapUI\\") .. "ChevronRight.tga")
+    db.ico:SetVertexColor(0.95, 0.82, 0.42)
+    db:SetScript("OnClick", function()
+        M:SetActive(SideOpen() and nil or "quests")
+    end)
+    db:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_LEFT")
+        GameTooltip:SetText(SideOpen() and "Recolher painel" or "Abrir Registro de Missões")
+        GameTooltip:Show()
+    end)
+    db:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    U.dockBtn = db
+
+    -- alça de redimensionar a janela inteira do mapa (canto inferior direito, modo janela)
+    local rg = CreateFrame("Button", nil, fr)
+    rg:SetSize(20, 20)
+    rg:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -6, 6)
+    rg:SetFrameLevel(fr:GetFrameLevel() + 10)
+    rg:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
+    rg:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight")
+    rg:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down")
+    rg:RegisterForClicks("RightButtonUp")
+    rg:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_TOPLEFT")
+        GameTooltip:SetText("Arraste para redimensionar o mapa")
+        GameTooltip:AddLine("Clique direito: tamanho padrão", 0.7, 0.7, 0.7)
+        GameTooltip:Show()
+    end)
+    rg:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    rg:SetScript("OnClick", function()
+        if api and api.SetWindowHeight then api.SetWindowHeight(nil) end
+    end)
+    rg:SetScript("OnMouseDown", function(self, btn)
+        if btn ~= "LeftButton" or (api and api.IsMaximized and api.IsMaximized()) then return end
+        local left, top = f:GetLeft(), f:GetTop()
+        local uiTop = UIParent:GetTop()
+        if left and top and uiTop and api and api.SaveWindowPos then
+            api.SaveWindowPos("TOPLEFT", left, top - uiTop)
+        end
+        local ui = UIParent:GetEffectiveScale()
+        local cx, cy = GetCursorPosition()
+        self.drag = { x = cx / ui, y = cy / ui, w = f:GetWidth(), h = f:GetHeight() }
+        self:SetScript("OnUpdate", function(me)
+            local st = me.drag
+            if not st then return end
+            local x, y = GetCursorPosition()
+            x, y = x / ui, y / ui
+            local dx, dy = x - st.x, st.y - y
+            local nh = math.abs(dx) > math.abs(dy) and (st.h + dx * 1116 / 2000) or (st.h + dy)
+            if math.abs(nh - f:GetHeight()) > 2 and api and api.SetWindowHeight then
+                api.SetWindowHeight(nh)
+            end
+        end)
+    end)
+    rg:SetScript("OnMouseUp", function(self)
+        self.drag = nil
+        self:SetScript("OnUpdate", nil)
+    end)
+    rg:SetScript("OnHide", function(self)
+        self.drag = nil
+        self:SetScript("OnUpdate", nil)
+    end)
+    U.resizeGrip = rg
 
     -- faixa de cima: arrasta a janela; dois cliques alternam janela/tela cheia
     local drag = CreateFrame("Frame", nil, fr)
@@ -417,7 +484,17 @@ local function MenuItems(which)
             { label = "Mestres de voo", get = function() return db.poiTaxi ~= false end, set = function(on) db.poiTaxi = on end },
             { label = "Masmorras e raides", get = function() return db.poiDungeons ~= false end, set = function(on) db.poiDungeons = on end },
             { label = "Missões", get = function() return db.poiQuests ~= false end, set = function(on) db.poiQuests = on end },
+            { label = "Pins de quest", get = function() return db.blizzQuestPins and true or false end, set = function(on) db.blizzQuestPins = on end },
             { label = "Áreas das missões", get = function() return db.questAreas ~= false end, set = function(on) db.questAreas = on end },
+            { label = "Caminho mágico",
+              get = function()
+                  local qn = Azaath:GetModule("QuestNav")
+                  return not (qn and qn.db and qn.db.magicPath == false)
+              end,
+              set = function(on)
+                  local qn = Azaath:GetModule("QuestNav")
+                  if qn and qn.SetMagicPathEnabled then qn:SetMagicPathEnabled(on) end
+              end },
             { label = "Grupo", get = function() return db.poiGroup ~= false end, set = function(on) db.poiGroup = on end },
             { label = "Raros", get = function() return db.poiRares ~= false end, set = function(on) db.poiRares = on end },
             { label = "Aviso de raros", get = function() return db.rareAlert ~= false end, set = function(on) db.rareAlert = on end },
@@ -472,7 +549,11 @@ end
 
 -- qual botão está ativo: "quests", "loremaster", "gather", "filters", "settings" ou nil
 function M:SetActive(key)
+    local wasOpen = SideOpen()
     U.active = key
+    if key == "quests" or key == "loremaster" or key == nil then
+        DB().sidePanel = key or false
+    end
     for k, b in pairs(U.btnByKey or {}) do b.glow:SetShown(k == key) end
     local Q = Azaath:GetModule("MapQuests")
     if Q and Q.SetShown then Q:SetShown(key == "quests") end
@@ -488,17 +569,30 @@ function M:SetActive(key)
     else
         menu:Hide()
     end
+    if U.dockBtn and U.dockBtn.ico then
+        if SideOpen() then
+            U.dockBtn.ico:SetTexCoord(0, 1, 0, 1)
+        else
+            U.dockBtn.ico:SetTexCoord(1, 0, 0, 1)
+        end
+    end
+    if SideOpen() ~= wasOpen and U.f and U.f:IsShown() then
+        if api and api.ApplyWindowMode and not (api.IsMaximized and api.IsMaximized()) then
+            api.ApplyWindowMode()
+        elseif U.Layout then
+            U.Layout()
+        end
+    end
 end
 
--- painéis do mapa (missões, loremaster, menus): abrem ao lado do estandarte da esquerda
--- (o pano opaco da ExpFlag.tga vai até a coluna 232 de 260; offsets divididos pela escala do painel)
+-- menus compactos (Coleta, Filtros, Config): abrem à esquerda do estandarte da direita
 function M.PanelAnchor(p)
     p:ClearAllPoints()
     local s = p:GetScale() or 1
     if U.flagEdge then
-        p:SetPoint("TOPLEFT", U.flagEdge, "TOPLEFT", 4 / s, -10 / s)
+        p:SetPoint("TOPRIGHT", U.flagEdge, "TOPLEFT", -4 / s, -10 / s)
     else
-        p:SetPoint("TOPLEFT", U.P.ExpFlag, "TOPRIGHT", 0, -10 / s)
+        p:SetPoint("TOPRIGHT", U.P.ExpFlag, "TOPLEFT", 0, -10 / s)
     end
 end
 
@@ -540,7 +634,7 @@ local function BuildButtons(f)
         b.glow:Hide()
         b:SetScript("OnClick", it.click or function() Toggle(it.key) end)
         b:SetScript("OnEnter", function(self)
-            GameTooltip:SetOwner(self, it.win and "ANCHOR_BOTTOMLEFT" or "ANCHOR_RIGHT")
+            GameTooltip:SetOwner(self, it.win and "ANCHOR_BOTTOMLEFT" or "ANCHOR_LEFT")
             GameTooltip:SetText(type(it.tip) == "function" and it.tip() or it.tip)
             GameTooltip:Show()
         end)
@@ -578,13 +672,21 @@ local function Layout()
     local f, v, P = U.f, U.v, U.P
     local w = f:GetWidth()
     if not w or w < 200 then return end
-    local k = w / ART_W
+    local sideW = M:GetSideWidth(f:GetHeight())
+    local maxed = api and api.IsMaximized and api.IsMaximized()
+    if U.resizeGrip then U.resizeGrip:SetShown(not maxed) end
+    local k = maxed and (w / ART_W) or ((w - sideW) / ART_W)
     U.k = k
     local function Size(t, pw, ph) t:SetSize(pw * k, ph * k) end
     for _, t in pairs(P) do t:ClearAllPoints() end
+
+    local rightPad = sideW > 0 and (sideW + SIDE_GAP) or 0
+    local mapW = max(200, w - PAPER_L * k - PAPER_R * k - rightPad)
+    local mapCenterX = PAPER_L * k + mapW / 2
+
     P.ExpTopL:SetPoint("TOPLEFT"); Size(P.ExpTopL, 340, 180)
     P.ExpTopR:SetPoint("TOPRIGHT"); Size(P.ExpTopR, 340, 180)
-    P.ExpBanner:SetPoint("TOP"); Size(P.ExpBanner, 880, 180)
+    P.ExpBanner:SetPoint("TOP", f, "TOPLEFT", mapCenterX, 0); Size(P.ExpBanner, 880, 180)
     P.ExpTopMidL:SetPoint("TOPLEFT", P.ExpTopL, "TOPRIGHT"); P.ExpTopMidL:SetPoint("BOTTOMRIGHT", P.ExpBanner, "BOTTOMLEFT")
     P.ExpTopMidR:SetPoint("TOPLEFT", P.ExpBanner, "TOPRIGHT"); P.ExpTopMidR:SetPoint("BOTTOMRIGHT", P.ExpTopR, "BOTTOMLEFT")
     P.ExpBotL:SetPoint("BOTTOMLEFT"); Size(P.ExpBotL, 340, 186)
@@ -594,41 +696,59 @@ local function Layout()
     P.ExpLeft:SetWidth(150 * k)
     P.ExpRight:SetPoint("TOPRIGHT", P.ExpTopR, "BOTTOMRIGHT"); P.ExpRight:SetPoint("BOTTOMRIGHT", P.ExpBotR, "TOPRIGHT")
     P.ExpRight:SetWidth(150 * k)
-    P.ExpFlag:SetPoint("TOPLEFT", f, "TOPLEFT", 80 * k, -80 * k); Size(P.ExpFlag, 260, 580)
-    -- borda direita do pano opaco (coluna 232 de 260 da ExpFlag.tga): onde os painéis encostam
-    if not U.flagEdge then U.flagEdge = U.fr:CreateTexture(nil, "BACKGROUND"); U.flagEdge:SetSize(1, 1) end
-    U.flagEdge:ClearAllPoints()
-    U.flagEdge:SetPoint("TOPLEFT", P.ExpFlag, "TOPLEFT", 232 * k, 0)
 
     v:ClearAllPoints()
     v:SetPoint("TOPLEFT", f, "TOPLEFT", PAPER_L * k, -PAPER_T * k)
-    v:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -PAPER_R * k, PAPER_B * k)
+    v:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -(PAPER_R * k + rightPad), PAPER_B * k)
     U.drag:SetHeight(PAPER_T * k)
 
+    if U.sideDock then
+        if sideW > 0 then
+            U.sideDock:ClearAllPoints()
+            U.sideDock:SetPoint("TOPLEFT", v, "TOPRIGHT", SIDE_GAP, 0)
+            U.sideDock:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -PAPER_R * k, PAPER_B * k)
+            U.sideDock:Show()
+        else
+            U.sideDock:Hide()
+        end
+    end
+
+    if U.dockBtn then
+        U.dockBtn:ClearAllPoints()
+        U.dockBtn:SetPoint("BOTTOMRIGHT", v, "BOTTOMRIGHT", -10, 10)
+    end
+
+    -- estandarte do menu à direita do mapa (acompanha a borda direita de v)
+    P.ExpFlag:SetPoint("TOPRIGHT", v, "TOPRIGHT", -6 * k, -15 * k); Size(P.ExpFlag, 260, 580)
+    if not U.flagEdge then U.flagEdge = U.fr:CreateTexture(nil, "BACKGROUND"); U.flagEdge:SetSize(1, 1) end
+    U.flagEdge:ClearAllPoints()
+    U.flagEdge:SetPoint("TOPRIGHT", P.ExpFlag, "TOPRIGHT", -232 * k, 0)
+
     U.titleBtn:ClearAllPoints()
-    U.titleBtn:SetPoint("CENTER", f, "TOP", 0, -TITLE_Y * k)
+    U.titleBtn:SetPoint("CENTER", f, "TOPLEFT", mapCenterX, -TITLE_Y * k)
     TitleFit()
 
     -- tela cheia: cantos para fora; já maximizado: cantos para dentro (voltar à janela)
     if U.maxBtn then
-        local ico = TEX .. ((api and api.IsMaximized and api.IsMaximized()) and "ExpWinRestore" or "ExpWinMax")
+        local ico = TEX .. (maxed and "ExpWinRestore" or "ExpWinMax")
         U.maxBtn.icon:SetTexture(ico); U.maxBtn.hl:SetTexture(ico); U.maxBtn.glow:SetTexture(ico)
     end
-    local m, w = 0, 0
+    local m, winIdx = 0, 0
     for _, b in ipairs(U.buttons) do
         b:ClearAllPoints()
         if b.win then
-            -- tela cheia e fechar, da direita para a esquerda a partir de WIN_X0
+            -- tela cheia e fechar, da direita para a esquerda a partir da borda direita
             b:SetSize(WIN_SIZE * k, WIN_SIZE * k)
-            b:SetPoint("CENTER", f, "TOPLEFT", (WIN_X0 - (1 - w) * WIN_STEP) * k, -WIN_Y * k)
-            w = w + 1
+            b:SetPoint("CENTER", f, "TOPRIGHT", -(WIN_RIGHT + (1 - winIdx) * WIN_STEP) * k, -WIN_Y * k)
+            winIdx = winIdx + 1
         else
             b:SetSize(MENU_SIZE * k, MENU_SIZE * k)
-            b:SetPoint("CENTER", f, "TOPLEFT", MENU_X * k, -(MENU_Y0 + m * MENU_STEP) * k)
+            b:SetPoint("CENTER", P.ExpFlag, "TOPRIGHT", -118 * k, -(118 + m * MENU_STEP) * k)
             m = m + 1
         end
     end
 end
+U.Layout = Layout
 
 -- o botão ativo respira em azul azaath
 local function Effects()
@@ -641,6 +761,9 @@ end
 function M:Build(f, v, mapApi)
     api = mapApi
     U.f, U.v = f, v
+    local saved = DB().sidePanel
+    if saved == nil then saved = "quests" end
+    U.active = saved or nil
     BuildFrame(f)
     BuildButtons(f)
     f:HookScript("OnSizeChanged", Layout)
@@ -648,8 +771,10 @@ function M:Build(f, v, mapApi)
     U.fx = CreateFrame("Frame", nil, f)
     U.fx:SetScript("OnUpdate", Effects)
     f:HookScript("OnShow", function()
+        local sp = DB().sidePanel
+        if sp == nil then sp = "quests" end
+        M:SetActive(sp or nil)
         Layout()
-        M:SetActive(nil)
     end)
 end
 

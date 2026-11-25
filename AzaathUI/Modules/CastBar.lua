@@ -1094,9 +1094,20 @@ local function StartCast(f, channel)
     ViewRange(f)
     if not f.isRing then f.bar:SetValue(channel and f.duration or 0) end
     -- Anel do objeto: nome do objeto ("Pedaço de Âmbar Grande"), não do feitiço ("Mineração")
-    f.text:SetText((f.key == "world" and f.objName) or (text ~= "" and text or name))
+    if f.key == "world" and f.atCrosshair then
+        f.text:SetText("")
+    else
+        f.text:SetText((f.key == "world" and f.objName) or (text ~= "" and text or name))
+    end
     f.time:SetText("")
-    f.icon:SetTexture(texture or TEST_ICON)
+    if f.key == "world" and f.atCrosshair then
+        f.icon:Hide()
+        if f.iconBg then f.iconBg:Hide() end
+    else
+        f.icon:SetTexture(texture or TEST_ICON)
+        f.icon:Show()
+        if f.iconBg then f.iconBg:Show() end
+    end
     if f.fx then
         f.theme = ResolveTheme(CurrentSpellID(f.unit, channel), name)
         StartFX(f)
@@ -1153,7 +1164,11 @@ local function Fail(f, interrupted)
     if f.safe then f.safe:Hide() end
     HideFX(f) -- a magia se desfaz
     ViewFull(f, COLORS.failed)
-    f.text:SetText(interrupted and "Interrompido" or "Falhou")
+    if f.key == "world" and f.atCrosshair then
+        f.text:SetText("")
+    else
+        f.text:SetText(interrupted and "Interrompido" or "Falhou")
+    end
     f.time:SetText("")
     f.holdTime = FAIL_HOLD
     f.fadeOut = true
@@ -1186,9 +1201,9 @@ end
 local TrackWorld -- definido em "Interação com objetos do mundo"
 
 OnUpdate = function(f, elapsed)
-    if f.anchorGUID and TrackWorld then
+    if (f.anchorGUID or f.atCrosshair) and TrackWorld then
         f.trackElapsed = (f.trackElapsed or 0) + elapsed
-        if f.trackElapsed >= 0.1 then
+        if f.trackElapsed >= 0.08 then
             f.trackElapsed = 0
             TrackWorld(f)
         end
@@ -1388,14 +1403,59 @@ local function FindObjectPlate(target, sentGUID)
 end
 
 local function AnchorToPlate(f, plate)
+    f.atCrosshair = false
+    ApplyRingSize(f, (M.db and M.db.world and M.db.world.size) or 54, 1)
+    f.icon:Show()
+    if f.iconBg then f.iconBg:Show() end
+    if f.objName then f.text:SetText(f.objName) end
     f:ClearAllPoints()
     -- a placa fica acima do objeto; plateOffsetY negativo desce o anel ao centro do item
     f:SetPoint("CENTER", plate, "CENTER", 0, (M.db.world.plateOffsetY or -45) - (f.textH or RING_TEXT_H) / 2)
     f.plate = plate
 end
 
+local function IsActionCamCrosshairActive()
+    local ac = Azaath.ActionCam
+    if not (ac and ac.IsMouselooking and ac.IsMouselooking()) then return false, nil end
+    local ch = _G.AzaathUICrosshairFrame
+    if ch and ch:IsShown() then return true, ch end
+    return false, nil
+end
+
+local function AnchorToCrosshair(f, ch)
+    f.atCrosshair = true
+    f.plate = nil
+    local hudIcon = _G.AzaathUIInteractionHUD and _G.AzaathUIInteractionHUD:IsShown() and _G.AzaathUIInteractionHUD.iconBg
+    if hudIcon then
+        ApplyRingSize(f, 32, 1)
+        f.icon:Hide()
+        if f.iconBg then f.iconBg:Hide() end
+        f.text:SetText("")
+        f:ClearAllPoints()
+        f:SetPoint("CENTER", hudIcon, "CENTER", 0, -(f.textH or 16) / 2)
+    else
+        ApplyRingSize(f, 40, 1)
+        f.icon:Hide()
+        if f.iconBg then f.iconBg:Hide() end
+        f.text:SetText("")
+        f:ClearAllPoints()
+        f:SetPoint("CENTER", ch, "CENTER", 0, -(f.textH or 16) / 2)
+    end
+end
+
 -- Chamado no OnUpdate do anel do mundo: a placa pode ser reciclada/trocar de token
 TrackWorld = function(f)
+    local inAction, ch = IsActionCamCrosshairActive()
+    if inAction and ch then
+        AnchorToCrosshair(f, ch)
+        return
+    elseif f.atCrosshair then
+        f.atCrosshair = false
+        ApplyRingSize(f, (M.db and M.db.world and M.db.world.size) or 54, 1)
+        f.icon:Show()
+        if f.iconBg then f.iconBg:Show() end
+        if f.objName then f.text:SetText(f.objName) end
+    end
     local guid = f.anchorGUID
     if not guid then return end
     local unit = UnitWithGUID(guid)
@@ -1476,12 +1536,17 @@ local function ClaimWorldCast(castGUID, spellID)
         or nil
     -- Sem placa agora, continua procurando pelo GUID do objeto durante a coleta
     world.anchorGUID, world.plate, world.trackElapsed = guid or sent.softGUID, nil, 0
-    if plate then
+    local inAction, ch = IsActionCamCrosshairActive()
+    if inAction and ch then
+        AnchorToCrosshair(world, ch)
+    elseif plate then
         AnchorToPlate(world, plate)
     else
+        world.atCrosshair = false
+        ApplyRingSize(world, (M.db and M.db.world and M.db.world.size) or 54, 1)
         PlaceWorldRing(world, sent.x, sent.y)
     end
-    RecordDiag(id, sent.target, unit)
+    RecordDiag(id, sent.target, inAction and "crosshair" or unit)
     return true
 end
 
@@ -1717,7 +1782,8 @@ function M:ApplyLayout()
         end
     end
 
-    if db.target.enabled and not bars.target then
+    -- skin Blizzard: o quadro de alvo do jogo já tem a conjuração dele
+    if db.target.enabled and Azaath.HideBlizzOn("targetFrame") and not bars.target then
         local anchor = _G.AzaathUITarget
         local width = (db.target.width and db.target.width > 0) and db.target.width or (anchor and anchor:GetWidth()) or 300
         CreateLinearBar("target", width, db.target.height or 12, false)

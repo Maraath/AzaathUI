@@ -543,11 +543,24 @@ end
 --------------------------------------------------------------------------------
 
 local function PlaceButton()
+    if not minimapButton then return end
     local a = math.rad(ns.db.minimap.angle or 205)
     local r = Minimap:GetWidth() / 2 + 5
+    local x, y
+    if Azaath.MinimapButtonOffset then
+        x, y = Azaath.MinimapButtonOffset(a, r)
+    elseif _G.GetMinimapShape and GetMinimapShape() == "SQUARE" then
+        local dx, dy = math.cos(a), math.sin(a)
+        local m = max(math.abs(dx), math.abs(dy))
+        local s = m > 0.001 and (r / m) or r
+        x, y = dx * s, dy * s
+    else
+        x, y = math.cos(a) * r, math.sin(a) * r
+    end
     minimapButton:ClearAllPoints()
-    minimapButton:SetPoint("CENTER", Minimap, "CENTER", math.cos(a) * r, math.sin(a) * r)
+    minimapButton:SetPoint("CENTER", Minimap, "CENTER", x, y)
 end
+ns.PlaceMinimapButton = PlaceButton
 
 local function ButtonTip(self)
     K.Tip(self, "Olho de Azaath", ns.db.enabled and L.TIP_ENABLED or L.TIP_DISABLED, {

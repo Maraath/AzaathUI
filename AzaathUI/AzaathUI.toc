@@ -4,7 +4,8 @@
 ## Title: |cffe3c78bAzaath|rUI
 ## Notes: Interface completa de RPG de ação: bússola superior, unit frames e barras de ação centralizadas.
 ## Author: ProjectAzaath
-## Version: 0.1.0
+## Version: 0.1.2
+## X-Curse-Project-ID: 1827002
 ## SavedVariables: AzaathUIDB, AzaathUIGatherDB, AzaathUIAuctionDB
 ## SavedVariablesPerCharacter: AzaathUICharDB
 ## X-Category: Interface Enhancements
@@ -21,10 +22,32 @@ Modules\BDOBarData.lua
 Modules\HideBlizz.lua
 Modules\Compass.lua
 Modules\UnitFrames.lua
-Modules\Nameplates.lua
+Modules\Nameplates\Core.lua
+Modules\Nameplates\Defaults.lua
+Modules\Nameplates\Media.lua
+Modules\Nameplates\Serializer.lua
+Modules\Nameplates\Colors.lua
+Modules\Nameplates\Effects.lua
+Modules\Nameplates\Depth.lua
+Modules\Nameplates\Range.lua
+Modules\Nameplates\RP.lua
+Modules\Nameplates\Quest.lua
+Modules\Nameplates\Health.lua
+Modules\Nameplates\Execute.lua
+Modules\Nameplates\Text.lua
+Modules\Nameplates\Cast.lua
+Modules\Nameplates\Auras.lua
+Modules\Nameplates\AuraContainers.lua
+Modules\Nameplates\Resources.lua
+Modules\Nameplates\Indicators.lua
+Modules\Nameplates\Driver.lua
+Modules\Nameplates\DesignerWidgets.lua
+Modules\Nameplates\DesignerSchema.lua
+Modules\Nameplates\Designer.lua
 Modules\CombatText.lua
 Modules\ActionBars.lua
 Modules\StancePetBars.lua
+Modules\RotationAssist.lua
 Modules\CastBar.lua
 Modules\Minimap.lua
 Modules\Auras.lua
@@ -128,6 +151,9 @@ Modules\MapTaxi.lua
 Modules\MicroMenu.lua
 Modules\Chat.lua
 Modules\ActionCam\CVarManager.lua
+Modules\ActionCam\CameraDirector.lua
+Modules\ActionCam\Situations.lua
+Modules\ActionCam\CameraMoves.lua
 Modules\ActionCam\CombatCamera.lua
 Modules\ActionCam\Vignette.lua
 Modules\ActionCam\FreeLook.lua

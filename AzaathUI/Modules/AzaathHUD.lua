@@ -4,8 +4,8 @@
     (tools/actionbar-concept/concept.png -> gen.js -> Media/Azaath/*.tga e
     Modules/AzaathLayoutData.lua). Tudo é posicionado em px do conceito.
 
-      * painel esquerdo (barras 2/3, abas CF1/CF2) e direito (barra 1): os
-        espaços já estão pintados; os botões (ActionBars.lua) ficam por cima;
+      * painéis esquerdo/direito: são a Opção 4 das barras (ActionBars.lua,
+        Azaath.AzaathPanelArt), soltos da HUD e livres no Modo de Edição;
       * moldura central: recurso (fogo laranja com chama correndo), vida
         carmim "atual / máx", XP ciano com "XP 85.3%", medalhão com o nível;
       * efeitos: gemas e filetes ciano pulsando, fagulhas nas pontas das
@@ -27,45 +27,69 @@ local anchors = {}
 
 local function Tex(name) return Azaath.media.path .. "Azaath\\" .. name end
 local function IsAzaath() return Azaath.IsAzaath and Azaath.IsAzaath() and Azaath.AZAATH ~= nil end
+local function IsReforgedBars() return Azaath.IsReforgedBars and Azaath.IsReforgedBars() end
+
+-- A HUD é só a peça central: coordenadas do conceito menos o x dela
+local CX = 0
 
 -- Coordenadas do conceito -> ponto TOPLEFT na HUD
 local function Place(region, x, y, w, h, parent)
     region:ClearAllPoints()
-    region:SetPoint("TOPLEFT", parent or hud, "TOPLEFT", x, -y)
+    region:SetPoint("TOPLEFT", parent or hud, "TOPLEFT", x - CX, -y)
     if w then region:SetSize(w, h) end
 end
 
 --------------------------------------------------------------------------------
--- Moldura (arte + brilho)
+-- Arte de uma peça do conceito (1 = painel esquerdo, 2 = moldura central,
+-- 3 = painel direito) no canto superior esquerdo de `frame`, com as gemas e
+-- filetes ciano pulsando (camada aditiva de meia resolução). Usada pela HUD e
+-- pelas barras Reforged (ActionBars.lua).
 --------------------------------------------------------------------------------
-local function BuildArt()
-    -- Peças de 512x512 (conteúdo no canto superior esquerdo)
-    local names = (#A.pieces == 2) and { "Left", "Right" } or { "Left", "Center", "Right" }
-    for i, p in ipairs(A.pieces) do
-        local t = hud:CreateTexture(nil, "BACKGROUND", nil, 1)
-        t:SetTexture(Tex(names[i]))
-        t:SetTexCoord(0, p.w / 512, 0, A.hud.h / 512)
-        Place(t, p.x, 0, p.w, A.hud.h)
-        art[i] = t
-    end
-
-    -- Gemas/filetes ciano: camada aditiva (meia resolução) que pulsa
-    local glowFrame = CreateFrame("Frame", nil, hud)
-    glowFrame:SetAllPoints(hud)
-    glowFrame:SetFrameLevel(hud:GetFrameLevel() + 6)
-    local glow = glowFrame:CreateTexture(nil, "ARTWORK")
-    glow:SetTexture(Tex("Glow"))
-    glow:SetTexCoord(0, (A.hud.w / 2) / 1024, 0, (A.hud.h / 2) / 256)
-    glow:SetAllPoints(hud)
+local PIECE_NAMES = { "Left", "HudCenter", "Right" }
+function Azaath.AzaathPanelArt(frame, idx, glowParent)
+    local AA = Azaath.AZAATH
+    local p = AA.pieces[idx]
+    local t = frame:CreateTexture(nil, "BACKGROUND", nil, 1)
+    t:SetTexture(Tex(PIECE_NAMES[idx]))
+    t:SetTexCoord(0, p.w / 512, 0, AA.hud.h / 512)
+    t:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0)
+    t:SetSize(p.w, AA.hud.h)
+    local glow = (glowParent or frame):CreateTexture(nil, glowParent and "ARTWORK" or "BORDER")
+    glow:SetTexture(Tex("HudGlow"))
+    glow:SetTexCoord(p.x / 2 / 1024, (p.x + p.w) / 2 / 1024, 0, (AA.hud.h / 2) / 256)
+    glow:SetAllPoints(t)
     glow:SetBlendMode("ADD")
-    local ag = glowFrame:CreateAnimationGroup()
+    local ag = glow:CreateAnimationGroup()
     ag:SetLooping("BOUNCE")
     local fade = ag:CreateAnimation("Alpha")
     fade:SetFromAlpha(0.15)
     fade:SetToAlpha(0.75)
     fade:SetDuration(1.8)
     if fade.SetSmoothing then fade:SetSmoothing("IN_OUT") end
-    hud.glowFrame, hud.glowAnim = glowFrame, ag
+    return { art = t, glow = glow, anim = ag }
+end
+
+-- Liga/desliga o pulso conforme azaath.glow
+function Azaath.AzaathGlowApply(o)
+    if not o then return end
+    local cfg = Azaath.db.azaath or {}
+    if cfg.glow ~= false then
+        o.glow:Show()
+        if not o.anim:IsPlaying() then o.anim:Play() end
+    else
+        o.anim:Stop()
+        o.glow:Hide()
+    end
+end
+
+--------------------------------------------------------------------------------
+-- Moldura central (arte + brilho)
+--------------------------------------------------------------------------------
+local function BuildArt()
+    local glowFrame = CreateFrame("Frame", nil, hud)
+    glowFrame:SetAllPoints(hud)
+    glowFrame:SetFrameLevel(hud:GetFrameLevel() + 6)
+    art = Azaath.AzaathPanelArt(hud, 2, glowFrame)
 end
 
 --------------------------------------------------------------------------------
@@ -122,7 +146,7 @@ local function BuildBars()
     htop:SetAllPoints(health)
     htop:SetFrameLevel(hud:GetFrameLevel() + 8)
     healthText = Text(htop, fontR, 22, 0.96, 0.93, 0.93)
-    healthText:SetPoint("CENTER", hud, "TOPLEFT", A.healthText[1], -A.healthText[2])
+    healthText:SetPoint("CENTER", hud, "TOPLEFT", A.healthText[1] - CX, -A.healthText[2])
 
     -- XP: ciano + fagulha + "XP 85.3%"
     xpBar = NewBar(A.xp, "XPFill", 2)
@@ -135,7 +159,7 @@ local function BuildBars()
     local xy = (A.xpSpark.y + A.xpSpark.h / 2) - (A.xp.y + A.xp.h / 2)
     xpSpark:SetPoint("LEFT", xtex, "RIGHT", xx, -xy)
     xpText = Text(htop, fontR, 13, 0.60, 0.70, 0.72)
-    xpText:SetPoint("LEFT", hud, "TOPLEFT", A.xpText[1], -A.xpText[2])
+    xpText:SetPoint("LEFT", hud, "TOPLEFT", A.xpText[1] - CX, -A.xpText[2])
 
     -- Nível no medalhão (serifa clássica, ciano claro, halo suave)
     local halo = htop:CreateTexture(nil, "ARTWORK")
@@ -144,9 +168,9 @@ local function BuildBars()
     halo:SetBlendMode("ADD")
     halo:SetAlpha(0.22)
     halo:SetSize(46, 46)
-    halo:SetPoint("CENTER", hud, "TOPLEFT", A.level[1], -A.level[2])
+    halo:SetPoint("CENTER", hud, "TOPLEFT", A.level[1] - CX, -A.level[2])
     levelText = Text(htop, media.fontCinzel or media.fontTitleB, 29, 0.74, 0.94, 0.95)
-    levelText:SetPoint("CENTER", hud, "TOPLEFT", A.level[1], -A.level[2] + 1)
+    levelText:SetPoint("CENTER", hud, "TOPLEFT", A.level[1] - CX, -A.level[2] + 1)
 
     -- chama correndo (só desenha quando a HUD está visível)
     local off = 0
@@ -350,6 +374,7 @@ end
 
 local forcedRing -- /azaath azaath proc: mostra o anel no botão 10 da barra 1
 local function UpdateRings()
+    if not (A and IsReforgedBars()) then return end
     local ab = Azaath:GetModule("ActionBars")
     local list = ab and ab.buttons
     if not list then return end
@@ -382,7 +407,8 @@ function Azaath.GetAzaathFrame()
     if hud then return hud end
     A = Azaath.AZAATH
     hud = CreateFrame("Frame", "AzaathUIAzaath", Azaath.root)
-    hud:SetSize(A.hud.w, A.hud.h)
+    CX = A.pieces[2].x
+    hud:SetSize(A.pieces[2].w, A.hud.h)
     hud:SetFrameStrata("LOW")
     hud:SetFrameLevel(2)
     local cfg = Azaath.db.azaath or {}
@@ -408,9 +434,9 @@ function Azaath.AzaathAnchor(kind)
     local B = A.buffs
     if kind == "debuffs" then
         -- à direita da crista central, crescendo para a direita dentro da moldura
-        a:SetPoint("BOTTOMLEFT", f, "TOPLEFT", A.level[1] + 28, -B.y)
+        a:SetPoint("BOTTOMLEFT", f, "TOPLEFT", A.level[1] + 28 - CX, -B.y)
     else
-        a:SetPoint("BOTTOMLEFT", f, "TOPLEFT", B.x, -B.y)
+        a:SetPoint("BOTTOMLEFT", f, "TOPLEFT", B.x - CX, -B.y)
     end
     return a
 end
@@ -423,18 +449,10 @@ function M:ApplyLayout()
         hud:ClearAllPoints()
         hud:SetPoint("BOTTOM", Azaath.root, "BOTTOM", cfg.offsetX or 0, cfg.offsetY or 10)
         if Azaath.ClampToScreen then Azaath.ClampToScreen(hud) end
-        local ab = Azaath:GetModule("ActionBars")
-        if ab and ab.ApplyLayout then ab:ApplyLayout() end
         local auras = Azaath:GetModule("Auras")
         if auras and auras.ApplyLayout then auras:ApplyLayout() end
     end)
-    if cfg.glow ~= false then
-        hud.glowFrame:Show()
-        hud.glowAnim:Play()
-    else
-        hud.glowAnim:Stop()
-        hud.glowFrame:Hide()
-    end
+    Azaath.AzaathGlowApply(art)
 end
 
 local events = CreateFrame("Frame")
@@ -467,8 +485,8 @@ end)
 -- Clique na moldura central: seleciona a si mesmo / menu do jogador
 local function BuildPlayerButton()
     local b = CreateFrame("Button", "AzaathUIAzaathPlayer", hud, "SecureUnitButtonTemplate")
-    b:SetPoint("TOPLEFT", hud, "TOPLEFT", A.power.x, -A.power.y)
-    b:SetPoint("BOTTOMRIGHT", hud, "TOPLEFT", A.xp.x + A.xp.w, -(A.xp.y + A.xp.h))
+    b:SetPoint("TOPLEFT", hud, "TOPLEFT", A.power.x - CX, -A.power.y)
+    b:SetPoint("BOTTOMRIGHT", hud, "TOPLEFT", A.xp.x + A.xp.w - CX, -(A.xp.y + A.xp.h))
     b:SetFrameLevel(hud:GetFrameLevel() + 9)
     b:RegisterForClicks("AnyUp")
     b:SetAttribute("unit", "player")
@@ -483,10 +501,11 @@ local function BuildPlayerButton()
 end
 
 function M:OnEnable()
-    if not IsAzaath() then return end
+    -- skin Reforged (moldura central) e/ou barras Reforged (anel de proc nos botões)
+    if not (IsAzaath() or IsReforgedBars()) then return end
+    A = Azaath.AZAATH
     Azaath:RunOutOfCombat(function()
-        if not Azaath.GetAzaathFrame() then return end
-        BuildPlayerButton()
+        if Azaath.GetAzaathFrame() then BuildPlayerButton() end
         for _, e in ipairs({
             "UNIT_HEALTH", "UNIT_MAXHEALTH", "UNIT_POWER_UPDATE", "UNIT_POWER_FREQUENT", "UNIT_MAXPOWER",
             "UNIT_DISPLAYPOWER", "PLAYER_XP_UPDATE", "PLAYER_LEVEL_UP", "UPDATE_EXHAUSTION",

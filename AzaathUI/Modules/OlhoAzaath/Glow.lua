@@ -150,9 +150,17 @@ local function HideTag()
     if tag then tag:Hide() end
 end
 
+local function ShouldHideTagNow()
+    local wb = _G.AzaathUICastBarWorld
+    if wb and not wb.atCrosshair and wb:IsShown() and (wb.casting or wb.channeling or wb.holdTime > 0 or wb.fadeOut) then
+        return true
+    end
+    return false
+end
+
 local function ShowTag(unit, text, cat)
     local wantName, wantIcon = Look(cat, "showName"), Look(cat, "showIcon")
-    if not st.anchor or not (wantName or wantIcon) or ns.Native.LightOnly() then HideTag() return end
+    if not st.anchor or not (wantName or wantIcon) or ns.Native.LightOnly() or ShouldHideTagNow() then HideTag() return end
     local f = Tag()
     local hasIcon = false
     if wantIcon then
@@ -414,9 +422,13 @@ local function Tick(self, dt)
         end
     end
 
-    if tag and tag:IsShown() then
-        tag:SetAlpha(c.arrive * (1 - (db.hideLocked and 1 or 0.4) * locked))
-        tag.name:SetTextColor(c.hr, c.hg, c.hb)
+    if tag then
+        if ShouldHideTagNow() then
+            if tag:IsShown() then tag:Hide() end
+        elseif tag:IsShown() then
+            tag:SetAlpha(c.arrive * (1 - (db.hideLocked and 1 or 0.4) * locked))
+            tag.name:SetTextColor(c.hr, c.hg, c.hb)
+        end
     end
     Remember(self)
 end

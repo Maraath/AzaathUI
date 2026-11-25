@@ -948,7 +948,9 @@ function M:ApplyLayout()
             tooltipAnchor = "ANCHOR_TOPRIGHT",
         })
     end
-    if db.target.enabled and not byKey.target then
+    -- skin Blizzard: o quadro de alvo do jogo já mostra as auras dele
+    local targetOn = db.target.enabled and Azaath.HideBlizzOn("targetFrame")   -- (o da Blizzard já tem as auras dele)
+    if targetOn and not byKey.target then
         local cfg = db.target
         local targetFrame = _G.AzaathUITarget
         CreateContainer("target", "AzaathUITargetAuras", cfg, {

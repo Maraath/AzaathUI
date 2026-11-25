@@ -844,6 +844,37 @@ function _G.AZAATH_SwapShoulder()
     end
 end
 
+--------------------------------------------------------------------------------
+-- Ctrl alterna o Mouse Look (opção ctrlToggle): toque limpo no Ctrl = toque no V.
+-- Ctrl+tecla, Ctrl+clique ou segurar (> CTRL_TAP_MAX) não alternam.
+--------------------------------------------------------------------------------
+-- Sem quadro de teclado (EnableKeyboard travava o ESC): Ctrl+tecla é detectado
+-- por magia enviada durante o toque (UNIT_SPELLCAST_SENT) e pelo tempo curto.
+local CTRL_TAP_MAX = 0.35
+local ctrlDownAt, ctrlCombo
+
+function AC.OnCtrlToggleModifier(key, down)
+    if key ~= "LCTRL" and key ~= "RCTRL" then
+        if ctrlDownAt and down == 1 then ctrlCombo = true end
+        return
+    end
+    local db = AC.DB()
+    if not (db and db.enabled and db.ctrlToggle) then ctrlDownAt = nil return end
+    if down == 1 then
+        ctrlDownAt, ctrlCombo = GetTime(), false
+        return
+    end
+    local t0 = ctrlDownAt
+    ctrlDownAt = nil
+    if not t0 or ctrlCombo or (GetTime() - t0) > CTRL_TAP_MAX then return end
+    if IsMouseButtonDown("LeftButton") or IsMouseButtonDown("RightButton") then return end
+    _G.AZAATH_MouseLookKey("down")
+end
+
+function AC.OnCtrlToggleMouseDown()
+    if ctrlDownAt then ctrlCombo = true end
+end
+
 function _G.AZAATH_ResetMouseLook()
     AC.LockFreeLook()
     local function settle()

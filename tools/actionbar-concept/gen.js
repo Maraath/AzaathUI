@@ -283,6 +283,56 @@ const KEY = { x: LX[1] + 1, y: 390, w: 43, h: 24 };
 }
 
 // ---------------------------------------------------------------------------
+// 6b. Colchetes dourados das laterais da moldura central (23/11): a borda de
+//     fora de cada colchete foi medida linha a linha no conceito (px do
+//     conceito). Onde a gema ciano cobre o filete, ele é redesenhado copiando
+//     o perfil de uma linha limpa; o vão entre o filete e as barras é
+//     preenchido com o fundo escuro da própria moldura (Laplace).
+// ---------------------------------------------------------------------------
+const lerpPts = (pts) => (y) => {
+  if (y <= pts[0][1]) return pts[0][0];
+  for (let k = 1; k < pts.length; k++) if (y <= pts[k][1]) {
+    const [x0, y0] = pts[k - 1], [x1, y1] = pts[k];
+    return x0 + (x1 - x0) * (y - y0) / (y1 - y0);
+  }
+  return pts[pts.length - 1][0];
+};
+const BRACKET = {
+  y0: 328, y1: 437, // acima de 328 só há o fundo do conceito
+  // borda de fora (esquerda) do colchete esquerdo
+  L: lerpPts([[466, 328], [466, 330], [463, 333], [461, 335], [460, 337], [459, 339], [457, 341], [455, 343], [453, 345], [454, 347], [456, 352], [456, 369],
+    [455, 400], [455, 405], [457, 410], [460, 415], [462, 420], [463, 425], [466, 430], [469, 434], [470, 437]]),
+  // borda de fora (direita) do colchete direito
+  R: lerpPts([[880, 328], [881, 331], [882, 333], [884, 335], [885, 337], [887, 339], [891, 341], [893, 343], [892, 346], [890, 350], [889, 356],
+    [889, 405], [889, 410], [888, 413], [885, 416], [884, 419], [883, 422], [881, 425], [879, 430], [876, 434], [874, 437]]),
+};
+{
+  const isCy = (c) => Math.min(c[1], c[2]) - c[0] > 18;
+  const ref = clone(C), REF = 362, SW = 4;
+  // esquerda: filete coberto nas linhas 366..400
+  for (let y = 366; y <= 400; y++) {
+    const e = Math.round(BRACKET.L(y)), er = Math.round(BRACKET.L(REF));
+    for (let x = e; x <= 462; x++) set(C, x, y, get(ref, er + (x - e), REF)); // filete + vão, da linha limpa
+  }
+  inpaint(C, 452, 364, 470, 402, (x, y) => {
+    const e = BRACKET.L(y);
+    return x >= e + SW && x <= 470 && isCy(get(C, x, y));
+  });
+  // direita: filete coberto nas linhas 370..402
+  for (let y = 370; y <= 402; y++) {
+    const e = Math.round(BRACKET.R(y)), er = Math.round(BRACKET.R(REF));
+    for (let x = e; x >= 880; x--) set(C, x, y, get(ref, er - (e - x), REF)); // filete + vão, da linha limpa
+  }
+  inpaint(C, 864, 368, 892, 404, (x, y) => {
+    const e = BRACKET.R(y);
+    return x <= e - SW && x >= 864 && isCy(get(C, x, y));
+  });
+  // ciano solto nas pontas dos colchetes (fora das faixas acima)
+  inpaint(C, 452, 328, 472, 437, (x, y) => x >= BRACKET.L(y) + 3 && isCy(get(C, x, y)));
+  inpaint(C, 862, 328, 894, 437, (x, y) => x <= BRACKET.R(y) - 3 && isCy(get(C, x, y)));
+}
+
+// ---------------------------------------------------------------------------
 // 7. Transparência: fundo estimado (Laplace a partir da borda da área) e
 //    alpha pela diferença de brilho/cor; regiões sólidas ficam opacas
 // ---------------------------------------------------------------------------
@@ -350,11 +400,34 @@ for (let j = 0; j < HUD.h; j++) for (let i = 0; i < HUD.w; i++) {
 }
 
 // ---------------------------------------------------------------------------
+// 7b. Moldura central sozinha (23/11): fica só o que está dentro dos colchetes
+//     (borda medida em 6b, com 1 px de suavização); dentro deles é opaco.
+//     Fora da altura dos colchetes, as laterais ficam vazias.
+// ---------------------------------------------------------------------------
+{
+  for (let j = 0; j < HUD.h; j++) for (let i = 410; i < 862; i++) {
+    const X = i + HUD.x, Y = j + HUD.y, o = (j * HUD.w + i) * 4;
+    if (X >= 476 && X <= 864) continue; // corpo da moldura, crista e medalhão: como estava
+    let a;
+    if (Y < BRACKET.y0 || Y > BRACKET.y1) a = 0;
+    else if (X < 476) a = smooth(BRACKET.L(Y) - 0.5, BRACKET.L(Y) + 0.7, X);
+    else a = 1 - smooth(BRACKET.R(Y) - 0.7, BRACKET.R(Y) + 0.5, X);
+    const c = get(C, X, Y);
+    O.px[o] = c[0]; O.px[o + 1] = c[1]; O.px[o + 2] = c[2];
+    // topo dos chanfros: borda de cima medida (sobe da ponta até o filete de cima)
+    const top = X < 476 ? 328 + (X - 466) * 3 / 7 : 331 - (X - 866) * 4 / 14;
+    if ((X < 476 && X >= 466) || (X > 864 && X <= 880)) a *= smooth(top - 0.7, top + 0.5, Y);
+    O.px[o + 3] = a * 255;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // 8. Peças (esquerda / centro / direita) em 512x512 e camada de brilho
+//    O centro chama "HudCenter" (nome novo: o jogo guarda a textura antiga)
 // ---------------------------------------------------------------------------
 const PIECES = [
   { name: "Left", x0: 36, x1: 436 },
-  { name: "Center", x0: 436, x1: 912 },
+  { name: "HudCenter", x0: 450, x1: 896 },
   { name: "Right", x0: 912, x1: 1340 },
 ];
 for (const p of PIECES) {
@@ -372,7 +445,7 @@ for (const p of PIECES) {
   }
   const half = I.resize(gl, HUD.w / 2, HUD.h / 2);
   const out = I.create(1024, 256); I.blit(out, half, 0, 0);
-  I.writeTGA(path.join(OUT, "Glow.tga"), out); I.writePNG(path.join(PREV, "glow.png"), out);
+  I.writeTGA(path.join(OUT, "HudGlow.tga"), out); I.writePNG(path.join(PREV, "glow.png"), out);
 }
 
 // prévias: arte limpa sobre cinza e sobre o conceito original

@@ -340,8 +340,6 @@ function M:OnEnable()
     if ns.Tracking then ns.Tracking.Update() end
 end
 
-function M:GetDB() return ns.db, ns.cdb end
-
 -- O painel geral do AzaathUI muda AzaathUIDB.olho direto e chama isto
 function M:ApplyConfig()
     if not ns.db then return end

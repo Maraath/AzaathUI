@@ -99,6 +99,7 @@ local function CollectQuests(list)
                     e.objectives[1] = { text = e.groupType, groupLabel = true }
                 end
                 if isComplete == 1 then
+                    e.ready = true
                     e.objectives[#e.objectives + 1] = { text = "Pronta para entregar", ready = true }
                 elseif isComplete ~= -1 then
                     for _, o in ipairs(API.QuestObjectives(index, questID)) do
@@ -305,6 +306,13 @@ local function GetBlock(i)
     b.number:SetJustifyH("CENTER")
     b.number:SetPoint("CENTER", b.diamondOuter, "CENTER", 0, 0)
 
+    -- pronta para entregar: o mesmo alfinete verde do mapa (PinDoneN3) no lugar do losango
+    b.pinDone = b:CreateTexture(nil, "ARTWORK")
+    b.pinDone:SetTexture(media.path .. "MapFrame\\PinDoneN3")
+    b.pinDone:SetSize(11, 23)
+    b.pinDone:SetPoint("CENTER", b.diamondOuter, "CENTER", 0, -2)
+    b.pinDone:Hide()
+
     b.title = CreateText(b, 12, media.fontTitle)
     b.title:SetPoint("TOPLEFT", b, "TOPLEFT", INDENT + 2, 0)
 
@@ -346,7 +354,11 @@ end
 local function RenderBlock(b, e, number, width)
     local col = e.color
     b.diamondOuter:SetVertexColor(col[1], col[2], col[3])
-    b.number:SetText(e.kind == "quest" and number or "")
+    local ready = e.kind == "quest" and e.ready
+    b.diamondOuter:SetShown(not ready)
+    b.diamondInner:SetShown(not ready)
+    b.pinDone:SetShown(ready and true or false)
+    b.number:SetText((e.kind == "quest" and not ready) and number or "")
     b.number:SetTextColor(col[1], col[2], col[3])
 
     b.title:SetWidth(width - INDENT - (IsFocusedEntry(e) and 96 or 0))
@@ -404,6 +416,7 @@ end
 --------------------------------------------------------------------------------
 local function Update()
     dirty = false
+    if not tracker or not header then return end
     local db = M.db
     local list = {}
     CollectQuests(list)
@@ -655,6 +668,34 @@ local function BuildTracker()
     end)
     bgBtn:SetScript("OnLeave", function() GameTooltip:Hide() end)
     header.bgBtn = bgBtn
+
+    local loreBtn = CreateFrame("Button", nil, header)
+    loreBtn:SetSize(16, 16)
+    loreBtn:SetPoint("RIGHT", bgBtn, "LEFT", -4, 0)
+    loreBtn.icon = loreBtn:CreateTexture(nil, "OVERLAY")
+    loreBtn.icon:SetTexture(media.path .. "MapUI\\Book.tga")
+    loreBtn.icon:SetSize(14, 14)
+    loreBtn.icon:SetPoint("CENTER")
+    loreBtn.icon:SetVertexColor(0.37, 0.89, 0.90, 0.85)
+    loreBtn:SetScript("OnClick", function()
+        local qgm = Azaath:GetModule("QuestGuideMenu")
+        if qgm and qgm.Toggle then
+            Azaath.PlaySound("igMainMenuOptionCheckBoxOn")
+            qgm:Toggle()
+        end
+    end)
+    loreBtn:SetScript("OnEnter", function(self)
+        self.icon:SetVertexColor(1, 0.82, 0.36, 1)
+        GameTooltip:SetOwner(self, "ANCHOR_LEFT")
+        GameTooltip:AddLine("Painel Loremaster", 1, 1, 1)
+        GameTooltip:AddLine("Clique para abrir o guia de missões", 0.75, 0.85, 0.90)
+        GameTooltip:Show()
+    end)
+    loreBtn:SetScript("OnLeave", function(self)
+        self.icon:SetVertexColor(0.37, 0.89, 0.90, 0.85)
+        GameTooltip:Hide()
+    end)
+    header.loreBtn = loreBtn
     header:SetScript("OnEnter", function()
         hbg:SetColorTexture(0.09, 0.15, 0.19, 0.96)
         headerArrow:SetVertexColor(0.37, 0.89, 0.90)
@@ -756,6 +797,7 @@ local function ProcessPending()
 end
 
 local driver = CreateFrame("Frame")
+driver:Hide()
 driver.elapsed = 0
 driver:SetScript("OnEvent", function(_, event, arg1, arg2)
     if event == "PLAYER_ENTERING_WORLD" or event == "UI_SCALE_CHANGED" then
@@ -835,4 +877,5 @@ function M:OnEnable()
     end
     driver.elapsed = THROTTLE
     dirty = true
+    driver:Show()
 end

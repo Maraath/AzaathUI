@@ -102,6 +102,13 @@ local function EnsureParsed()
                 repeatable = qflags and qflags:find("R", 1, true) ~= nil or false,
                 isEvent    = qflags and qflags:find("E", 1, true) ~= nil or false,
             }
+            -- sem iniciador e início = entrega: o dado copiou o fim (missão vem de item, ex.: Escritura do
+            -- Artífice); não há quem a ofereça ali. Cartazes de PROCURA-SE ficam (ficam junto da entrega).
+            if (q.startId or 0) == 0 and q.sMap and q.sMap == q.eMap and q.sX and q.eX
+               and math.abs(q.sX - q.eX) < 1 and math.abs((q.sY or 0) - (q.eY or 0)) < 1
+               and not q.title:find("^PROCURA") then
+                q.noStarter = true
+            end
             zone = FixZone(q, fix)
             q.zone = zone
             local fm = fix and fix.minLevel and fix.minLevel[id]

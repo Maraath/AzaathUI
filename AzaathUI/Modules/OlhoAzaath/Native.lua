@@ -207,14 +207,6 @@ end
 local function LooseIcon(unitFrame)
     local ok, icon = pcall(function() return unitFrame.SoftTargetFrame end)
     if not ok or type(icon) ~= "table" or IsSecret(icon) then return nil end
-    local f = icon
-    for _ = 1, 6 do
-        local fine, parent = pcall(f.GetParent, f)
-        if not fine or IsSecret(parent) then return nil end
-        if parent == nil then return icon end
-        if parent == unitFrame then return nil end
-        f = parent
-    end
     return icon
 end
 

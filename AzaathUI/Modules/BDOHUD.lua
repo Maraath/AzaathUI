@@ -906,8 +906,8 @@ end
 function Azaath.ApplyBDOTarget()
     Azaath:RunOutOfCombat(function()
         if not tHud then return end
-        -- obrigatório na skin Zerker: aparece mesmo com o quadro de alvo do Azaath desligado no menu
-        if IsBDO() then
+        -- skin Zerker com "Ativar quadro do alvo" ligado (desligado: volta o da Blizzard)
+        if IsBDO() and Azaath.TargetFrameOn() then
             -- o quadro de alvo do Azaath fica só como âncora invisível (senão aparece atrás deste)
             if _G.AzaathUITarget then _G.AzaathUITarget:SetAlpha(0) end
             if _G.AzaathUITargetClick then _G.AzaathUITargetClick:EnableMouse(false) end

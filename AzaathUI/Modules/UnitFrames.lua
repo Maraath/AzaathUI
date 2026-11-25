@@ -998,30 +998,12 @@ local function BuildAzBar(f, cfg)
     move:SetSmoothing("IN_OUT")
     f.targetMark, f.targetBob, f.targetMarkH = arrow, bob, 0 -- a seta não é mais usada: o alvo ganha uma aura
 
-    -- alvo selecionado: aura dourada pulsando em volta da barra (duas camadas com o
-    -- mesmo desenho da vida, maiores), atrás da barra
+    -- alvo selecionado: brasas subindo da barra (a aura em volta da barra foi removida)
     local glow = CreateFrame("Frame", nil, f)
     glow:EnableMouse(false)
     glow:SetAllPoints(f)
     glow:SetFrameLevel(base)
-    -- alvo selecionado: aura vermelha "pegando fogo" em volta da barra. Três camadas de
-    -- brilho (vermelho, laranja, amarelo) oscilando e brasas subindo da barra
-    local halos = {}
     local sparkPath = Azaath.media.path .. "BDO\\Spark" -- brilho redondo e macio: sem cantos nem pixels
-    local function Halo(dx, dy, a, r, g, b)
-        dx, dy = dx * 1.6, dy * 1.8 -- a elipse precisa ser maior que a barra para cobrir as pontas
-        for _ = 1, 3 do -- camadas empilhadas: a textura é fraca, somadas ficam fortes
-            local t = glow:CreateTexture(nil, "BACKGROUND")
-            t:SetTexture(sparkPath)
-            t:SetBlendMode("ADD")
-            t:SetVertexColor(r, g, b, 1)
-            t:SetPoint("TOPLEFT", h, "TOPLEFT", -dx, dy)
-            t:SetPoint("BOTTOMRIGHT", h, "BOTTOMRIGHT", dx, -dy)
-            halos[#halos + 1] = { t = t, a = a }
-        end
-    end
-    -- (23/11: o alvo deixou de ter a aura em volta da barra, que borrava a ponta da vida;
-    -- agora é igual nas 3 placas: 30% maior, nome dourado, ponta acesa e brasas)
     local embers, bw = {}, cfg.width
     local function Respawn(p)
         p.life = 0.5 + math.random() * 0.6
@@ -1042,13 +1024,7 @@ local function BuildAzBar(f, cfg)
         p.age = math.random() * p.life
         embers[i] = p
     end
-    local clock = 0
     glow:SetScript("OnUpdate", function(_, el)
-        clock = clock + el
-        for i, hh in ipairs(halos) do
-            local fl = 0.78 + 0.22 * math.sin(clock * (9 + i * 3) + i * 1.7) * math.sin(clock * 6.3 + i)
-            hh.t:SetAlpha(hh.a * fl)
-        end
         for _, p in ipairs(embers) do
             p.age = p.age + el
             if p.age >= p.life then Respawn(p) end
@@ -2022,10 +1998,7 @@ end
 local function UpdateTarget()
     local f = frames.target
     if not f then return end
-    local db = (Azaath.db and Azaath.db.unitframes) or M.db
-    local tCfg = db and db.target
-    local isBDO = Azaath.IsBDO and Azaath.IsBDO()
-    if not (tCfg and tCfg.enabled) and not isBDO then
+    if not Azaath.TargetFrameOn() then
         if not InCombatLockdown() then
             if f._azWatched ~= false then
                 UnregisterUnitWatch(f)
@@ -2076,6 +2049,8 @@ local function UpdatePlayerUnit(force)
 end
 
 function M:ApplyLayout()
+    -- skin Blizzard: ficam os quadros de jogador e alvo do jogo (HideBlizz não os esconde)
+    if Azaath.IsBlizzSkin() then return end
     Azaath:RunOutOfCombat(function()
         if self._inApply then return end
         self._inApply = true
@@ -2133,12 +2108,12 @@ function M:ApplyLayout()
         local tCfg = db and db.target
         if tCfg then
             local isBDO = Azaath.IsBDO and Azaath.IsBDO()
-            if (tCfg.enabled or isBDO) and not frames.target then
+            if Azaath.TargetFrameOn() and not frames.target then
                 CreateUnitFrame("target", tCfg)
             end
             local tf = frames.target
             if tf then
-                if not tCfg.enabled and not isBDO then
+                if not Azaath.TargetFrameOn() then
                     UnregisterUnitWatch(tf)
                     tf:Hide()
                 else
@@ -2252,12 +2227,12 @@ function M:OnInitialize()
 end
 
 function M:OnEnable()
-    local isBDO = Azaath.IsBDO and Azaath.IsBDO()
+    if Azaath.IsBlizzSkin() then return end
     for _, key in ipairs({ "player", "target" }) do
         local cfg = self.db[key]
         -- o ApplyLayout (chamado por outros módulos no login) pode já ter criado o quadro:
         -- criar de novo deixava uma cópia congelada por cima (texto duplo + barra cinza)
-        if cfg and (cfg.enabled or (key == "target" and isBDO)) and not frames[key] then
+        if cfg and cfg.enabled and not frames[key] then
             CreateUnitFrame(key, cfg)
         end
     end

@@ -78,7 +78,7 @@ local EDITOR_ELEMENTS = {
     {
         key = "azaathHUD",
         frameName = "AzaathUIAzaath",
-        label = "HUD Azaath Reforged (Barras + Vida)",
+        label = "HUD Azaath Reforged (Vida)",
         scaleOnResize = true,
         point = "BOTTOM",
         getPos = function()
@@ -92,14 +92,14 @@ local EDITOR_ELEMENTS = {
         end,
         getSize = function()
             local A = Azaath.AZAATH
-            local bw = (A and A.hud and A.hud.w) or 1020
+            local bw = (A and A.pieces and A.pieces[2].w) or 476
             local bh = (A and A.hud and A.hud.h) or 178
             local sc = (Azaath.db.azaath and Azaath.db.azaath.scale) or 1
             return bw * sc, bh * sc
         end,
         setSize = function(w, h)
             local A = Azaath.AZAATH
-            local bw = (A and A.hud and A.hud.w) or 1020
+            local bw = (A and A.pieces and A.pieces[2].w) or 476
             local bh = (A and A.hud and A.hud.h) or 178
             local sc = max(0.5, min(1.5, floor(max(w / bw, h / bh) * 20 + 0.5) / 20))
             Azaath.db.azaath = Azaath.db.azaath or {}
@@ -259,7 +259,7 @@ local EDITOR_ELEMENTS = {
         label = "Vida e Mana (Jogador)",
         isEnabled = function()
             local p = Azaath.db.unitframes and Azaath.db.unitframes.player
-            return p and p.enabled
+            return p and p.enabled and not Azaath.IsBlizzSkin()
                 and not (Azaath.IsAzaath and Azaath.IsAzaath())
                 and not (Azaath.IsBDO and Azaath.IsBDO())
         end,
@@ -300,8 +300,7 @@ local EDITOR_ELEMENTS = {
         end,
         label = "Quadro do Alvo",
         isEnabled = function()
-            local t = Azaath.db.unitframes and Azaath.db.unitframes.target
-            return (t and t.enabled) or (Azaath.IsBDO and Azaath.IsBDO())
+            return Azaath.TargetFrameOn()
         end,
         scaleOnResize = function() return Azaath.IsBDO and Azaath.IsBDO() end,
         point = "TOP",
@@ -409,7 +408,7 @@ local EDITOR_ELEMENTS = {
         key = "targetCastBar",
         frameName = "AzaathUICastBarTarget",
         label = "Conjuração (Alvo)",
-        isEnabled = function() return Azaath.db.castbar and Azaath.db.castbar.target and Azaath.db.castbar.target.enabled end,
+        isEnabled = function() return Azaath.db.castbar and Azaath.db.castbar.target and Azaath.db.castbar.target.enabled and Azaath.HideBlizzOn("targetFrame") end,
         point = "TOP",
         getPos = function()
             local c = Azaath.db.castbar.target
@@ -472,7 +471,7 @@ local EDITOR_ELEMENTS = {
         end,
         isEnabled = function()
             local ab = Azaath.db.actionbars
-            return ab and ab.enabled and Azaath.db.hideBlizzard.actionBars and (ab.bars or 3) >= 1 and not (Azaath.IsAzaath and Azaath.IsAzaath())
+            return ab and ab.enabled and Azaath.HideBlizzOn("actionBars") and (ab.bars or 3) >= 1
         end,
         wSpec = { label = "Tamanho dos Botões", min = 20, max = 64, step = 1,
                   get = function()
@@ -528,7 +527,7 @@ local EDITOR_ELEMENTS = {
         end,
         isEnabled = function()
             local ab = Azaath.db.actionbars
-            return ab and ab.enabled and Azaath.db.hideBlizzard.actionBars and (ab.bars or 3) >= 2 and not (Azaath.IsAzaath and Azaath.IsAzaath())
+            return ab and ab.enabled and Azaath.HideBlizzOn("actionBars") and (ab.bars or 3) >= 2
         end,
         wSpec = { label = "Tamanho dos Botões", min = 18, max = 60, step = 1,
                   get = function()
@@ -585,7 +584,8 @@ local EDITOR_ELEMENTS = {
         end,
         isEnabled = function()
             local ab = Azaath.db.actionbars
-            return ab and ab.enabled and Azaath.db.hideBlizzard.actionBars and (ab.bars or 3) >= 3 and not (Azaath.IsAzaath and Azaath.IsAzaath())
+            return ab and ab.enabled and Azaath.HideBlizzOn("actionBars") and (ab.bars or 3) >= 3
+                and not (Azaath.IsReforgedBars and Azaath.IsReforgedBars()) -- na Reforged ela é a fileira de cima das faixas
         end,
         wSpec = { label = "Tamanho dos Botões", min = 18, max = 60, step = 1,
                   get = function()
@@ -628,7 +628,7 @@ local EDITOR_ELEMENTS = {
         end,
         isEnabled = function()
             local ab = Azaath.db.actionbars
-            return ab and ab.enabled and Azaath.db.hideBlizzard.actionBars and ab.bagButton and not (Azaath.IsAzaath and Azaath.IsAzaath())
+            return ab and ab.enabled and Azaath.HideBlizzOn("actionBars") and ab.bagButton
         end,
         wSpec = { label = "Tamanho do Botão", min = 24, max = 72, step = 1,
                   get = function() return Azaath.db.actionbars.bag.size or 42 end,
@@ -670,7 +670,7 @@ local EDITOR_ELEMENTS = {
         end,
         isEnabled = function()
             local ab = Azaath.db.actionbars
-            return ab and ab.stance and ab.stance.enabled and Azaath.db.hideBlizzard.actionBars and not (Azaath.IsAzaath and Azaath.IsAzaath())
+            return ab and ab.stance and ab.stance.enabled and Azaath.HideBlizzOn("actionBars") and not (Azaath.IsReforgedBars and Azaath.IsReforgedBars())
         end,
         wSpec = { label = "Tamanho dos Botões", min = 18, max = 52, step = 1,
                   get = function() return Azaath.db.actionbars.stance.buttonSize or 28 end,
@@ -708,7 +708,7 @@ local EDITOR_ELEMENTS = {
         end,
         isEnabled = function()
             local ab = Azaath.db.actionbars
-            return ab and ab.pet and ab.pet.enabled and Azaath.db.hideBlizzard.actionBars and not (Azaath.IsAzaath and Azaath.IsAzaath())
+            return ab and ab.pet and ab.pet.enabled and Azaath.HideBlizzOn("actionBars")
         end,
         wSpec = { label = "Tamanho dos Botões", min = 18, max = 52, step = 1,
                   get = function() return Azaath.db.actionbars.pet.buttonSize or 28 end,
@@ -828,7 +828,7 @@ local EDITOR_ELEMENTS = {
         key = "targetAuras",
         frameName = "AzaathUITargetAuras",
         label = "Auras do Alvo",
-        isEnabled = function() return Azaath.db.auras and Azaath.db.auras.target and Azaath.db.auras.target.enabled end,
+        isEnabled = function() return Azaath.db.auras and Azaath.db.auras.target and Azaath.db.auras.target.enabled and Azaath.HideBlizzOn("targetFrame") end,
         point = "TOP",
         getPos = function()
             local ta = Azaath.db.auras.target
@@ -964,7 +964,7 @@ local EDITOR_ELEMENTS = {
             m.buttonSize = max(14, min(44, floor((w - (n - 1) * sp) / n + 0.5)))
         end,
         isEnabled = function()
-            return Azaath.db.micromenu and Azaath.db.micromenu.enabled
+            return Azaath.db.micromenu and Azaath.db.micromenu.enabled and not Azaath.IsBlizzBars()
         end,
         wSpec = { label = "Tamanho dos Botões", min = 14, max = 44, step = 1,
                   get = function() return Azaath.db.micromenu.buttonSize or 26 end,

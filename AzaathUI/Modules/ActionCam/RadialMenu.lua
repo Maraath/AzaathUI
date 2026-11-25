@@ -30,7 +30,7 @@ local MAX_TABS, MAX_SLOTS = 6, 8
 
 -- geometria (unidades da interface; a arte foi desenhada para um quadro de 480)
 local VIEW = 480
-local R_SLOT, R_CORE, R_NEEDLE = 159, 82, 98
+local R_SLOT, R_NEEDLE = 159, 98
 local SLOT = 58
 local DEAD = 52            -- raio da zona morta no centro (soltar ali = fechar)
 
@@ -1262,11 +1262,6 @@ function AC.OpenRadialConsumablesEditor(mode)
     editor:Raise()
 end
 
-function AC.RefreshRadialStore()
-    Store()
-    Paint()
-end
-
 function AC.RefreshRadialBindings()
     if InCombatLockdown() then return end
     BuildSecure()
@@ -1278,13 +1273,6 @@ function AC.RefreshRadialBindings()
     local k1, k2 = GetBindingKey("AZAATH_RADIALMENU")
     if k1 then SetOverrideBindingClick(bindOwner, false, k1, Trigger:GetName(), "LeftButton") end
     if k2 then SetOverrideBindingClick(bindOwner, false, k2, Trigger:GetName(), "LeftButton") end
-end
-
-function AC.InitRadialMenu()
-    BuildSecure()
-    if not View then BuildView(); HookView() end
-    Store()
-    AC.RefreshRadialBindings()
 end
 
 local events = CreateFrame("Frame")

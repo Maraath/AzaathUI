@@ -39,7 +39,8 @@ Ele espelha as pastas (inclusive apagando no jogo o que saiu do projeto) e confe
 2. **Apenas Barra de Tarefas e Frame do Personagem**: As skins aplicam-se **exclusivamente** à barra de tarefas (barras de ação / action bars) e ao frame do personagem (barra de vida, recurso e XP).
 3. **Demais Áreas da Interface Inalteradas**: Todas as outras áreas da interface (minimapa, micro menu, ficha de personagem, placas de nome, alvo, grupo, inventário, rastreador de quests, bússola, chat, etc.) devem permanecer **iguais às já estabelecidas**, independentemente da skin selecionada. Não crie variações por skin fora da barra de tarefas e do frame do personagem (vida/recurso/XP).
 4. **Buffs e Debuffs na Skin Azaath**: Na skin `azaath`, os buffs e debuffs do jogador devem **sempre** acompanhar a barra de vida / HUD Azaath por padrão, tanto em **posição** (presos à âncora da HUD) quanto em **dimensionamento** (acompanhando a escala da HUD Azaath). Na skin `modern`, manter o comportamento já estabelecido (edição livre de posição e tamanho).
-5. **Visual da mochila é escolha à parte**: `inventory.style` (`classic` ou `azaath`, Modules/InventorySkin.lua) não segue a skin global; é uma opção própria do inventário pedida pelo usuário (2026-11-23).
+5. **Opções "Blizzard" (pedido do usuário, 2026-11-24)**: skin `blizzard` = quadros de jogador e alvo padrão do jogo (sem as nossas auras e conjuração do alvo); barra `actionbars.layout = "blizzard"` = barras da Blizzard com o micromenu dela (o nosso some); placas `nameplates.style = "blizzard"` = placas padrão. Tudo passa por `Azaath.IsBlizzSkin/IsBlizzBars/IsBlizzPlates` e `Azaath.HideBlizzOn(chave)` (Core.lua); vale após /reload.
+6. **Visual da mochila é escolha à parte**: `inventory.style` (`classic` ou `azaath`, Modules/InventorySkin.lua) não segue a skin global; é uma opção própria do inventário pedida pelo usuário (2026-11-23).
 
 ## Mapa-Múndi Próprio do Azaath (sem OpenMap)
 

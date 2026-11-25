@@ -1,0 +1,19 @@
+package-as: AzaathUI
+
+move-folders:
+  AzaathUI/AzaathUI: AzaathUI
+  AzaathUI/AzaathUI_Nav_EK: AzaathUI_Nav_EK
+  AzaathUI/AzaathUI_Nav_Kalimdor: AzaathUI_Nav_Kalimdor
+
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown
+
+ignore:
+  - tools
+  - docs
+  - dist
+  - README.md
+  - AGENTS.md
+  - CLAUDE.md
+  - LICENSE

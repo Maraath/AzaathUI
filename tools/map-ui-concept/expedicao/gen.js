@@ -354,6 +354,116 @@ function fitTransform(sea, landC) {
 const LABEL_BOXES = [[548, 128, 712, 162], [858, 284, 1172, 340], [1040, 350, 1234, 382], [1680, 148, 1915, 194],
   [716, 606, 880, 640], [940, 652, 1072, 688], [1572, 690, 1788, 728], [1004, 832, 1238, 866], [895, 935, 1120, 985], [232, 968, 398, 1000]];
 
+// O estandarte da arte ficava à esquerda (por cima da rosa dos ventos); no jogo ele foi para a direita.
+// O buraco não pode ser só "preenchido" (fica borrado): é reconstruído com a própria arte refletida
+// pelo centro da rosa. As linhas de rumo passam pelo centro, então o lado oposto continua o traço
+// certo, e a rosa (simétrica em 180°) se completa. Onde a reflexão cai em terra/serpente/moldura,
+// tenta a próxima simetria; o tom de fundo vem do preenchimento suave (vinheta da borda).
+const ROSE = { x: 217, y: 591 };
+const HOLE_L = { x0: PX0, x1: 345, y0: PY0, y1: 660 };
+const ROSE_RAYS = [[-90.3, 0.3]]; // [ângulo, escurecimento]
+const PAPER_BLOCK = { x0: 740, x1: 960, y0: 645, y1: 960 }; // papel limpo do mar central (sem os nomes)
+const PAPER_SHIFTS = [[640, 525], [640, 420], [560, 525], [700, 600]]; // buraco -> bloco, em ordem
+const NO_SOURCE =[[96, 760, 340, 925], [84, 550, 120, 586], [322, 550, 360, 586], [202, 684, 234, 718]]; // serpente, W, E, S
+function fillUnderLeftBanner(filled, valid, w, h) {
+  const N = w * h;
+  const inHole = (x, y) => x >= HOLE_L.x0 && x <= HOLE_L.x1 && y >= HOLE_L.y0 && y <= HOLE_L.y1 && !valid[y * w + x];
+  const okSrc = erode(valid, w, h, 3);
+  for (const [x0, y0, x1, y1] of NO_SOURCE) for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) okSrc[y * w + x] = 0;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++)
+    if (x < PX0 + 18 || x > PX1 - 18 || y < PY0 + 18 || y > PY1 - 18 || (x <= HOLE_L.x1 + 6 && y <= HOLE_L.y1 + 6 && !valid[y * w + x])) okSrc[y * w + x] = 0;
+  // perto de terra e de nomes há hachura de litoral: não serve de fonte
+  const chromeRaw = new Uint8Array(fs.readFileSync(path.join(PREV, "chrome_alpha.bin")));
+  const chromeD = dilate(chromeRaw, w, h, 18), near = new Uint8Array(N);
+  for (let y = PY0 + 18; y <= PY1 - 18; y++) for (let x = PX0 + 18; x <= PX1 - 18; x++) { const i = y * w + x; if (!valid[i] && !inHole(x, y) && !chromeD[i]) near[i] = 1; }
+  const nearD = dilate(near, w, h, 24);
+  for (let i = 0; i < N; i++) if (nearD[i]) okSrc[i] = 0;
+  // tom de fundo (baixa frequência) do preenchimento suave
+  const low = [0, 1, 2].map((k) => { const ch = new Float32Array(N); for (let i = 0; i < N; i++) ch[i] = filled[i * 3 + k]; return boxBlur(ch, w, h, 22); });
+  const T = [ // simetrias da rosa, em ordem de preferência
+    (x, y) => [2 * ROSE.x - x, 2 * ROSE.y - y], // 180°
+    (x, y) => [x, 2 * ROSE.y - y], // espelho vertical
+    (x, y) => [2 * ROSE.x - x, y], // espelho horizontal (rosa: metade esquerda <- direita)
+    (x, y) => [2 * HOLE_L.x1 - x + 8, y], // espelho na borda direita do buraco (faixa de cima)
+    (x, y) => [ROSE.x - (y - ROSE.y), ROSE.y + (x - ROSE.x)], // 90° (rosa de 4 pontas)
+    (x, y) => [ROSE.x + (y - ROSE.y), ROSE.y - (x - ROSE.x)], // -90°
+  ];
+  // dentro da rosa: o quadrante entre E e S está limpo; os outros saem dele girado (90°) ou espelhado na diagonal
+  const chromeA = dilate(chromeRaw, w, h, 2);
+  const roseOK = (sx, sy) => !chromeA[sy * w + sx] && !NO_SOURCE.some(([x0, y0, x1, y1]) => sx >= x0 && sx <= x1 && sy >= y0 && sy <= y1);
+  const roseSrc = (x, y) => {
+    let dx = x - ROSE.x, dy = y - ROSE.y;
+    if (Math.hypot(dx, dy) > 79) return null;
+    while (!(dx > 0 && dy >= 0) && (dx || dy)) [dx, dy] = [-dy, dx]; // gira 90° até cair em E..S
+    for (const [ax, ay] of [[dx, dy], [dy, dx]]) if (roseOK(ROSE.x + ax, ROSE.y + ay)) return [ROSE.x + ax, ROSE.y + ay];
+    return null;
+  };
+  const out = new Float32Array(N * 3), got = new Uint8Array(N);
+  for (let y = HOLE_L.y0; y <= HOLE_L.y1; y++) for (let x = HOLE_L.x0; x <= HOLE_L.x1; x++) {
+    if (!inHole(x, y)) continue;
+    const i = y * w + x;
+    const rs = roseSrc(x, y);
+    if (rs) { const j = rs[1] * w + rs[0]; for (let k = 0; k < 3; k++) out[i * 3 + k] = C.px[j * 4 + k]; got[i] = 1; continue; }
+    if (Math.hypot(x - ROSE.x, y - ROSE.y) <= 79) continue;
+    for (const f of T) {
+      const [sx, sy] = f(x, y);
+      if (sx < 0 || sy < 0 || sx >= w || sy >= h || !okSrc[sy * w + sx]) continue;
+      const j = sy * w + sx;
+      for (let k = 0; k < 3; k++) out[i * 3 + k] = C.px[j * 4 + k] - low[k][j] + low[k][i];
+      got[i] = 1; break;
+    }
+  }
+  let n = 0, miss = 0;
+  for (let i = 0; i < N; i++) if (got[i]) { n++; for (let k = 0; k < 3; k++) filled[i * 3 + k] = Math.min(255, Math.max(0, out[i * 3 + k])); }
+  for (let y = HOLE_L.y0; y <= HOLE_L.y1; y++) for (let x = HOLE_L.x0; x <= HOLE_L.x1; x++) if (inHole(x, y) && !got[y * w + x]) miss++;
+  console.log("estandarte esquerdo: reconstruído", n, "px, sem fonte", miss);
+  // o que nenhuma simetria cobre (topo e a faixa que refletiria na serpente): um bloco inteiro de papel
+  // do mar central (abaixo da Voragem), sem as linhas retas dele (finas: somem sem borrar), com o tom
+  // ajustado à vinheta local e emenda cruzada de EMENDA px com o que já foi reconstruído.
+  const tgt = new Uint8Array(N);
+  for (let y = HOLE_L.y0; y <= HOLE_L.y1; y++) for (let x = HOLE_L.x0; x <= HOLE_L.x1; x++) if (inHole(x, y) && !got[y * w + x]) tgt[y * w + x] = 1;
+  const lum = new Float32Array(N); for (let i = 0; i < N; i++) lum[i] = lumOf(C.px[i * 4], C.px[i * 4 + 1], C.px[i * 4 + 2]);
+  const lumB = boxBlur(lum, w, h, 4), lineM = new Uint8Array(N);
+  for (let i = 0; i < N; i++) if (lum[i] - lumB[i] < -7) lineM[i] = 1;
+  const lineD = dilate(lineM, w, h, 2);
+  const crgb = new Float32Array(N * 3), cval = new Uint8Array(N);
+  for (let i = 0; i < N; i++) { for (let k = 0; k < 3; k++) crgb[i * 3 + k] = C.px[i * 4 + k]; cval[i] = lineD[i] ? 0 : 1; }
+  const paper = pushPull(crgb, cval, w, h);
+  const pLow = [0, 1, 2].map((k) => { const ch = new Float32Array(N); for (let i = 0; i < N; i++) ch[i] = paper[i * 3 + k]; return boxBlur(ch, w, h, 22); });
+  const inBlock = (sx, sy) => sx >= PAPER_BLOCK.x0 && sx <= PAPER_BLOCK.x1 && sy >= PAPER_BLOCK.y0 && sy <= PAPER_BLOCK.y1 && valid[sy * w + sx];
+  // distância (em px) ao trecho-alvo, até EMENDA: 0 dentro dele
+  const EMENDA = 18, dist = new Uint8Array(N).fill(255);
+  let ring = tgt; for (let i = 0; i < N; i++) if (tgt[i]) dist[i] = 0;
+  for (let r = 1; r <= EMENDA; r++) { const nx = dilate(ring, w, h, 1); for (let i = 0; i < N; i++) if (nx[i] && dist[i] === 255) dist[i] = r; ring = nx; }
+  let nb = 0;
+  for (let y = HOLE_L.y0; y <= HOLE_L.y1 + EMENDA; y++) for (let x = HOLE_L.x0; x <= HOLE_L.x1 + EMENDA; x++) {
+    const i = y * w + x; if (dist[i] > EMENDA || !(tgt[i] || got[i])) continue;
+    const sh = PAPER_SHIFTS.find(([ax, ay]) => inBlock(x + ax, y + ay)); if (!sh) continue;
+    const sx = x + sh[0], sy = y + sh[1];
+    const j = sy * w + sx, a = tgt[i] ? 1 : 1 - dist[i] / (EMENDA + 1);
+    for (let k = 0; k < 3; k++) filled[i * 3 + k] = Math.min(255, Math.max(0, filled[i * 3 + k] * (1 - a) + (paper[j * 3 + k] - pLow[k][j] + low[k][i]) * a));
+    if (tgt[i]) nb++;
+  }
+  console.log("estandarte esquerdo: bloco de papel", nb, "px");
+  // meridiano da rosa (linha N-S) que atravessa o bloco
+  for (const [deg, dark] of ROSE_RAYS) {
+    const t = deg * Math.PI / 180, ux = Math.cos(t), uy = Math.sin(t);
+    for (let y = HOLE_L.y0; y <= HOLE_L.y1; y++) for (let x = HOLE_L.x0; x <= HOLE_L.x1; x++) {
+      const i = y * w + x; if (!tgt[i]) continue;
+      const dx = x - ROSE.x, dy = y - ROSE.y, along = dx * ux + dy * uy; if (along < 80) continue;
+      const d = Math.abs(dx * uy - dy * ux), k = Math.max(0, 1 - d / 1.3); if (!k) continue;
+      for (let c = 0; c < 3; c++) filled[i * 3 + c] *= 1 - dark * k * (c === 2 ? 0.8 : 1);
+    }
+  }
+  const dbg = I.create(HOLE_L.x1 - HOLE_L.x0 + 1, HOLE_L.y1 - HOLE_L.y0 + 1);
+  for (let y = HOLE_L.y0; y <= HOLE_L.y1; y++) for (let x = HOLE_L.x0; x <= HOLE_L.x1; x++) {
+    const i = y * w + x, d = ((y - HOLE_L.y0) * dbg.w + x - HOLE_L.x0) * 4;
+    const v = inHole(x, y) ? (got[i] ? [60, 160, 60] : [220, 40, 40]) : [C.px[i * 4], C.px[i * 4 + 1], C.px[i * 4 + 2]];
+    dbg.px[d] = v[0]; dbg.px[d + 1] = v[1]; dbg.px[d + 2] = v[2]; dbg.px[d + 3] = 255;
+  }
+  preview("hole_left", dbg);
+}
+
 function buildSea() {
   const sea = oldSeaAlpha();
   console.log("mar antigo:", sea.w + "x" + sea.h);
@@ -388,15 +498,18 @@ function buildSea() {
   const rgb = new Float32Array(N * 3), valid = new Uint8Array(N);
   for (let i = 0; i < N; i++) { rgb[i * 3] = C.px[i * 4]; rgb[i * 3 + 1] = C.px[i * 4 + 1]; rgb[i * 3 + 2] = C.px[i * 4 + 2]; valid[i] = bad2[i] ? 0 : 1; }
   const filled = pushPull(rgb, valid, w, h);
-  // grão de papel onde foi preenchido
+
+  // grão de papel onde foi preenchido (o buraco do estandarte é refeito com a própria arte logo abaixo)
   for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
     const i = y * w + x; if (valid[i]) continue;
     const g = (hash(x, y) - 0.5) * 10 + (vn(x / 3, y / 3) - 0.5) * 12 + (vn(x / 14 + 9, y / 14) - 0.5) * 14;
     filled[i * 3] += g; filled[i * 3 + 1] += g * 0.95; filled[i * 3 + 2] += g * 0.85;
   }
+  fillUnderLeftBanner(filled, valid, w, h);
   const clean = I.create(w, h);
   for (let i = 0; i < N; i++) { clean.px[i * 4] = filled[i * 3]; clean.px[i * 4 + 1] = filled[i * 3 + 1]; clean.px[i * 4 + 2] = filled[i * 3 + 2]; clean.px[i * 4 + 3] = 255; }
   preview("sea_clean", I.resize(clean, 1000, 558));
+  preview("sea_left", I.crop(clean, 60, 50, 420, 680));
 
   // conferência: contorno da terra do jogo sobre a arte
   const chk = I.create(w, h);

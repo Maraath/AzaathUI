@@ -104,6 +104,8 @@ function M:OnEnable()
         "PLAYER_SOFT_INTERACT_CHANGED",
         "PLAYER_SOFT_ENEMY_CHANGED",
         "MODIFIER_STATE_CHANGED",
+        "GLOBAL_MOUSE_DOWN",
+        "UNIT_SPELLCAST_SENT",
         "UPDATE_MOUSEOVER_UNIT",
         "UNIT_SPELLCAST_START",
         "UNIT_SPELLCAST_STOP",
@@ -134,6 +136,7 @@ function M:OnEnable()
             if AC.UpdateCrosshairReaction then AC.UpdateCrosshairReaction() end
             if AC.UpdateVignette then AC.UpdateVignette() end
             if AC.OnBDOCombatState then AC.OnBDOCombatState(true) end
+            if AC.UpdateCameraSituation then AC.UpdateCameraSituation() end
         elseif event == "PLAYER_FOCUS_CHANGED" then
             AC.SyncTargetFocusFromFocusUnit()
             if AC.UpdateFocusNameplateMarker then AC.UpdateFocusNameplateMarker() end
@@ -143,22 +146,33 @@ function M:OnEnable()
             or event == "PLAYER_SOFT_ENEMY_CHANGED" then
             if AC.UpdateCrosshairReaction then AC.UpdateCrosshairReaction() end
             if AC.UpdateVignette then AC.UpdateVignette() end
+        elseif event == "GLOBAL_MOUSE_DOWN" or (event == "UNIT_SPELLCAST_SENT" and arg1 == "player") then
+            if AC.OnCtrlToggleMouseDown then AC.OnCtrlToggleMouseDown() end
         elseif event == "MODIFIER_STATE_CHANGED" or event == "UPDATE_MOUSEOVER_UNIT" then
+            if event == "MODIFIER_STATE_CHANGED" and AC.OnCtrlToggleModifier then
+                AC.OnCtrlToggleModifier(arg1, arg2)
+            end
             AC.OnTooltipModifierChanged(event)
             if AC.UpdateCrosshairReaction then AC.UpdateCrosshairReaction() end
         elseif event == "UNIT_SPELLCAST_START" or event == "UNIT_SPELLCAST_CHANNEL_START" then
             if arg1 == "player" then
                 if AC.UpdateCrosshairCastFeedback then AC.UpdateCrosshairCastFeedback(true) end
                 if AC.StartBDOCastFocus then AC.StartBDOCastFocus() end
+                if event == "UNIT_SPELLCAST_CHANNEL_START" and AC.OnSpellChannel then
+                    local ok, chName = pcall(_G.UnitChannelInfo, "player")
+                    if ok and chName and not Azaath.IsSecret(chName) then AC.OnSpellChannel(true, chName) end
+                end
             end
         elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
             if arg1 == "player" and AC.EndBDOCastFocus then
                 AC.EndBDOCastFocus(true)
+                if AC.OnSpellMove then AC.OnSpellMove(AC.SpellNameSafe(arg3)) end
             end
         elseif event == "UNIT_SPELLCAST_STOP" or event == "UNIT_SPELLCAST_CHANNEL_STOP" or event == "UNIT_SPELLCAST_INTERRUPTED" then
             if arg1 == "player" then
                 if AC.UpdateCrosshairCastFeedback then AC.UpdateCrosshairCastFeedback(false) end
                 if AC.EndBDOCastFocus then AC.EndBDOCastFocus(false) end
+                if event == "UNIT_SPELLCAST_CHANNEL_STOP" and AC.OnSpellChannel then AC.OnSpellChannel(false) end
             end
         elseif event == "UNIT_COMBAT" then
             if AC.OnBDOUnitCombat then
@@ -183,6 +197,7 @@ function M:OnEnable()
         local db = AC.DB()
         if not db or not db.enabled then return end
         AC.ReconcileFreeLook()
+        if AC.UpdateCameraSituation then AC.UpdateCameraSituation() end
         if AC.UpdateBDOMovement then AC.UpdateBDOMovement() end
         if AC.UpdateCrosshairReaction then AC.UpdateCrosshairReaction() end
         if AC.UpdateVignette then AC.UpdateVignette() end

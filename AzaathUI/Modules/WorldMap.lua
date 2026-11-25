@@ -154,7 +154,6 @@ local function PositionCanvas(cv)
     cv.frame:SetPoint("TOPLEFT", S.view, "TOPLEFT", S.ox / r, S.oy / r)
 end
 
-local SEA_X0, SEA_HALF_W, SEA_H = -119.364, 620.364, 668
 local function PositionSeaArt()
     if not (S.seaChartL and S.seaLabelsL) then return end
     if S.mode ~= "terrain" then
@@ -162,6 +161,7 @@ local function PositionSeaArt()
         S.seaLabelsL:Hide(); S.seaLabelsR:Hide()
         return
     end
+    local SEA_ART_X0, SEA_HALF_W, SEA_H = -119.364, 620.364, 668
     local z = S.zoom
     local rel = z / (S.zmin and S.zmin > 0 and S.zmin or 1)
     local zoneFade = (S.place and S.place.kind == "zone") and 0 or 1
@@ -169,7 +169,7 @@ local function PositionSeaArt()
     local chartA = 1
     local labelA = (M.db and M.db.showNames == false) and 0 or (max(0, min(1, (1.75 - rel) / (1.75 - 1.22))) * zoneFade)
     local w, h = SEA_HALF_W * z, SEA_H * z
-    local x, y = S.ox + SEA_X0 * z, S.oy
+    local x, y = S.ox + SEA_ART_X0 * z, S.oy
     local function FitPair(a, b, alpha)
         if alpha <= 0.01 then a:Hide(); b:Hide() return end
         a:ClearAllPoints(); a:SetPoint("TOPLEFT", S.view, "TOPLEFT", x, y); a:SetSize(w, h)
@@ -974,12 +974,13 @@ end
 --   masmorras .. C_EncounterJournal.GetDungeonEntrancesForMap (em cada zona)
 --   missões .... C_QuestLog.GetQuestsOnMap (em cada zona, só de perto)
 ---------------------------------------------------------------------------
-local POI_RIM = { taxi = { 0.35, 0.62, 0.98 }, dungeon = { 0.95, 0.32, 0.25 }, raid = { 0.75, 0.38, 0.95 },
+local POI_RIM = { taxi = { 0.35, 0.62, 0.98 }, taxiNew = { 1.00, 0.70, 0.18 }, dungeon = { 0.95, 0.32, 0.25 }, raid = { 0.75, 0.38, 0.95 },
                   quest = { 0.98, 0.80, 0.30 }, questDone = { 0.98, 0.80, 0.30 },
                   rare = { 0.80, 0.82, 0.90 }, rareElite = { 1.00, 0.78, 0.25 }, rareLive = { 0.35, 1.00, 0.45 },
                   rareDead = { 0.55, 0.20, 0.18 } }
 local POI_ICON = {
     taxi = "Interface\\TaxiFrame\\UI-Taxi-Icon-Green",
+    taxiNew = "Interface\\TaxiFrame\\UI-Taxi-Icon-White",   -- voo ainda não coletado (anel âmbar, maior)
     -- (só se o cliente não tiver os ícones de mapa "Dungeon" / "Raid" do próprio jogo)
     dungeon = "Interface\\Icons\\INV_Misc_Bone_HumanSkull_01",
     raid = "Interface\\Icons\\INV_Misc_Head_Dragon_01",
@@ -1044,6 +1045,9 @@ local function PoiGet()
         e.icon:SetSize(15, 15)
         p.list[p.used] = e
     end
+    if e.blizz then e.blizz:Hide() end
+    e.rim:SetDrawLayer("ARTWORK", 1); e.icon:SetDrawLayer("ARTWORK", 2)   -- (voo não coletado sobe para OVERLAY)
+    e.icon:SetAlpha(1)
     e.rim:Show(); e.icon:Show()
     e.rim:SetSize(21, 21)
     e.icon:SetSize(15, 15)
@@ -1062,6 +1066,9 @@ local function PlacePOI()
         local sx, sy = S.ox + e._x * z, S.oy - e._y * z
         e.rim:ClearAllPoints(); e.rim:SetPoint("CENTER", S.view, "TOPLEFT", sx, sy + (e.haloOff or 0))
         e.icon:ClearAllPoints(); e.icon:SetPoint("CENTER", S.view, "TOPLEFT", sx, sy + (e.lift or 0))
+        if e.blizz and e.blizz:IsShown() then
+            e.blizz:ClearAllPoints(); e.blizz:SetPoint("CENTER", S.view, "TOPLEFT", sx, sy)
+        end
     end
 end
 
@@ -1212,9 +1219,50 @@ local function IsFollowed(up)
     return ct and not ct.isCorpse and ct.mapID == up.mapID and math.abs(ct.x - up.nx) < 0.002 and math.abs(ct.y - up.ny) < 0.002
 end
 
+-- filtro "Pins de quest": os pins ORIGINAIS da Blizzard no lugar dos nossos
+--   em andamento / entregar .. o próprio botão de missão do mapa do jogo (POIButtonTemplate)
+--   pegar / repetível ....... o ícone de oferta do jogo (QuestUtil.GetQuestIconOffer)
+local function BlizzPOI(e, questID, done)
+    if M._noPOIBtn or not questID or questID <= 0 then return false end
+    if e.blizz == nil then
+        local ok, b = pcall(CreateFrame, "Button", nil, S.poi.parent, "POIButtonTemplate")
+        if not ok or not b then M._noPOIBtn = true; e.blizz = false; return false end
+        b:EnableMouse(false)                      -- (dica e clique ficam com o nosso pin, invisível embaixo)
+        e.blizz = b
+    end
+    local b = e.blizz
+    if not b then return false end
+    local U = _G.POIButtonUtil
+    local ok = pcall(function()
+        b:SetQuestID(questID)
+        if U and U.Style and b.SetStyle then b:SetStyle(done and U.Style.QuestComplete or U.Style.QuestInProgress) end
+        if b.SetSelected then b:SetSelected(false) end
+        if b.UpdateButtonStyle then b:UpdateButtonStyle() end
+    end)
+    if not ok then b:Hide(); return false end
+    b:Show()
+    return true
+end
+
+local function OfferAtlas(rep)
+    local get = _G.C_Texture and C_Texture.GetAtlasInfo
+    local QU = _G.QuestUtil
+    if QU and QU.GetQuestIconOffer then
+        local freq = rep and _G.Enum and Enum.QuestFrequency and Enum.QuestFrequency.Daily or 0
+        local ok, a = pcall(QU.GetQuestIconOffer, false, freq, rep, false, false)
+        if ok and type(a) == "string" and get and get(a) then return a end
+    end
+    local name = rep and "QuestDaily" or "QuestNormal"
+    if get and get(name) then return name end
+end
+
 local function LayoutPOI()
     local p = S.poi
-    for i = 1, #p.list do p.list[i].rim:Hide(); p.list[i].icon:Hide() end
+    for i = 1, #p.list do
+        local e = p.list[i]
+        e.rim:Hide(); e.icon:Hide()
+        if e.blizz then e.blizz:Hide() end
+    end
     p.used = 0
     if S.mode ~= "terrain" or not S.place then return end     -- (mundo inteiro: só os continentes)
     local db = M.db
@@ -1231,16 +1279,28 @@ local function LayoutPOI()
         questNew  = { "PinGetN2", 26, nil, 46, 22 },     -- pegar: losango vazado na agulha
         questRep  = { "PinGetB2", 26, nil, 46, 22 },    -- repetível: o mesmo em azul
     }
+    -- filtro "Pins de quest": os originais do jogo (o pin personalizado e o marcado seguem iguais)
+    local GOSSIP = "Interface\\GossipFrame\\"
+    local BLIZZ_PIN = db.blizzQuestPins and {
+        questNew  = { "AvailableQuestIcon", 18, path = GOSSIP .. "AvailableQuestIcon", atlas = OfferAtlas(false) },
+        questRep  = { "DailyQuestIcon", 18, path = GOSSIP .. "DailyQuestIcon", atlas = OfferAtlas(true) },
+        questDone = { "ActiveQuestIcon", 20, path = GOSSIP .. "ActiveQuestIcon", poi = true },
+        questProg = { "IncompleteQuestIcon", 20, path = GOSSIP .. "IncompleteQuestIcon", poi = true },
+    }
     local function Add(x, y, kind, atlas, title, lines, questID)
         if x < x0 or x > x1 or y < y0 or y > y1 or p.used >= 300 then return end
         local e = PoiGet()
         e.questID = questID
-        local qp = QUEST_PIN[kind]
+        e.icon:SetDesaturated(false)
+        local qp = (BLIZZ_PIN and BLIZZ_PIN[kind]) or QUEST_PIN[kind]
         if qp then
             e.rim:Hide()
-            e.icon:SetTexture(FRAME_TEX .. qp[1])
-            e.icon:SetTexCoord(0, 1, 0, 1)
+            if qp.atlas then e.icon:SetAtlas(qp.atlas)
+            else e.icon:SetTexture(qp.path or (FRAME_TEX .. qp[1])) end
+            if not qp.atlas then e.icon:SetTexCoord(0, 1, 0, 1) end
             e.icon:SetSize(qp[2], qp[4] or qp[2])
+            -- em andamento / entregar: o botão de missão do próprio mapa da Blizzard por cima (o nosso fica invisível)
+            if qp.poi and BlizzPOI(e, questID, kind == "questDone") then e.icon:SetAlpha(0) end
             if qp[3] then e.icon:SetVertexColor(qp[3][1], qp[3][2], qp[3][3], 1)
             else e.icon:SetVertexColor(1, 1, 1, 1) end
             e.lift = qp[5] or 0
@@ -1262,6 +1322,13 @@ local function LayoutPOI()
             e.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)          -- (ícone de item: sem a moldura)
         end
         if kind == "quest" then e.icon:SetVertexColor(rim[1], rim[2], rim[3], 1) end
+        if kind == "taxiNew" then
+            -- não coletado: disco escuro, bota vermelha bem viva, maior e acima dos pinos de missão
+            e.rim:SetVertexColor(0.16, 0.02, 0.02, 1)
+            e.icon:SetVertexColor(1, 0.18, 0.12, 1)
+            e.rim:SetSize(30, 30); e.icon:SetSize(24, 24)
+            e.rim:SetDrawLayer("OVERLAY", 6); e.icon:SetDrawLayer("OVERLAY", 7)
+        end
         if kind == "rareDead" then e.icon:SetVertexColor(0.55, 0.55, 0.55, 0.7) end
         if kind == "rare" or kind == "rareElite" or kind == "rareDead" then
             e.rim:SetSize(18, 18); e.icon:SetSize(13, 13)
@@ -1279,8 +1346,22 @@ local function LayoutPOI()
                     local pos = n.position
                     local nx, ny
                     if pos and pos.GetXY then nx, ny = pos:GetXY() elseif pos then nx, ny = pos.x, pos.y end
-                    if nx and ny and FactionOK(n, mine) then
-                        Add(c.x0 + nx * (c.x1 - c.x0), c.y0 + ny * (c.y1 - c.y0), "taxi", n.atlasName, n.name, { "Mestre de voo" })
+                    if nx and ny and FactionOK(n, mine) and not (n.name and n.name:find("^zzOLD")) then
+                        -- não coletado: pela lista que o MapTaxi anota em cada mestre de voo (o Forever manda
+                        -- isUndiscovered sempre falso); ponto nunca visto num mestre: o que o jogo informar
+                        local a = n.atlasName or ""
+                        local new = Azaath.TaxiIsNew and Azaath.TaxiIsNew(n.name)
+                        local unread = new == nil
+                        if unread then new = n.isUndiscovered or a:find("Undiscovered") or a:find("Gr[ae]y") end
+                        if new then
+                            Add(c.x0 + nx * (c.x1 - c.x0), c.y0 + ny * (c.y1 - c.y0), "taxiNew", nil, n.name,
+                                { "Mestre de voo", "|cffff4d38Ainda não coletado|r" })
+                        else
+                            -- continente sem mestre de voo aberto ainda: o jogo não diz se você tem este ponto
+                            Add(c.x0 + nx * (c.x1 - c.x0), c.y0 + ny * (c.y1 - c.y0), "taxi", n.atlasName, n.name,
+                                unread and { "Mestre de voo", "|cffaaaaaaAbra um mestre de voo neste continente|r",
+                                             "|cffaaaaaapara marcar os que faltam.|r" } or { "Mestre de voo" })
+                        end
                     end
                 end
             end
@@ -1338,7 +1419,7 @@ local function LayoutPOI()
                 if qdb and qdb.GetZoneQuests then
                     for _, item in ipairs(PoiCached("lm" .. zone.id, function() return (qdb:GetZoneQuests(zone.id)) or {} end)) do
                         local q = item.quest
-                        if item.status == "available" and q and q.sMap == zone.id
+                        if item.status == "available" and q and not q.noStarter and q.sMap == zone.id
                            and q.sX and q.sX > 0 and q.sY and q.sY > 0 then
                             local kind = q.repeatable and "questRep" or "questNew"
                             local tip = q.repeatable and "Missão repetível" or "Disponível para pegar"
@@ -1579,6 +1660,23 @@ local function PlaceBlobs()
     end
 end
 
+-- área da missão em foco só enquanto ela está no diário e não concluída. Entregue/abandonada,
+-- IsComplete volta false e os objetivos vêm vazios (a área inteira reapareceria): solta o foco.
+local function SelQuestActive()
+    local qid = S.selQuest
+    if not qid then return nil end
+    local inLog = true
+    if C_QuestLog.GetLogIndexForQuestID then
+        local idx = Safe(C_QuestLog.GetLogIndexForQuestID, qid)
+        inLog = idx ~= nil and idx > 0
+    elseif C_QuestLog.IsOnQuest then
+        inLog = Safe(C_QuestLog.IsOnQuest, qid) and true or false
+    end
+    if not inLog then S.selQuest = nil; return nil end
+    if Safe(C_QuestLog.IsComplete, qid) then return nil end
+    return qid
+end
+
 local function LayoutBlobs()
     local p = S.blobs
     if not p then return end
@@ -1589,9 +1687,10 @@ local function LayoutBlobs()
     end
     p.used = 0
     if S.hullsActive then return end
-    local qid = S.selQuest
-    if not qid or S.mode ~= "terrain" or M.db.poiQuests == false or M.db.questAreas == false then return end
-    if not (_G.C_QuestLog and C_QuestLog.GetQuestsOnMap) or Safe(C_QuestLog.IsComplete, qid) then return end
+    if S.mode ~= "terrain" or M.db.poiQuests == false or M.db.questAreas == false then return end
+    if not (_G.C_QuestLog and C_QuestLog.GetQuestsOnMap) then return end
+    local qid = SelQuestActive()
+    if not qid then return end
     local x0, y0, x1, y1 = Visible()
     local z = S.zoom
     for _, zone in ipairs(S.P.zones) do
@@ -1627,9 +1726,9 @@ end
 -- na largura dele: transparente fora, forte logo dentro e descendo até o véu -> borda sem serrilhado)
 local HULL = { r = 0.98, g = 0.82, b = 0.44,
     selFill = 0.22, selRim = 0.92,    -- véu e filete (o fim do degradê do filete = 0.24 = véu / filete)
-    width = 4 }                       -- largura do degradê do filete, em pixels da tela
-local RIM_TEX = FRAME_TEX .. "AreaRim"
-local hx, hy, inX, inY = {}, {}, {}, {}
+    width = 4,                        -- largura do degradê do filete, em pixels da tela
+    rimTex = FRAME_TEX .. "AreaRim",
+    hx = {}, hy = {}, inX = {}, inY = {} }
 
 
 -- as regiões de uma missão (guardadas até o diário mudar): os lugares dos objetivos ainda não
@@ -1733,6 +1832,7 @@ end
 -- um polígono convexo de n pontos (hx/hy, em pixels de tela relativos a cx, cy; y para cima):
 -- preenchimento em leque e um filete de `rim` pixels por aresta
 local function LayHull(n, cx, cy, rim, fillA, rimA)
+    local hx, hy, inX, inY = HULL.hx, HULL.hy, HULL.inX, HULL.inY
     local area2, hw, hh, mx, my = 0, 0, 0, 0, 0
     for i = 1, n do
         local j = i % n + 1
@@ -1783,7 +1883,7 @@ local function LayHull(n, cx, cy, rim, fillA, rimA)
     end
     for i = 1, n do
         local j = i % n + 1
-        Quad(hx[i], hy[i], hx[j], hy[j], inX[j], inY[j], inX[i], inY[i], rimA, RIM_TEX)
+        Quad(hx[i], hy[i], hx[j], hy[j], inX[j], inY[j], inX[i], inY[i], rimA, HULL.rimTex)
     end
 end
 
@@ -1801,6 +1901,7 @@ end
 local function LayoutHulls()
     local p = S.hulls
     if not p then return false end
+    local hx, hy = HULL.hx, HULL.hy
     for i = 1, #p.list do p.list[i]:Hide() end
     p.used = 0
     S.hullHit = {}                    -- polígonos desenhados (no plano), para a dica ao passar o mouse
@@ -1810,8 +1911,9 @@ local function LayoutHulls()
     local z = S.zoom
     -- só a missão em foco (como no Polestar), com todas as regiões dela, mesmo as de 1 ou 2 pontos
     local pins = {}
-    if S.selQuest and not Safe(C_QuestLog.IsComplete, S.selQuest) then
-        for _, h in ipairs(QuestHulls(S.selQuest)) do pins[#pins + 1] = h end
+    local selQ = SelQuestActive()
+    if selQ then
+        for _, h in ipairs(QuestHulls(selQ)) do pins[#pins + 1] = h end
     end
     p.dz = z
     PlaceHulls()
@@ -2138,8 +2240,9 @@ local function InPoly(x, y, poly)
     return inside
 end
 
-local areaTips = {}
 local function AreaAt(x, y)
+    local areaTips = S.areaTips
+    if not areaTips then areaTips = {}; S.areaTips = areaTips end
     for _, poly in ipairs(S.hullHit or {}) do
         if x >= poly.x0 and x <= poly.x1 and y >= poly.y0 and y <= poly.y1 and InPoly(x, y, poly) then
             local qid = poly.quest
@@ -2562,11 +2665,11 @@ local function RemoveUserPin(i)
 end
 
 -- editor do pin (botão direito no pin): nome e anotações, como no mapa da Blizzard
-local pinEd
 local function EditUserPin(i)
     local up = UserPins()[i]
     if not (up and S.frame) then return end
     local C = Azaath:GetModule("MapChrome")
+    local pinEd = S.pinEd
     if not pinEd then
         local p = CreateFrame("Frame", nil, S.frame)
         p:SetSize(300, 236)
@@ -2639,6 +2742,7 @@ local function EditUserPin(i)
         Btn("Cancelar", 200, function() p:Hide() end)
         p:SetScript("OnHide", function() p.name:ClearFocus(); p.note:ClearFocus() end)
         pinEd = p
+        S.pinEd = pinEd
     end
     pinEd.idx = i
     pinEd.where:SetText(up.label or "")
@@ -2922,12 +3026,23 @@ function M:ApplyWindowMode()
         f:SetAllPoints(UIParent)
         f:SetMovable(false)
     else
-        -- proporção da arte da moldura (2000 x 1116)
+        -- proporção da arte da moldura (2000 x 1116) + gaveta lateral à direita quando aberta
         local sw, sh = UIParent:GetWidth(), UIParent:GetHeight()
-        local w = min(1240, sw * 0.9)
-        local h = w * 1116 / 2000
-        if h > sh * 0.88 then h = sh * 0.88; w = h * 2000 / 1116 end
-        f:SetSize(w, h)
+        local h = M.db.windowH
+        if not h then
+            local w = min(1240, sw * 0.9)
+            h = w * 1116 / 2000
+            if h > sh * 0.88 then h = sh * 0.88 end
+        end
+        h = max(400, min(sh * 0.92, h))
+        local sideW = (M.ui and M.ui.GetSideWidth) and M.ui:GetSideWidth(h) or 0
+        local baseW = h * 2000 / 1116
+        if baseW + sideW > sw * 0.96 then
+            baseW = max(500, sw * 0.96 - sideW)
+            h = baseW * 1116 / 2000
+            sideW = (M.ui and M.ui.GetSideWidth) and M.ui:GetSideWidth(h) or 0
+        end
+        f:SetSize(baseW + sideW, h)
         local p = M.db.windowPos
         if p and p[1] then f:SetPoint(p[1], UIParent, p[1], p[2], p[3]) else f:SetPoint("CENTER") end
         f:SetMovable(true)
@@ -3068,6 +3183,9 @@ M.api = {
     end,
     SetMaximized = function(on) M.db.maximized = on and true or false; M:ApplyWindowMode() end,
     IsMaximized = function() return M.db.maximized and true or false end,
+    ApplyWindowMode = function() M:ApplyWindowMode() end,
+    SetWindowHeight = function(h) M.db.windowH = h; M:ApplyWindowMode() end,
+    SaveWindowPos = function(p, x, y) M.db.windowPos = { p, x, y } end,
     Close = function() M:Close() end,
     StartMoving = function() if not M.db.maximized then S.frame:StartMoving() end end,
     StopMoving = function()
@@ -3115,8 +3233,8 @@ end
 
 -- ao abrir: centra no personagem, mais perto que a zona inteira (~0,5 px/jarda);
 -- dentro de caverna/construção, no zoom máximo para mostrar o interior
-local OPEN_PPY = 1.0
 local function FocusPlayer()
+    local OPEN_PPY = 1.0
     if S.mode ~= "terrain" then return end
     local x, y = PlayerXY()
     local c = x and ContAt(x, y)
@@ -3163,14 +3281,13 @@ end
 local bindOwner = CreateFrame("Frame")
 local toggleButton = CreateFrame("Button", "AzaathUIWorldMapToggle", UIParent)
 toggleButton:SetScript("OnClick", function() M:Toggle() end)
-local lastSignature
 
 local function UpdateBinding()
     local key1, key2 = GetBindingKey("TOGGLEWORLDMAP")
     local signature = tostring(M.db and M.db.enabled) .. "," .. (key1 or "") .. "," .. (key2 or "")
-    if signature == lastSignature then return end
+    if signature == S.lastBindSig then return end
     Azaath:RunOutOfCombat(function()
-        lastSignature = signature
+        S.lastBindSig = signature
         ClearOverrideBindings(bindOwner)
         if not (M.db and M.db.enabled) then return end
         for _, key in ipairs({ key1, key2 }) do
@@ -3192,12 +3309,11 @@ end
 -- carregamento): sem isto, o primeiro mapa aberto mostra os continentes chegando aos pedaços.
 -- Pré-carrega, aos poucos, a vista de longe (cópias reduzidas, arte do mar, moldura) e os quadros de
 -- perto da zona onde o jogador está (com as máscaras de costa e os lagos), num quadro de 1 px quase invisível.
-local preload
-local PRELOAD_FRAME = { "ExpOceanL", "ExpOceanR", "ExpLabelsL", "ExpLabelsR", "ExpPaper",
-    "ExpTopL", "ExpTopMidL", "ExpBanner", "ExpTopMidR", "ExpTopR", "ExpLeft", "ExpRight", "ExpBotL", "ExpBotMid", "ExpBotR", "ExpFlag",
-    "ExpBtnQuests", "ExpBtnLore", "ExpBtnGather", "ExpBtnFilter", "ExpBtnSettings", "ExpBtnCenter", "ExpBtnMax", "ExpBtnClose",
-    "ExpPlayerArrow", "ExpPinQuest", "ExpPinTurnIn", "ExpPinNew", "ExpPinRepeat" }
 local function PreloadTextures()
+    local PRELOAD_FRAME = { "ExpOceanL", "ExpOceanR", "ExpLabelsL", "ExpLabelsR", "ExpPaper",
+        "ExpTopL", "ExpTopMidL", "ExpBanner", "ExpTopMidR", "ExpTopR", "ExpLeft", "ExpRight", "ExpBotL", "ExpBotMid", "ExpBotR", "ExpFlag",
+        "ExpBtnQuests", "ExpBtnLore", "ExpBtnGather", "ExpBtnFilter", "ExpBtnSettings", "ExpBtnCenter", "ExpBtnMax", "ExpBtnClose",
+        "ExpPlayerArrow", "ExpPinQuest", "ExpPinTurnIn", "ExpPinNew", "ExpPinRepeat" }
     local data = Azaath.MapData or {}
     local files = {}
     for _, n in ipairs(PRELOAD_FRAME) do files[#files + 1] = FRAME_TEX .. n end
@@ -3233,12 +3349,14 @@ local function PreloadTextures()
             end
         end
     end
+    local preload = S.preload
     if not preload then
         preload = CreateFrame("Frame", nil, UIParent)
         preload:SetSize(1, 1)
         preload:SetPoint("BOTTOMLEFT")
         preload:SetAlpha(0.01)
         preload.list = {}
+        S.preload = preload
     end
     local i = 0
     preload:SetScript("OnUpdate", function(self)
@@ -3305,6 +3423,18 @@ function M:OnEnable()
                 S.poiAt = GetTime()
                 LayoutPOI()
                 LayoutAreas()
+            elseif M:IsOpen() and not S.poiLater then
+                -- atualização engolida pelo intervalo (ex.: a da entrega): redesenha logo depois
+                S.poiLater = true
+                C_Timer.After(1.1, function()
+                    S.poiLater = nil
+                    if M:IsOpen() then
+                        S.poiAt = GetTime()
+                        S.poiCache, S.qhCache = nil, nil
+                        LayoutPOI()
+                        LayoutAreas()
+                    end
+                end)
             end
         elseif event == "ZONE_CHANGED_NEW_AREA" then
             if M:IsOpen() and S.mode == "art" then M:ShowMap(PlayerMap() or S.mapID) end

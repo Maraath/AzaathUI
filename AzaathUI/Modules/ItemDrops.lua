@@ -570,16 +570,6 @@ function M:ToggleFavorite(id)
     return true
 end
 
-function M:FavoriteCount()
-    local f, n = Favs(), 0
-    if f then for _ in pairs(f) do n = n + 1 end end
-    return n
-end
-
-function M:GetZoneDrops(uiMapID, query)
-    return self:Query({ mapID = uiMapID, query = query })
-end
-
 -- Auto-aprendizado de drops ao saquear
 local lootFrame = CreateFrame("Frame")
 lootFrame:SetScript("OnEvent", function()

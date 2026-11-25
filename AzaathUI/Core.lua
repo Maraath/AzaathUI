@@ -27,7 +27,7 @@ Azaath.version = Azaath.API.GetAddOnMetadata(ADDON_NAME, "Version") or "dev"
 Azaath.defaults = {
     enabled = true, -- visibilidade da camada Azaath (/azaath toggle)
     scale   = 1,    -- escala geral de todos os elementos Azaath
-    skin    = "modern", -- skin da Azaath UI (barra de tarefas + frame do personagem): "modern", "azaath" ou "bdo"
+    skin    = "modern", -- skin da Azaath UI (barra de tarefas + frame do personagem): "modern", "azaath", "bdo" ou "blizzard"
 
     -- Painel de configuração (/azaath): idioma ("auto" segue o cliente, "ptBR", "enUS"),
     -- tamanho da janela e última aba aberta
@@ -156,6 +156,8 @@ Azaath.defaults = {
         -- Postura/forma/aura/presença: alinhada à esquerda, acima da barra superior.
         stance = { enabled = true, buttonSize = 28, spacing = 3, scale = 1, offsetX = 0, offsetY = 0, customPos = false },
         -- Pet: alinhada à direita, acima da barra superior.
+        -- Assistente de rotação (Modules/RotationAssist.lua; só Guerreiro por enquanto)
+        rotation = { enabled = true, sound = true, shout = true, castSounds = true, castSfx = true, volume = 1 },
         pet    = { enabled = true, buttonSize = 28, spacing = 3, scale = 1, offsetX = 0, offsetY = 0, customPos = false },
     },
 
@@ -457,6 +459,7 @@ Azaath.defaults = {
 
     micromenu = {
         enabled    = true,
+        style      = "bdo", -- "bdo" (minimalista), "azaath" (arcano), "numenor" (forja/astrolábio), "tabletop" (mesa de RPG / WoW)
         buttonSize = 26,
         spacing    = 5,
         scale      = 1,
@@ -515,6 +518,9 @@ Azaath.defaults = {
         minCameraZoom              = 3,      -- zoom mínimo em jardas (0 = desligado)
         shoulderOffset             = 1.2,    -- deslocamento lateral da câmera (test_cameraOverShoulder)
         shoulderFollowsMouseLook   = false,  -- suaviza o ombro junto com o Mouse Look
+        shoulderZoomScale          = true,   -- ombro proporcional à distância da câmera
+        situations                 = true,   -- câmera muda por situação (combate, chefe, montaria...)
+        situationZoomMemory        = true,   -- cada situação lembra a distância usada nela
         dynamicPitch               = true,   -- inclinação dinâmica (test_cameraDynamicPitch)
         dynamicPitchStrength       = 0.4,    -- força da inclinação dinâmica (0-1)
         autofocusLockedTarget      = false,  -- câmera segue o alvo travado (test_cameraTargetFocusEnemyEnable)
@@ -528,6 +534,7 @@ Azaath.defaults = {
         tooltipModifier            = "ALT",  -- tecla para espiar tooltip: ALT | CTRL | SHIFT
         sheathWeaponsWithMouselook = false,  -- embainha armas ao sair do Mouse Look
         closeWindowsOnMouseLook    = false,  -- tecla Mouse Look fecha janelas abertas
+        ctrlToggle                 = false,  -- toque rápido no Ctrl alterna o Mouse Look (como a tecla V)
         interactUnit               = "target",
         -- Sons
         soundMouseLook             = true,
@@ -606,6 +613,8 @@ Azaath.defaults = {
         bdoSkillPunch              = true,
         bdoHitShake                = true,
         bdoCritImpact              = true,
+        bdoMoves                   = true,   -- gesto de câmera por habilidade (investida, giro, golpe pesado, brado)
+        bdoHurtShake               = true,   -- tremor ao levar dano
         bdoCritSound               = true,
         bdoCritSoundStyle          = "impact",
         bdoSpeedZoom               = true,
@@ -1199,12 +1208,51 @@ function Azaath.GetSkin()
     local s = Azaath.db and Azaath.db.skin
     if s == "azaath" then return "azaath" end
     if s == "bdo"   then return "bdo" end
+    if s == "blizzard" then return "blizzard" end
     return "modern"
 end
 
--- Skin em bloco único (Azaath Reforged): HUD própria em AzaathHUD.lua
+-- Opções "Blizzard": a parte fica com o quadro/barra/placa padrão do jogo (vale após /reload)
+--   skin "blizzard" ............ quadros do jogador e do alvo da Blizzard
+--   actionbars.layout "blizzard" barras de ação da Blizzard (com o micromenu dela; o nosso some)
+--   nameplates.style "blizzard"  placas de nome padrão
+function Azaath.IsBlizzSkin()
+    return Azaath.db ~= nil and Azaath.db.skin == "blizzard"
+end
+function Azaath.IsBlizzBars()
+    local ab = Azaath.db and Azaath.db.actionbars
+    return ab ~= nil and ab.layout == "blizzard"
+end
+function Azaath.IsBlizzPlates()
+    local np = Azaath.db and Azaath.db.nameplates
+    return np ~= nil and np.style == "blizzard"
+end
+-- hideBlizzard[key] já descontando as opções "Blizzard" acima
+function Azaath.HideBlizzOn(key)
+    local hb = Azaath.db and Azaath.db.hideBlizzard
+    if not (hb and hb[key]) then return false end
+    if key == "actionBars" and Azaath.IsBlizzBars() then return false end
+    if (key == "playerFrame" or key == "targetFrame") and Azaath.IsBlizzSkin() then return false end
+    -- "Ativar quadro do alvo" desligado: volta o quadro de alvo da Blizzard (em qualquer skin)
+    if key == "targetFrame" and not Azaath.TargetFrameOn() then return false end
+    return true
+end
+
+-- quadro de alvo do Azaath (UnitFrames ou o da skin Zerker): ligado no menu e fora da skin Blizzard
+function Azaath.TargetFrameOn()
+    local t = Azaath.db and Azaath.db.unitframes and Azaath.db.unitframes.target
+    return t ~= nil and t.enabled ~= false and not Azaath.IsBlizzSkin()
+end
+
+-- Skin Azaath Reforged: moldura central própria (vida/recurso/XP) em AzaathHUD.lua
 function Azaath.IsAzaath()
     return Azaath.GetSkin() == "azaath"
+end
+
+-- Opção 4 (Reforged): painéis da arte de conceito como barras livres, em qualquer skin
+function Azaath.IsReforgedBars()
+    local ab = Azaath.db and Azaath.db.actionbars
+    return ab ~= nil and ab.layout == "reforged" and Azaath.AZAATH ~= nil
 end
 
 -- Skin BDO: HUD própria em BDOHUD.lua
@@ -1216,14 +1264,13 @@ end
 -- A skin só muda vida/recurso, XP e nível; a barra de ação é escolha à parte (actionbars.layout):
 -- "bdo" = Opção 1, "split" = Opção 2, "az" = Opção 3. Cada combinação skin + barra tem as suas medidas
 -- (a combinação "natural" — BDO com "bdo", as outras com "az" — usa só o nome da skin).
--- Só a skin Azaath Reforged ignora a escolha: a barra faz parte da HUD, que é um frame só.
+-- "reforged" = Opção 4 (painéis da Reforged), natural da skin Azaath Reforged.
 function Azaath.LayoutKey()
     local skin = Azaath.GetSkin()
-    if Azaath.IsAzaath and Azaath.IsAzaath() then return skin end
     local ab = Azaath.db and Azaath.db.actionbars
     local layout = ab and ab.layout or "az"
     if layout == "azclassic" then layout = "az" end
-    local natural = (skin == "bdo") and "bdo" or "az"
+    local natural = (skin == "bdo") and "bdo" or (skin == "azaath") and "reforged" or (skin == "blizzard") and "blizzard" or "az"
     if layout ~= natural then return skin .. "_" .. layout end
     return skin
 end
@@ -1514,12 +1561,27 @@ events:SetScript("OnEvent", function(self, event, arg1)
         Azaath.db = AzaathUIDB
         AzaathUICharDB = AzaathUIDB -- (MergeDefaults pode ter criado a tabela)
         Azaath.MigrateSkins()
+        -- 23/11/2026: barras da Reforged soltas da HUD (Opção 4); quem usa a skin fica com elas
+        if not AzaathUIDB.reforgedBarsV1 then
+            AzaathUIDB.reforgedBarsV1 = true
+            local ab, az = AzaathUIDB.actionbars, AzaathUIDB.azaath or {}
+            if AzaathUIDB.skin == "azaath" and type(ab) == "table" then
+                ab.layout = "reforged"
+                -- painéis nascem onde estavam: mesma escala e deslocamento da HUD antiga
+                local s = (az.scale and az.scale > 0) and az.scale or 1
+                for _, k in ipairs({ "bar1", "bar2", "bar3" }) do
+                    ab[k] = type(ab[k]) == "table" and ab[k] or {}
+                    ab[k].scale, ab[k].offsetX, ab[k].offsetY = s, az.offsetX or 0, (az.offsetY or 10) - 10
+                end
+            end
+        end
         Azaath.EnforceSkinBars()
         Azaath.InitLayoutProfiles()
         -- 15/11/2026: skin Azaath (arte de conceito) passa a ser a ativa, uma vez
         if not AzaathUIDB.azaathV1 then
             AzaathUIDB.azaathV1 = true
             AzaathUIDB.skin = "azaath"
+            if type(AzaathUIDB.actionbars) == "table" then AzaathUIDB.actionbars.layout = "reforged" end
             Azaath.EnforceSkinBars()
             Azaath.SwitchLayoutProfile(Azaath.LayoutKey())
         end
@@ -1645,6 +1707,15 @@ commands.cast = function(arg)
         np:Test()
     end
 end
+
+commands.plates = function()
+    local np = Azaath:GetModule("Nameplates")
+    if np and np.OpenDesigner then
+        np:OpenDesigner()
+    end
+end
+commands.nameplates = commands.plates
+commands.placas = commands.plates
 
 commands.damage = function()
     local ct = Azaath:GetModule("CombatText")

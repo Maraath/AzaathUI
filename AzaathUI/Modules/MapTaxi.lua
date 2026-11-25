@@ -23,14 +23,57 @@ local ICON = {
     CURRENT   = "Interface\\TaxiFrame\\UI-Taxi-Icon-Green",
     REACHABLE = "Interface\\TaxiFrame\\UI-Taxi-Icon-White",
     NONE      = "Interface\\TaxiFrame\\UI-Taxi-Icon-Gray",
+    NEW       = "Interface\\TaxiFrame\\UI-Taxi-Icon-White",   -- ainda não coletado (anel âmbar)
 }
-local RIM = { CURRENT = { 0.20, 0.55, 0.25 }, REACHABLE = { 0.35, 0.62, 0.98 }, NONE = { 0.35, 0.35, 0.35 } }
+local RIM = { CURRENT = { 0.20, 0.55, 0.25 }, REACHABLE = { 0.35, 0.62, 0.98 }, NONE = { 0.35, 0.35, 0.35 },
+              NEW = { 1.00, 0.70, 0.18 } }
+
+---------------------------------------------------------------------------
+-- Voos conhecidos deste personagem (AzaathUICharDB.taxiKnown), anotados a cada mestre de voo:
+--   names[nome] = true (tem) / false (visto no mestre, ainda não tem); conts = mapas de voo já lidos
+-- O mapa M (WorldMap.lua) pergunta Azaath.TaxiIsNew: true/false, ou nil se o continente nunca foi lido.
+---------------------------------------------------------------------------
+local function KnownDB()
+    local db = Azaath.db
+    if not db then return end
+    local t = db.taxiKnown
+    if type(t) ~= "table" or type(t.names) ~= "table" or type(t.conts) ~= "table" then
+        t = { names = {}, conts = {} }
+        db.taxiKnown = t
+    end
+    return t
+end
+
+-- (o mapa de voo usa um id próprio, ex. 1464, e o mapa M o do continente, ex. 1414: vale o nome)
+function Azaath.TaxiIsNew(name)
+    local t = Azaath.db and Azaath.db.taxiKnown
+    if not (name and type(t) == "table" and type(t.names) == "table") then return nil end
+    local v = t.names[name]
+    if v == nil then return nil end
+    return not v
+end
+
+-- mesmo filtro de facção do mapa M: o seu lado e os neutros
+local function FactionOK(node, mine)
+    local E = _G.Enum and Enum.FlightPathFaction
+    local horde, alliance = E and E.Horde or 1, E and E.Alliance or 2
+    if node.faction == horde then return mine == "Horde" end
+    if node.faction == alliance then return mine == "Alliance" end
+    local a = node.atlasName or ""
+    if a:find("Horde") then return mine == "Horde" end
+    if a:find("Alliance") then return mine == "Alliance" end
+    return true
+end
 local BLIZZ = { "TaxiFrame", "FlightMapFrame" }
 
 -- active: o nosso mapa está servindo o mestre de voo; byEvent: fechando porque o jogo fechou
 local U = { active = false, nodes = {}, bySlot = {}, btns = {}, lines = {}, used = 0 }
-local hider = CreateFrame("Frame")
-hider:Hide()
+-- Âncora visível fora da tela: esconde TaxiFrame/FlightMapFrame sem SetParent(hider) nem Hide(),
+-- pois disparar OnHide nesses frames chama CloseTaxiMap() e encerra a sessão no servidor (causando DC ao voar).
+local offscreen = CreateFrame("Frame", nil, UIParent)
+offscreen:SetSize(1, 1)
+offscreen:SetPoint("TOPLEFT", UIParent, "BOTTOMRIGHT", 10000, -10000)
+offscreen:Show()
 
 local function Safe(fn, ...)
     if not fn then return end
@@ -47,21 +90,65 @@ local function Enabled()
 end
 
 ---------------------------------------------------------------------------
--- Janela da Blizzard: presa num pai oculto enquanto o nosso mapa serve o voo
+-- Janela da Blizzard: invisível e fora da tela sem disparar OnHide (CloseTaxiMap)
 ---------------------------------------------------------------------------
+local function SaveLayout(f)
+    if f.azaathTaxiSaved then return end
+    local pts = {}
+    for j = 1, (f:GetNumPoints() or 0) do
+        pts[j] = { f:GetPoint(j) }
+    end
+    local a = f:GetAlpha() or 1
+    f.azaathTaxiSaved = {
+        alpha   = a > 0 and a or 1,
+        clamped = f.IsClampedToScreen and f:IsClampedToScreen() or false,
+        mouse   = f.IsMouseEnabled and f:IsMouseEnabled() or false,
+        points  = pts,
+    }
+end
+
+local function ApplySilent(f)
+    SaveLayout(f)
+    f:SetAlpha(0)
+    if f.SetClampedToScreen then f:SetClampedToScreen(false) end
+    if f.EnableMouse then f:EnableMouse(false) end
+    f:ClearAllPoints()
+    f:SetPoint("TOPLEFT", offscreen, "TOPLEFT")
+end
+
+local function RestoreLayout(f)
+    local sv = f.azaathTaxiSaved
+    if not sv then return end
+    f.azaathTaxiSaved = nil
+    f:SetAlpha(sv.alpha or 1)
+    if f.SetClampedToScreen then f:SetClampedToScreen(sv.clamped) end
+    if f.EnableMouse then f:EnableMouse(sv.mouse) end
+    if #sv.points > 0 then
+        f:ClearAllPoints()
+        for _, pt in ipairs(sv.points) do
+            f:SetPoint(pt[1], pt[2], pt[3], pt[4], pt[5])
+        end
+    end
+end
+
 local function Silence(on)
     for _, name in ipairs(BLIZZ) do
         local f = _G[name]
         if f then
             if not f.azaathTaxiHook then
                 f.azaathTaxiHook = true
-                f.azaathTaxiParent = f:GetParent() or UIParent
                 f:HookScript("OnShow", function(self)
-                    if U.active and self:GetParent() ~= hider then self:SetParent(hider) end
+                    if U.active then
+                        ApplySilent(self)
+                        C_Timer.After(0, function() if U.active then ApplySilent(self) end end)
+                    end
                 end)
             end
-            local want = on and hider or f.azaathTaxiParent
-            if f:GetParent() ~= want then f:SetParent(want) end
+            if on then
+                ApplySilent(f)
+            else
+                RestoreLayout(f)
+            end
         end
     end
 end
@@ -103,29 +190,80 @@ end
 local function ReadNodes()
     local list = {}
     local mapID = Safe(_G.GetTaxiMapID)
-    local CT = _G.C_TaxiMap
-    if CT and CT.GetAllTaxiNodes and mapID then
-        for _, n in ipairs(Safe(CT.GetAllTaxiNodes, mapID) or {}) do
-            local pos, nx, ny = n.position, nil, nil
-            if pos and pos.GetXY then nx, ny = pos:GetXY() elseif pos then nx, ny = pos.x, pos.y end
-            if n.slotIndex and nx and ny then
-                list[#list + 1] = { slot = n.slotIndex, name = n.name, nx = nx, ny = ny, kind = StateKind(n.state) }
+    if _G.NumTaxiNodes then
+        -- API clássica: slot 1..NumTaxiNodes() garante o índice exato esperado por TakeTaxiNode.
+        for i = 1, (Safe(NumTaxiNodes) or 0) do
+            local t = Safe(TaxiNodeGetType, i)
+            local x, y = Safe(TaxiNodePosition, i)
+            local name = Safe(TaxiNodeName, i)
+            if x and y and (x > 0 or y > 0) and not (name and name:find("^zzOLD")) then
+                -- no Forever o mestre lista o continente inteiro: os que você não tem vêm DISTANT/NONE (NEW)
+                list[#list + 1] = { slot = i, name = name, nx = x, ny = y,
+                                    kind = (t == "CURRENT" or t == "REACHABLE") and t or "NEW" }
             end
         end
         U.flipY = false
     end
-    if #list == 0 and _G.NumTaxiNodes then
-        -- API antiga: TaxiNodePosition conta y de baixo para cima
-        for i = 1, (Safe(NumTaxiNodes) or 0) do
-            local t = Safe(TaxiNodeGetType, i)
-            local x, y = Safe(TaxiNodePosition, i)
-            if x and y and t ~= "NONE" then
-                list[#list + 1] = { slot = i, name = Safe(TaxiNodeName, i), nx = x, ny = 1 - y,
-                                    kind = (t == "CURRENT" or t == "REACHABLE") and t or "NONE" }
+    local CT = _G.C_TaxiMap
+    if #list == 0 and CT and CT.GetAllTaxiNodes and mapID then
+        for _, n in ipairs(Safe(CT.GetAllTaxiNodes, mapID) or {}) do
+            local pos, nx, ny = n.position, nil, nil
+            if pos and pos.GetXY then nx, ny = pos:GetXY() elseif pos then nx, ny = pos.x, pos.y end
+            if type(n.slotIndex) == "number" and n.slotIndex >= 1 and nx and ny then
+                local k = StateKind(n.state)
+                list[#list + 1] = { slot = n.slotIndex, name = n.name, nx = nx, ny = ny, kind = k == "NONE" and "NEW" or k }
             end
         end
-        U.flipY = true
+        U.flipY = false
     end
+    -- conhecidos anotados; os pontos do continente que não estão na lista do mestre são os que faltam
+    local known = KnownDB()
+    local diag = { time = date and date("%d/%m %H:%M") or "", mapID = mapID, listed = #list, kinds = {}, tried = {} }
+    for _, n in ipairs(list) do diag.kinds[n.kind] = (diag.kinds[n.kind] or 0) + 1 end
+    if known and mapID and #list > 0 then
+        -- o mapa de voo e os mapas acima dele (até o continente, que é o que o mapa M pergunta)
+        local ids = { mapID }
+        local info, guard = Safe(C_Map.GetMapInfo, mapID), 0
+        while info and info.parentMapID and info.parentMapID > 0 and guard < 4 do
+            guard = guard + 1
+            ids[#ids + 1] = info.parentMapID
+            if info.mapType and _G.Enum and Enum.UIMapType and info.mapType <= Enum.UIMapType.Continent then break end
+            info = Safe(C_Map.GetMapInfo, info.parentMapID)
+        end
+        for _, id in ipairs(ids) do known.conts[id] = true end
+        -- names[nome] = true (tem) / false (visto no mestre, ainda não tem); refeito a cada abertura
+        local here = {}
+        for _, n in ipairs(list) do
+            if n.name then
+                here[n.name] = true
+                known.names[n.name] = n.kind ~= "NEW"
+            end
+        end
+        -- os que faltam: todos os pontos do continente (no 1º mapa da cadeia que responder) menos os da lista
+        local mine = UnitFactionGroup("player")
+        for _, id in ipairs(ids) do
+            local all = (CT and CT.GetTaxiNodesForMap and Safe(CT.GetTaxiNodesForMap, id)) or {}
+            diag.tried[#diag.tried + 1] = id .. ":" .. #all
+            local proj = #all > 0 and Projector(id)
+            if proj then
+                local added = 0
+                for _, n in ipairs(all) do
+                    local pos, nx, ny = n.position, nil, nil
+                    if pos and pos.GetXY then nx, ny = pos:GetXY() elseif pos then nx, ny = pos.x, pos.y end
+                    if nx and ny and n.name and not here[n.name] and not n.name:find("^zzOLD") and FactionOK(n, mine) then
+                        here[n.name] = true
+                        known.names[n.name] = false
+                        added = added + 1
+                        local x, y = proj(nx, ny)
+                        list[#list + 1] = { slot = -#list - 1, name = n.name, nx = nx, ny = ny, x = x, y = y, kind = "NEW" }
+                    end
+                end
+                diag.added = added
+                break
+            end
+        end
+    end
+    if Azaath.db then Azaath.db.taxiDiag = diag end       -- (lido no SavedVariables para diagnóstico)
     return mapID, list
 end
 
@@ -248,6 +386,9 @@ local function NodeTip(btn)
             ShowRoute(slots)
         end
         tt:AddLine("Clique: voar", 0.6, 0.6, 0.6)
+    elseif n.kind == "NEW" then
+        tt:AddLine("Ainda não coletado", 1, 0.30, 0.22)
+        tt:AddLine("Fale com o mestre de voo deste lugar para liberar a rota.", 0.85, 0.85, 0.85, true)
     else
         tt:AddLine("Sem rota conhecida até aqui", 0.6, 0.6, 0.6)
     end
@@ -312,10 +453,14 @@ local function BtnGet(i)
         end)
         b:SetScript("OnClick", function(self)
             local n = self.node
-            if n and n.kind == "REACHABLE" and _G.TakeTaxiNode then
-                GameTooltip:Hide()
-                TakeTaxiNode(n.slot)
-            end
+            if U.flying or not n or n.kind ~= "REACHABLE" or not _G.TakeTaxiNode then return end
+            if type(n.slot) ~= "number" or n.slot < 1 then return end
+            if _G.NumTaxiNodes and n.slot > (Safe(NumTaxiNodes) or 0) then return end
+            if _G.TaxiNodeGetType and Safe(TaxiNodeGetType, n.slot) ~= "REACHABLE" then return end
+            U.flying = true
+            C_Timer.After(0.5, function() if U.active then U.flying = false end end)
+            GameTooltip:Hide()
+            TakeTaxiNode(n.slot)
         end)
         U.btns[i] = b
     end
@@ -356,7 +501,7 @@ local function LayoutNodes()
     U.used = 0
     local order = {}
     for _, n in ipairs(U.nodes) do order[#order + 1] = n end
-    local rank = { CURRENT = 1, REACHABLE = 2, NONE = 3 }
+    local rank = { CURRENT = 1, REACHABLE = 2, NEW = 3, NONE = 4 }
     table.sort(order, function(a, b) return rank[a.kind] < rank[b.kind] end)
     for _, n in ipairs(order) do
         U.used = U.used + 1
@@ -367,8 +512,9 @@ local function LayoutNodes()
         b.icon:SetTexture(ICON[n.kind])
         b.icon:SetDesaturated(n.kind == "NONE")
         -- atual: grande, verde, pulsando; destino: médio, dourado; sem rota: pequeno e apagado
+        -- não coletado: âmbar, do tamanho de um destino, com pulso
         local LOOK = { CURRENT = { 38, 30, 64, 0.35, 1.0, 0.45 }, REACHABLE = { 30, 24, 50, 1.0, 0.82, 0.35 },
-                       NONE = { 20, 15, 0, 0, 0, 0 } }
+                       NEW = { 30, 26, 54, 1.0, 0.15, 0.10 }, NONE = { 20, 15, 0, 0, 0, 0 } }
         local lk = LOOK[n.kind]
         b:SetSize(lk[1], lk[1])
         b.icon:SetSize(lk[2], lk[2])
@@ -379,12 +525,18 @@ local function LayoutNodes()
         b.halo:SetShown(n.kind ~= "NONE")
         b.pulse:SetSize(lk[3] + 8, lk[3] + 8)
         b.pulse:SetVertexColor(lk[4], lk[5], lk[6], 1)
-        b.pulse:SetShown(n.kind == "CURRENT")
-        if n.kind == "CURRENT" then b.pulseAnim:Play() else b.pulseAnim:Stop() end
-        b:SetFrameLevel(U.layer:GetFrameLevel() + (n.kind == "CURRENT" and 4 or n.kind == "REACHABLE" and 3 or 2))
+        b.pulse:SetShown(n.kind == "CURRENT" or n.kind == "NEW")
+        if n.kind == "CURRENT" or n.kind == "NEW" then b.pulseAnim:Play() else b.pulseAnim:Stop() end
+        -- não coletado: disco escuro e bota vermelha viva
+        if n.kind == "NEW" then b.rim:SetVertexColor(0.16, 0.02, 0.02, 1) end
+        b.icon:SetVertexColor(1, n.kind == "NEW" and 0.18 or 1, n.kind == "NEW" and 0.12 or 1, 1)
+        b:SetFrameLevel(U.layer:GetFrameLevel() + (n.kind == "CURRENT" and 4 or (n.kind == "REACHABLE" or n.kind == "NEW") and 3 or 2))
         if n.kind == "CURRENT" then
             b.label:SetText("VOCÊ ESTÁ AQUI")
             b.label:SetTextColor(0.55, 1, 0.55)
+        elseif n.kind == "NEW" then
+            b.label:SetText(n.name or "")
+            b.label:SetTextColor(1, 0.30, 0.22)
         else
             b.label:SetText(n.name or "")
             b.label:SetTextColor(1, 0.86, 0.5)
@@ -435,6 +587,7 @@ end
 function M:Stop()
     if not U.active then return end
     U.active = false
+    U.flying = false
     local wm = WM()
     local S = wm.api.S
     S.taxiMode, S.taxiHover = nil, nil
@@ -455,15 +608,16 @@ local function OnTaxiOpened()
     U.nodes, U.bySlot = {}, {}
     local x0, y0, x1, y1
     for _, n in ipairs(list) do
-        n.x, n.y = proj(n.nx, n.ny)
+        if not n.x then n.x, n.y = proj(n.nx, n.ny) end   -- (os que faltam já vêm no plano)
         U.nodes[#U.nodes + 1] = n
         U.bySlot[n.slot] = n
-        if n.kind ~= "NONE" then
+        if n.kind == "CURRENT" or n.kind == "REACHABLE" then      -- enquadra só os destinos
             x0, y0 = min(x0 or n.x, n.x), min(y0 or n.y, n.y)
             x1, y1 = max(x1 or n.x, n.x), max(y1 or n.y, n.y)
         end
     end
     U.active = true
+    U.flying = false
     Silence(true)
     C_Timer.After(0, function() if U.active then Silence(true) end end)   -- (FlightMapFrame carrega sob demanda)
     U.wasOpen = wm:IsOpen()
@@ -501,7 +655,8 @@ function M:OnEnable()
     ev:RegisterEvent("TAXIMAP_OPENED")
     ev:RegisterEvent("TAXIMAP_CLOSED")
     ev:RegisterEvent("ADDON_LOADED")
-    ev:SetScript("OnEvent", function(_, event, name)
+    pcall(ev.RegisterEvent, ev, "PLAYER_INTERACTION_MANAGER_FRAME_HIDE")
+    ev:SetScript("OnEvent", function(_, event, arg1)
         if event == "TAXIMAP_OPENED" then
             local ok, err = pcall(OnTaxiOpened)
             if not ok then
@@ -510,7 +665,10 @@ function M:OnEnable()
             end
         elseif event == "TAXIMAP_CLOSED" then
             OnTaxiClosed()
-        elseif name == "Blizzard_FlightMap" and U.active then
+        elseif event == "PLAYER_INTERACTION_MANAGER_FRAME_HIDE" then
+            local E = _G.Enum and Enum.PlayerInteractionType
+            if E and arg1 == E.TaxiNode then OnTaxiClosed() end
+        elseif event == "ADDON_LOADED" and arg1 == "Blizzard_FlightMap" and U.active then
             Silence(true)
         end
     end)

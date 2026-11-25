@@ -58,18 +58,6 @@ local QUALITY_NAMES = {
     [5] = "Lendário",
 }
 
-local ARMOR_FILTERS = {
-    { key = "all",     text = "Todos",     icon = "star" },
-    { key = "plate",   text = "Placa",     icon = "armor" },
-    { key = "mail",    text = "Malha",     icon = "armor" },
-    { key = "leather", text = "Couro",     icon = "hide" },
-    { key = "cloth",   text = "Tecido",    icon = "needle" },
-    { key = "weapon",  text = "Armas",     icon = "great" },
-    { key = "acc",     text = "Acess.",    icon = "shield" },
-    { key = "mats",    text = "Materiais", icon = "crystal" },
-    { key = "quest",   text = "Quest",     icon = "book" },
-}
-
 local ORIGIN_FILTERS = {
     { key = 0, text = "Todas Origens" },
     { key = 1, text = "Mundo Aberto" },
@@ -91,51 +79,6 @@ local QUALITY_FILTERS = {
     { q = 2, text = "Incomum+", gem = "GemEasy",    col = { 0.28, 0.94, 0.44 } },
     { q = 3, text = "Raro+",    gem = "GemTrivial", col = { 0.28, 0.68, 1.00 }, tint = { 0.25, 0.68, 1.00 } },
     { q = 4, text = "Épico",    gem = "GemTrivial", col = { 0.80, 0.48, 1.00 }, tint = { 0.80, 0.42, 1.00 } },
-}
-
-local ARMOR_SLOTS = {
-    { key = "all",      text = "Todas" },
-    { key = "head",     text = "Capacete" },
-    { key = "shoulder", text = "Ombros" },
-    { key = "chest",    text = "Torso" },
-    { key = "wrist",    text = "Braçadeiras" },
-    { key = "hand",     text = "Manoplas" },
-    { key = "waist",    text = "Cinto" },
-    { key = "legs",     text = "Calças" },
-    { key = "feet",     text = "Botas" },
-}
-
-local WEAPON_SLOTS = {
-    { key = "all",     text = "Todas" },
-    { key = "sword1h", text = "Espada 1M" },
-    { key = "sword2h", text = "Espada 2M" },
-    { key = "axe",     text = "Machados" },
-    { key = "mace",    text = "Maças" },
-    { key = "dagger",  text = "Adagas" },
-    { key = "staff",   text = "Cajados" },
-    { key = "ranged",  text = "Alcance" },
-    { key = "fist",    text = "Punho" },
-}
-
-local ACC_SLOTS = {
-    { key = "all",     text = "Todas" },
-    { key = "shield",  text = "Escudos" },
-    { key = "neck",    text = "Amuletos" },
-    { key = "cloak",   text = "Mantos" },
-    { key = "finger",  text = "Anéis" },
-    { key = "trinket", text = "Relíquias" },
-    { key = "offhand", text = "Mão Sec." },
-}
-
-local ALL_SLOTS = {
-    { key = "all",     text = "Todas" },
-    { key = "head",    text = "Capacete" },
-    { key = "chest",   text = "Torso" },
-    { key = "hand",    text = "Manoplas" },
-    { key = "sword2h", text = "Espada 2M" },
-    { key = "shield",  text = "Escudos" },
-    { key = "finger",  text = "Anéis" },
-    { key = "neck",    text = "Amuletos" },
 }
 
 -- Atlas de CraftFrames / CraftRings (idêntico a Professions.lua)
@@ -1000,17 +943,6 @@ end
 --------------------------------------------------------------------------------
 -- Layout Dinâmico do Catálogo & Pintura das Cartas
 --------------------------------------------------------------------------------
-local function ActiveSlotDefs()
-    if U.armor == "weapon" then return WEAPON_SLOTS, "SUBTIPO:" end
-    if U.armor == "acc"    then return ACC_SLOTS, "PEÇA (ACESS.):" end
-    if U.armor == "mats" or U.armor == "quest" then return nil, "PEÇA:" end
-    if U.armor == "all"    then return ALL_SLOTS, "PEÇA:" end
-    for _, a in ipairs(ARMOR_FILTERS) do
-        if a.key == U.armor then return ARMOR_SLOTS, "PEÇA (" .. Azaath.Upper(a.text) .. "):" end
-    end
-    return ARMOR_SLOTS, "PEÇA:"
-end
-
 local function RelayoutCatalog()
     local cat = U.catPanel
     if not cat then return end

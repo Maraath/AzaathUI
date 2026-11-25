@@ -55,9 +55,9 @@ end
 local BDO_SR = 18 -- meia-diagonal do losango da postura
 local BDO_SR_SPLIT = 21 -- Opção 2: losangos um pouco maiores, lado a lado
 local SPLIT_STANCE_SIZE, SPLIT_STANCE_GAP = 36, 6 -- Opção 2 fora da skin BDO
--- Losangos da postura: Opção 1 (BDO) e Opção 2 (split), em qualquer skin; a Reforged tem as abas dela
+-- Losangos da postura: Opção 1 (BDO) e Opção 2 (split), em qualquer skin; a Opção 4 (Reforged) tem as abas dela
 local function IsBDOStance()
-    if Azaath.IsAzaath and Azaath.IsAzaath() then return false end
+    if Azaath.IsReforgedBars and Azaath.IsReforgedBars() then return false end
     local ab = Azaath.db and Azaath.db.actionbars
     local l = ab and ab.layout
     return (l == "bdo" or l == "split") and Azaath.BDO_BAR ~= nil and Azaath.BDOSkinButton ~= nil
@@ -185,7 +185,7 @@ local function LayoutStanceBar()
     if showCount > 0 then
         local bs, sp = db.buttonSize, db.spacing
         local A = Azaath.AZAATH
-        if Azaath.IsAzaath and Azaath.IsAzaath() and A then
+        if Azaath.IsReforgedBars and Azaath.IsReforgedBars() and A then
             local t1, t2 = A.tabs[1], A.tabs[2]
             bs, sp = t1.w, t2.x - t1.x - t1.w
         end
@@ -591,7 +591,7 @@ function M:Build()
 end
 
 function M:ApplyLayout()
-    if not Azaath.db.hideBlizzard.actionBars then return end
+    if not Azaath.HideBlizzOn("actionBars") then return end
     Azaath:RunOutOfCombat(function()
         local ab = Azaath:GetModule("ActionBars")
         local stanceAnchor = ab and ab.topBar
@@ -615,21 +615,21 @@ function M:ApplyLayout()
                     local size = sdb.buttonSize or 28
                     local spacing = sdb.spacing or 3
                     stanceBar:SetScale((sdb.scale and sdb.scale > 0) and sdb.scale or 1)
-                    local hud = Azaath.IsAzaath and Azaath.IsAzaath() and Azaath.GetAzaathFrame and Azaath.GetAzaathFrame()
+                    -- Opção 4: abas CF1/CF2 pintadas no painel esquerdo (barra 2)
+                    local hud = Azaath.IsReforgedBars and Azaath.IsReforgedBars() and _G.AzaathUIBar2
                     local A = Azaath.AZAATH
                     if hud and A then
                         local t1, t2 = A.tabs[1], A.tabs[2]
                         size, spacing = t1.w, t2.x - t1.x - t1.w
                         stanceBar:SetScale(hud:GetScale())
                     end
-                    local split = Azaath.IsSplitLayout(self.db.layout) and not (Azaath.IsAzaath and Azaath.IsAzaath()) and not IsBDOStance()
+                    local split = Azaath.IsSplitLayout(self.db.layout) and not IsBDOStance()
                     if split then size, spacing = SPLIT_STANCE_SIZE, SPLIT_STANCE_GAP end
                     local bdoSplit = Azaath.IsSplitLayout(self.db.layout) and IsBDOStance() -- Opção 2 na skin BDO: 2 losangos lado a lado, à esquerda
                     stanceBar:SetHeight(size)
                     stanceBar:ClearAllPoints()
                     if hud and A then
-                        local t1 = A.tabs[1]
-                        stanceBar:SetPoint("TOPLEFT", hud, "TOPLEFT", t1.x, -t1.y)
+                        stanceBar:SetPoint("BOTTOMLEFT", hud, "TOPLEFT", 10, 4) -- em cima da faixa esquerda, alinhada aos botões
                         for _, b in ipairs(stanceButtons) do AzaathStanceStyle(b) end
                     elseif IsBDOStance() and stanceAnchor then
                         -- centralizada acima dos direcionais da barra 1
@@ -756,7 +756,7 @@ end
 
 function M:OnEnable()
     -- Com as barras da Blizzard restauradas, as delas já estão visíveis.
-    if not Azaath.db.hideBlizzard.actionBars then return end
+    if not Azaath.HideBlizzOn("actionBars") then return end
     if not Azaath.DisableBlizzardFrame then return end
     -- Enfileirado depois do ActionBars (mesma fila), então ab.topBar já existe.
     Azaath:RunOutOfCombat(function() self:Build() end)

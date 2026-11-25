@@ -2033,19 +2033,6 @@ function M:SelectChannel(chanKey, isUserAction)
     M:UpdateScrollVisual()
 end
 
-function M:CycleNextChannel()
-    local channels = { "FEED", "GERAL", "COMBAT", "SAY", "WHISPER", "GUILD", "PARTY", "RAID", "TRADE", "LFG" }
-    local curIdx = 1
-    for idx, key in ipairs(channels) do
-        if key == M.activeChannel then
-            curIdx = idx
-            break
-        end
-    end
-    local nextIdx = (curIdx % #channels) + 1
-    M:SelectChannel(channels[nextIdx], true)
-end
-
 function M:ApplyChannelToEditBox(editBox)
     if not editBox then return end
 

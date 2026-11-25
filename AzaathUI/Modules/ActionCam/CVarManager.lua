@@ -210,16 +210,29 @@ function AC.CapturePriorCVarSnapshot()
     db.priorCVarSnapshot = snap
 end
 
+-- Padrão de fábrica do cliente (C_CVar.GetCVarDefault); tabela fixa só se faltar.
+local function GetBlizzardDefault(name)
+    local getDef = _G.C_CVar and _G.C_CVar.GetCVarDefault or _G.GetCVarDefault
+    if getDef then
+        local ok, v = pcall(getDef, name)
+        if ok and v ~= nil then return v end
+    end
+    return BLIZZARD_DEFAULTS[name]
+end
+
+-- Desligar a Câmera Action devolve TODAS as CVars que ela mexe ao padrão da
+-- Blizzard (não ao snapshot, que pode guardar valores do próprio addon).
 function AC.RestorePriorCVars()
     local db = AC.DB()
-    local snap = db and db.priorCVarSnapshot
     restoringCVars = true
+    AC.StopCameraAnimations()
     for _, name in ipairs(MANAGED_CVARS) do
-        local targetVal = (snap and snap[name] ~= nil) and snap[name] or BLIZZARD_DEFAULTS[name]
+        local targetVal = GetBlizzardDefault(name)
         if targetVal ~= nil then
             SetCVar(name, targetVal)
         end
     end
+    if db then db.priorCVarSnapshot = nil end
     restoringCVars = false
 end
 
@@ -295,44 +308,21 @@ end
 --------------------------------------------------------------------------------
 AC.FADE_DURATION = 0.35
 
-local shoulderTweenFrame = CreateFrame("Frame")
-shoulderTweenFrame:Hide()
-local shoulderFrom = 0
-local shoulderTo = 0
-local shoulderStart = 0
-local shoulderGoal = 0
-
-shoulderTweenFrame:SetScript("OnUpdate", function(self)
-    local now = GetTime()
-    local t = (now - shoulderStart) / AC.FADE_DURATION
-    if t >= 1 then
-        SetCVar("test_cameraOverShoulder", shoulderTo)
-        self:Hide()
-        return
-    end
-    -- Smoothstep
-    local s = t * t * (3 - 2 * t)
-    local cur = shoulderFrom + (shoulderTo - shoulderFrom) * s
-    SetCVar("test_cameraOverShoulder", string.format("%.3f", cur))
-end)
+-- O ombro e a inclinação base são gravados só pelo diretor (CameraDirector.lua).
+-- Para a redução de velocidade pendente e faz o diretor esquecer o que já
+-- gravou, senão a restauração ao padrão seria ignorada por ele depois.
+function AC.StopCameraAnimations()
+    if AC.Cam then AC.Cam.Invalidate() end
+    cameraSpeedDipPending = false
+    cameraSpeedDipRestore = {}
+end
 
 function AC.GetCurrentShoulderTarget()
-    return shoulderGoal
+    return AC.Cam and AC.Cam.GetBaseShoulderGoal() or 0
 end
 
 function AC.SetShoulderOffset(targetOffset, instant)
-    targetOffset = tonumber(targetOffset) or 0
-    shoulderGoal = targetOffset
-    local cur = tonumber(GetCVar("test_cameraOverShoulder")) or 0
-    if instant or abs(cur - targetOffset) < 0.01 then
-        shoulderTweenFrame:Hide()
-        SetCVar("test_cameraOverShoulder", string.format("%.3f", targetOffset))
-        return
-    end
-    shoulderFrom = cur
-    shoulderTo = targetOffset
-    shoulderStart = GetTime()
-    shoulderTweenFrame:Show()
+    if AC.Cam then AC.Cam.SetBaseShoulder(targetOffset, instant) end
 end
 
 function AC.ApplyBDOCameraInertia()
@@ -372,7 +362,7 @@ function AC.ApplyDynamicPitch()
         local base = tonumber(db.dynamicPitchStrength) or 0.4
         local flying = min(1, base * (0.75 / 0.4))
         SetCVar("test_cameraDynamicPitch", 1)
-        SetCVar("test_cameraDynamicPitchBaseFovPad", string.format("%.2f", base))
+        -- a base (test_cameraDynamicPitchBaseFovPad) é do diretor de câmera
         SetCVar("test_cameraDynamicPitchBaseFovPadFlying", string.format("%.2f", flying))
         SetCVar("test_cameraDynamicPitchBaseFovPadDownScale", 0.25)
         SetCVar("test_cameraDynamicPitchSmartPivotCutoffDist", 39)
@@ -380,6 +370,7 @@ function AC.ApplyDynamicPitch()
     else
         SetCVar("test_cameraDynamicPitch", 0)
     end
+    if AC.Cam then AC.Cam.Wake() end
 end
 
 function AC.ApplyMouseLookCamera()
@@ -407,17 +398,16 @@ end
 function AC.SyncTargetFocusFromFocusUnit()
     local db = AC.DB()
     if not db or not db.enabled or not db.autofocusLockedTarget then
-        SetCVar("test_cameraTargetFocusEnemyEnable", 0)
+        AC.Cam.SetEnemyFocus(false)
         return
     end
     local hasHostileFocus = UnitExists("focus") and UnitCanAttack("player", "focus")
     if hasHostileFocus then
         AC.ApplyMotionSicknessGate(true)
-        SetCVar("test_cameraTargetFocusEnemyEnable", 1)
-        SetCVar("test_cameraTargetFocusEnemyStrengthYaw", 0.7)
-        SetCVar("test_cameraTargetFocusEnemyStrengthPitch", 0.2)
+        -- força entra suave (diretor) em vez de girar a câmera de uma vez
+        AC.Cam.SetEnemyFocus(true, 0.7, 0.2)
     else
-        SetCVar("test_cameraTargetFocusEnemyEnable", 0)
+        AC.Cam.SetEnemyFocus(false)
     end
 end
 

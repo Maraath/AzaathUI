@@ -407,13 +407,6 @@ end
 --------------------------------------------------------------------------------
 -- Construção da janela
 --------------------------------------------------------------------------------
-local function Ornament(parent, point, x, y, size, alpha)
-    local d = U.Tex(parent, "OVERLAY", MEDIA .. "Diamond", C.gold[1], C.gold[2], C.gold[3], alpha or 0.9)
-    d:SetSize(size or 10, size or 10)
-    d:SetPoint("CENTER", parent, point, x or 0, y or 0)
-    return d
-end
-
 local function FancyLine(parent, a)
     if U.Divider then return U.Divider(parent, a) end
     local l = U.Tex(parent, "ARTWORK")

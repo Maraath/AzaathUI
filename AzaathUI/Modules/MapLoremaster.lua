@@ -22,9 +22,9 @@ local GOLD  = { 0.92, 0.76, 0.36 }
 local GREEN = { 0.38, 0.92, 0.58 }
 local MUTED = { 0.58, 0.62, 0.64 }
 
-local PANEL_W = 320
+local PANEL_W = 340
 local ROW_H   = 46
-local MAX_ROWS = 11
+local MAX_ROWS = 18
 
 local api, C
 local U = { rows = {}, filter = "open", offset = 0, lastMap = nil }
@@ -84,8 +84,10 @@ function M:Refresh()
     local all, counts = qdb:GetZoneQuests(mapID or 0)
     U.zoneTitle:SetText((mapName or "Zona") .. format("  (%d/%d)", counts.completed, counts.total))
 
+    local pw = (U.panel and U.panel:GetWidth()) or PANEL_W
+    local ph = (U.panel and U.panel:GetHeight()) or 610
     local pct = counts.total > 0 and (counts.completed / counts.total) or 0
-    U.progFill:SetWidth(max(1, floor((PANEL_W - 36) * pct)))
+    U.progFill:SetWidth(max(1, floor((pw - 36) * pct)))
     U.progText:SetText(format("%d%% concluído · %d disp. · %d ativas",
         floor(pct * 100 + 0.5), counts.available, counts.active))
 
@@ -95,13 +97,14 @@ function M:Refresh()
         fb.txt:SetTextColor(on and CYAN[1] or MUTED[1], on and CYAN[2] or MUTED[2], on and CYAN[3] or MUTED[3])
     end
 
+    local visRows = min(MAX_ROWS, max(1, floor((ph - 124) / ROW_H)))
     local shownList = FilteredList(all)
-    local maxOff = max(0, #shownList - MAX_ROWS)
+    local maxOff = max(0, #shownList - visRows)
     U.offset = min(maxOff, max(0, U.offset))
 
     for i = 1, MAX_ROWS do
         local row = U.rows[i]
-        local item = shownList[U.offset + i]
+        local item = (i <= visRows) and shownList[U.offset + i] or nil
         if item then
             local st = STATUS_INFO[item.status] or STATUS_INFO.locked
             local q = item.quest
@@ -146,34 +149,31 @@ function M:Build(f, v, mapApi)
     api = mapApi
     C = Azaath:GetModule("MapChrome")
     if not C then return end
+    local side = (C.GetSideDock and C.GetSideDock()) or f
 
-    local p = CreateFrame("Frame", nil, f)
-    if C.PanelAnchor then C.PanelAnchor(p) else p:SetPoint("TOPLEFT", v, "TOPLEFT", 78, -24) end
-    p:SetSize(PANEL_W, 610)
-    p:SetFrameLevel(f:GetFrameLevel() + 32)
+    local p = CreateFrame("Frame", nil, side)
+    p:SetAllPoints(side)
+    p:SetFrameLevel(side:GetFrameLevel() + 2)
     p:EnableMouse(true)
     p:EnableMouseWheel(true)
     p:Hide()
-    C.PanelBox(p)
-
-    local gem = C.Tex(p, "PanelGem", 20, 12, "OVERLAY")
-    gem:SetPoint("CENTER", p, "TOP", 0, 0)
 
     local hdr = p:CreateFontString(nil, "OVERLAY"); C.Font(hdr, 15)
     hdr:SetPoint("TOPLEFT", 16, -14)
     hdr:SetTextColor(GOLD[1], GOLD[2], GOLD[3])
     hdr:SetText("LOREMASTER DA ZONA")
-    if C.PanelClose then C.PanelClose(p) end   -- X no canto, como nos outros painéis do estandarte
+    if C.PanelClose then C.PanelClose(p) end   -- X no canto, como nos outros painéis
 
     U.zoneTitle = p:CreateFontString(nil, "OVERLAY"); C.Font(U.zoneTitle, 13)
     U.zoneTitle:SetPoint("TOPLEFT", 16, -34)
-    U.zoneTitle:SetWidth(PANEL_W - 32)
+    U.zoneTitle:SetPoint("RIGHT", -16, 0)
     U.zoneTitle:SetJustifyH("LEFT")
     U.zoneTitle:SetTextColor(CREAM[1], CREAM[2], CREAM[3])
 
     local progBg = p:CreateTexture(nil, "ARTWORK")
     progBg:SetPoint("TOPLEFT", 16, -54)
-    progBg:SetSize(PANEL_W - 36, 8)
+    progBg:SetPoint("TOPRIGHT", -16, -54)
+    progBg:SetHeight(8)
     progBg:SetColorTexture(0.05, 0.08, 0.10, 0.95)
 
     U.progFill = p:CreateTexture(nil, "OVERLAY")
@@ -207,8 +207,9 @@ function M:Build(f, v, mapApi)
 
     for i = 1, MAX_ROWS do
         local row = CreateFrame("Button", nil, p)
-        row:SetSize(PANEL_W - 32, ROW_H - 2)
+        row:SetHeight(ROW_H - 2)
         row:SetPoint("TOPLEFT", 16, -114 - (i - 1) * ROW_H)
+        row:SetPoint("RIGHT", -16, 0)
 
         local bg = row:CreateTexture(nil, "BACKGROUND")
         bg:SetAllPoints()
@@ -283,4 +284,5 @@ function M:Build(f, v, mapApi)
     end)
 
     U.panel = p
+    side:HookScript("OnSizeChanged", function() if p:IsShown() then M:Refresh() end end)
 end
