@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.3
+
+- Releases are now packaged and uploaded to CurseForge automatically from GitHub.
+- Assorted fixes and improvements across the HUD, map, action camera and options.
+
 ## 0.1.2
 
 ### New

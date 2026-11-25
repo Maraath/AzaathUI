@@ -4,7 +4,7 @@
 ## Title: |cffe3c78bAzaath|rUI
 ## Notes: Interface completa de RPG de ação: bússola superior, unit frames e barras de ação centralizadas.
 ## Author: ProjectAzaath
-## Version: 0.1.2
+## Version: 0.1.3
 ## X-Curse-Project-ID: 1827002
 ## SavedVariables: AzaathUIDB, AzaathUIGatherDB, AzaathUIAuctionDB
 ## SavedVariablesPerCharacter: AzaathUICharDB
